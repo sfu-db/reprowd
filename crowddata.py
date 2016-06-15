@@ -15,7 +15,7 @@ class CrowdData:
         self.projects_presenter = {}
         self.task_presenter = {} 
 
-        # JN: I think we should require the user to input a presenter object (rather than a string). We can infer the class name of the object and use self.cd_name + the class name as the project name. Otherwise, the user will not be able to use a customized presenter 
+        # JN: I think we should require the user to input a presenter object (rather than a string). Otherwise, the user will not be able to use a customized presenter. We should discuss this point later. 
         presenter = ["img", "video", "sound"]
         for p in presenter:
             self.projects_presenter[p] = -1

@@ -26,7 +26,7 @@ class CrowdData:
         self.cddb = sqlite3.connect('crowddata.db')
         self.cur = self.cddb.cursor()
         exe_str = "CREATE TABLE " + self.cd_name + " (id integer, col_name varchar(100), value text DEFAULT NULL, PRIMARY KEY(id, col_name))"
-        # jn: what is the table has already existed in the database?
+        # jn: what if the table has already existed in the database?
         self.cur.execute(exe_str)
 
 

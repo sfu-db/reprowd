@@ -88,7 +88,7 @@ class CrowdData:
                     self.cd[output_col].append(eval(data[0][2]))
                     continue
 
-                # jn: this part does not look very elegant. Does pbclient provides an API that can return the return based on a given task id? If not, would be good to consider how to add one. 
+                # jn: this part does not look very elegant. Does pbclient provide an API that can return the task result based on a given task id? If not, would be good to consider how to add one. 
                 url = self.endpoint + "project/" + self.cd_name + "_" + self.task_presenter[str(d['id'])] + "/" + str(d['id']) + "/results.json"
                 print url
 

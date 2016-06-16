@@ -35,7 +35,7 @@ class CrowdData:
             self.cur.execute(exe_str)
         except:
             print "The table already exists, rerun other functions to recover data"
-
+            # shall we recover the data here, or by running other functions like createTask
 
                          # jn: see my previous comment on the presenter.
     def createTask(self, presenter, input_col = "data", output_col = "task", n_answers = 30, priority_0 = 0, quorum = 0):

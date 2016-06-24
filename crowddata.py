@@ -2,6 +2,7 @@ import pbclient
 import sqlite3
 import requests
 import time
+from collections import namedtuple
 
 global_class_name = []#used to prevent duplicated class name
 class CrowdData:
@@ -35,6 +36,8 @@ class CrowdData:
         except:
             pass
     #pybossa only has API that can return result by project id
+    #this can be optimized since this function also get other tasks' results but we
+    #only use a few of them
     def get_result(self, task):
         #task is a json stored in self.cd['task']
         result = []
@@ -56,6 +59,19 @@ class CrowdData:
             self.presenter['path'].append(j)
             self.presenter_projectid[i] = -1
             assert len(self.presenter['name']) == len(self.presenter['path'])
+
+    def map(self, func, output_col):
+        if output_col in self.cols:
+            print "output_col already exists"
+            return
+        n = len(self.cd['id_list'])
+        self.cd[output_col] = n * [None]
+        Row = namedtuple("Row", self.cols)
+        for i in range(n):
+            row = Row(*[self.cd[col][i] for col in self.cols])
+            self.cd[output_col][i] = func(row)
+        self.cols.append(output_col)
+        return self
 
     def createTask(self, presenter, input_col = "data", output_col = "task", n_answers = 30, priority_0 = 0, quorum = 0):
         if presenter not in self.presenter['name']:
@@ -86,7 +102,7 @@ class CrowdData:
                 self.cd[output_col][k] = eval(data[0][2])
                 continue
 
-            task_info = {'url_b': d}
+            task_info = d
             task = pbclient.create_task(self.presenter_projectid[presenter], task_info, n_answers, priority_0, quorum)
             exe_str = "INSERT INTO " + self.cd_name + " VALUES(?,?,?)"
             self.cur.execute(exe_str, (i, output_col, str(task.data), ))
@@ -152,7 +168,9 @@ class CrowdData:
 
 if __name__ == "__main__":
     data = ['http://farm4.static.flickr.com/3114/2524849923_1c191ef42e.jpg', 'http://www.7-star-admiral.com/0015_animals/0629_angora_hamster_clipart.jpg']
-    cd = CrowdData('http://localhost:7000/', '8df67fd6-9c9b-4d32-a6ab-b0b5175aba30', data, "test17", "test17", "test17")
-    cd.createTask("img", "data", "task", n_answers = 2).getTaskResult("task", "result", stop_condition = lambda result, n: len(result) >= n/2)
+    cd = CrowdData('http://localhost:7000/', '8df67fd6-9c9b-4d32-a6ab-b0b5175aba30', data, "test18", "test18", "test18")
+    def test(row):
+        return {'url_b':row.data}
+    cd.map(test, "presenter_data").createTask("img", "presenter_data", "task", n_answers = 2).getTaskResult("task", "result", stop_condition = lambda result, n: len(result) >= n/2)
     print cd.cd["task"]
     print cd.cd["result"]

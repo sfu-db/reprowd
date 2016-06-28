@@ -18,6 +18,7 @@ class CrowdData:
         self.cd_name = crowd_data_name
         self.short_name = short_name
         self.description = description
+        self.cache_result = {}
         id_list = [i for i in range(len(data))]
         self.cd = {'data':data, 'id_list':id_list}
         self.cols = ["data", "id_list"]
@@ -35,14 +36,20 @@ class CrowdData:
             self.cur.execute(exe_str)
         except:
             pass
-    #pybossa only has API that can return result by project id
-    #this can be optimized since this function also get other tasks' results but we
-    #only use a few of them
-    def get_result(self, task):
+    #once there is a request, firstly check if there is an updated result in cache_result
+    #if not, need to call pybossa get_taskruns to get the newest result
+    #meanwhile update all results of tasks in the same project
+    def get_result(self, task, n):
         #task is a json stored in self.cd['task']
         result = []
+        if str(task['id']) in self.cache_result and len(self.cache_result[str(task['id'])]) > n:
+            return self.cache_result[str(task['id'])]
         results = pbclient.get_taskruns(task['project_id'])
         for r in results:
+            if str(r.data['task_id']) not in self.cache_result:
+                self.cache_result[str(r.data['task_id'])] = []
+            if r.data not in self.cache_result[str(r.data['task_id'])]:
+                self.cache_result[str(r.data['task_id'])].append(r.data)
             if (r.data['task_id'] == task['id']):
                 result.append(r.data)
         return result
@@ -73,7 +80,7 @@ class CrowdData:
         self.cols.append(output_col)
         return self
 
-    def createTask(self, presenter, input_col = "data", output_col = "task", n_answers = 30, priority_0 = 0, quorum = 0):
+    def createTask(self, input_col = "data", output_col = "task", presenter = "img", n_answers = 30, priority_0 = 0, quorum = 0):
         if presenter not in self.presenter['name']:
             print "presenter doesn't exist"
             return
@@ -106,6 +113,7 @@ class CrowdData:
             task = pbclient.create_task(self.presenter_projectid[presenter], task_info, n_answers, priority_0, quorum)
             exe_str = "INSERT INTO " + self.cd_name + " VALUES(?,?,?)"
             self.cur.execute(exe_str, (i, output_col, str(task.data), ))
+            self.cddb.commit()
             self.cd[output_col][k] = task.data
 
 
@@ -120,7 +128,7 @@ class CrowdData:
             print "output already exisits" #see my previous commemt
             output_col = output_col + "_1"
         self.cols.append(output_col)
-        self.cd[output_col] = [None] * len(self.cd[input_col])
+        self.cd[output_col] = [[]] * len(self.cd[input_col])
         assert len(self.cd["id_list"]) == len(self.cd[input_col])
 
         complete = [0] * len(self.cd[input_col])#used to check stop condition
@@ -129,7 +137,7 @@ class CrowdData:
             for k, (i, d) in enumerate(zip(self.cd["id_list"], self.cd[input_col])):
                 if complete[k] == 1:
                     continue
-                if self.cd[output_col][k] == None:
+                if self.cd[output_col][k] == []:
                     exe_str = "SELECT * FROM " + self.cd_name + " WHERE id=? AND col_name=?"
                     self.cur.execute(exe_str, (i, output_col, ))
                     data = self.cur.fetchall()
@@ -142,23 +150,16 @@ class CrowdData:
                             rn += 1
                             continue
 
-                result = self.get_result(d)
+                result = self.get_result(d, len(self.cd[output_col][k]))
                 if len(result) > 0:
-                    if self.cd[output_col][k] == None:
-                        exe_str = "INSERT INTO " + self.cd_name + " VALUES(?,?,?)"
-                        self.cur.execute(exe_str, (i, output_col, str(result)))
-                        self.cd[output_col][k] = result
-                        if stop_condition(self.cd[output_col][k], d['n_answers']):
-                            complete[k] = 1
-                            rn += 1
-                            continue
-                    elif len(result) > len(self.cd[output_col][k]):
-                        exe_str = "UPDATE " + self.cd_name + " SET value=? WHERE id=? AND col_name=?"
-                        self.cur.execute(exe_str, (i, output_col, str(result)))
-                        if stop_condition(self.cd[output_col][k], d['n_answers']):
-                            complete[k] = 1
-                            rn += 1
-                            continue
+                    exe_str = "INSERT OR REPLACE INTO " + self.cd_name + " (id, col_name, value) VALUES(?,?,?)"
+                    self.cur.execute(exe_str, (i, output_col, str(result), ))
+                    self.cddb.commit()
+                    self.cd[output_col][k] = result
+                    if stop_condition(self.cd[output_col][k], d['n_answers']):
+                        complete[k] = 1
+                        rn += 1
+                        continue
             time.sleep(loop_interval)
         return self
 
@@ -168,9 +169,9 @@ class CrowdData:
 
 if __name__ == "__main__":
     data = ['http://farm4.static.flickr.com/3114/2524849923_1c191ef42e.jpg', 'http://www.7-star-admiral.com/0015_animals/0629_angora_hamster_clipart.jpg']
-    cd = CrowdData('http://localhost:7000/', '8df67fd6-9c9b-4d32-a6ab-b0b5175aba30', data, "test18", "test18", "test18")
+    cd = CrowdData('http://localhost:7000/', '8df67fd6-9c9b-4d32-a6ab-b0b5175aba30', data, "test24", "test24", "test24")
     def test(row):
         return {'url_b':row.data}
-    cd.map(test, "presenter_data").createTask("img", "presenter_data", "task", n_answers = 2).getTaskResult("task", "result", stop_condition = lambda result, n: len(result) >= n/2)
+    cd.map(test, "presenter_data").createTask("presenter_data", "task", "img", n_answers = 2).getTaskResult("task", "result", stop_condition = lambda result, n: len(result) >= n)
     print cd.cd["task"]
     print cd.cd["result"]

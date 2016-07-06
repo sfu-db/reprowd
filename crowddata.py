@@ -92,11 +92,18 @@ class CrowdData:
             output_col = output_col + "_1"
         self.cols.append(output_col)
         if self.presenter_projectid[presenter] == -1:
-            p = pbclient.create_project(self.cd_name + "_" + presenter, self.short_name + "_" + presenter, self.description + "_" + presenter)
-            self.presenter_projectid[presenter] = p.id
-            index = self.presenter['name'].index(presenter)
-            p.info['task_presenter'] = open(self.presenter['path'][index]).read()
-            pbclient.update_project(p)
+            name = self.cd_name + "_" + presenter
+            short_name = self.short_name + "_" + presenter
+            description = self.description + "_" +presenter
+            if len(pbclient.find_project(name = name)) > 0:
+                self.presenter_projectid[presenter] = pbclient.find_project(name = name)[0].id
+            else:
+                p = pbclient.create_project(name, short_name, description)
+                self.presenter_projectid[presenter] = p.id
+                index = self.presenter['name'].index(presenter)
+                task_presenter = open(self.presenter['path'][index]).read() + "pybossa.run('" + name + "'); })();</script>"
+                p.info['task_presenter'] = task_presenter
+                pbclient.update_project(p)
 
         self.cd[output_col] = [None] * len(self.cd[input_col])
         assert len(self.cd["id_list"]) == len(self.cd[input_col])
@@ -169,9 +176,9 @@ class CrowdData:
 
 if __name__ == "__main__":
     data = ['http://farm4.static.flickr.com/3114/2524849923_1c191ef42e.jpg', 'http://www.7-star-admiral.com/0015_animals/0629_angora_hamster_clipart.jpg']
-    cd = CrowdData('http://localhost:7000/', '8df67fd6-9c9b-4d32-a6ab-b0b5175aba30', data, "test24", "test24", "test24")
+    cd = CrowdData('http://localhost:7000/', '8df67fd6-9c9b-4d32-a6ab-b0b5175aba30', data, "test31", "test31", "test31")
     def test(row):
         return {'url_b':row.data}
-    cd.map(test, "presenter_data").createTask("presenter_data", "task", "img", n_answers = 2).getTaskResult("task", "result", stop_condition = lambda result, n: len(result) >= n)
+    cd.map(test, "presenter_data").createTask("presenter_data", "task", "img", n_answers = 1).getTaskResult("task", "result", stop_condition = lambda result, n: len(result) >= n)
     print cd.cd["task"]
     print cd.cd["result"]

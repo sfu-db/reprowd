@@ -29,7 +29,7 @@ def quicksort(data):
         if d['info'] == 'left':
             left.append(cd.cd['data'][i])
         else:
-            right.append(cd.cd['data'][id])
+            right.append(cd.cd['data'][i])
 
     p = Process(target = quicksort, args = (left,))
     p.start()

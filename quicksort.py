@@ -1,24 +1,35 @@
 from multiprocessing import Process, Manager
-import time
+import crowddata
+import random
 
-def quicksort(s):
-    if len(s) == 0:
+def map_presenter(row):
+    return {'pic1':row.data[0], 'pic2':row.data[1]}
+
+def quicksort(data):
+    if len(data) == 0:
         return
-    pivot = s[len(s) - 1]
-    s.pop()
+    pivot_index = random.randrange(0, len(data))
+    pivot = data.pop(pivot_index)
+    d = []
+    for i in data:
+        d.append({i, pivot})
     manager = Manager()
     left = manager.list()
     right = manager.list()
-    def compare(a):
-        time.sleep(2)
-        if a < pivot:
-            left.append(a)
+
+    cd = CrowdData('http://localhost:7000/', '8df67fd6-9c9b-4d32-a6ab-b0b5175aba30', d, "test24", "test24", "test24")
+    cd.map(map_presenter, "presenter_data").
+        createTask("presenter_data", "task", "compare", n_answers = 1).
+        getTaskResult("task", "result", stop_condition = lambda result, n: len(result) >= n)
+
+    #since all results are stored in cd['result']
+    #parallel is not used here
+
+    for i, d in enumerate(cd.cd['result']):
+        if d['info'] == 'left':
+            left.append(cd.cd['data'][i])
         else:
-            right.append(a)
-    for i in s:
-        p = Process(target = compare, args = (i,))
-        p.start()
-        p.join()
+            right.append(cd.cd['data'][id])
 
     p = Process(target = quicksort, args = (left,))
     p.start()
@@ -28,21 +39,11 @@ def quicksort(s):
     p.start()
     p.join()
 
-    #this part is really ugly
-    #what I want to do is change the input parameter of the function (like reference in C++)
-    #but I found that python does not support this
-    #like s = left + right, the outside s value will not be changed
-    #this must be optimized
-    del s[:]
+    del data[:]
     for i in left:
-        s.append(i)
-    s.append(pivot)
+        data.append(i)
+    data.append(pivot)
     for j in right:
-        s.append(j)
+        data.append(j)
 
     return
-
-if __name__ == '__main__':
-    s = [3,1,2,9,5,1,2,3,5,7]
-    quicksort(s)
-    print s

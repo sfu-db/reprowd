@@ -1,0 +1,7 @@
+[{
+    "name": "Image Label",
+    "short_name": "imglabel",
+    "description": "Help us to label an image",
+    "path": "presenter/img.html"
+}
+]

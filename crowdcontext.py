@@ -25,6 +25,30 @@ class CrowdContext:
         self.db = sqlite3.connect(cache_db)
         self.cursor = self.db.cursor()
 
+        self.start_id = 0
+        self.once_id = 0
+        try:
+            exe_str = "CREATE TABLE once (id integer, value BLOB DEFAULT NULL, PRIMARY KEY(id))"
+            self.cursor.execute(exe_str)
+        except:
+            pass
+
+    def once(self, func, d):
+        exe_str = "SELECT * FROM once where id=?"
+        self.cursor.execute(exe_str, (self.once_id,))
+        data = self.cursor.fetchall()
+        if data != []:
+            assert len(data) == 1
+            self.once_id += 1
+            return data[0][1]
+        else:
+            re = func(d)
+            # print "re"
+            # print re
+            exe_str = "INSERT INTO once VALUES(?,?)"
+            self.cursor.execute(exe_str, (self.once_id, str(re),))
+            self.once_id += 1
+            return re
 
     def crowddata(self, object_list, cache_table):
 
@@ -51,7 +75,7 @@ if __name__ == "__main__":
 
     object_list = ['http://farm4.static.flickr.com/3114/2524849923_1c191ef42e.jpg', \
                          'http://www.7-star-admiral.com/0015_animals/0629_angora_hamster_clipart.jpg']
-    cc = CrowdContext('http://localhost:7000/', '1588f716-d496-4bb2-b107-9f6b200cbfc9')
+    cc = CrowdContext('http://localhost:7000/', '8df67fd6-9c9b-4d32-a6ab-b0b5175aba30')
     crowddata = cc.crowddata(object_list, cache_table = "flickr10") \
                             .map_to_presenter("imglabel", map_func = lambda obj: {'url_b':obj}) \
                              .publish_task().get_result()
@@ -65,8 +89,3 @@ if __name__ == "__main__":
      #\
      # .map_to_presenter("imglabel", map_func = lambda obj: {'url_b':obj}) \
      # .publish_task().get_result()
-
-
-
-
-

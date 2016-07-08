@@ -13,7 +13,8 @@ class CrowdData:
 
         self.cc = crowd_context
 
-        self.table = {'id': range(len(object_list)), 'raw_object':object_list}
+        self.table = {'id': range(self.cc.start_id, self.cc.start_id + len(object_list)), 'raw_object':object_list}
+        self.cc.start_id += len(object_list)
         self.cols = ["id", "raw_object"]
         self.cache_table = cache_table
         try:
@@ -48,13 +49,14 @@ class CrowdData:
         pbclient = self.cc.pbclient
         if len(pbclient.find_project(short_name = self.presenter_name)) > 0: # the presenter has been created
             p= pbclient.find_project(short_name = self.presenter_name)[0]
+            self.project_id = p.id
         else: # create a new project with the presente
             p = pbclient.create_project(matched_presenter["name"], matched_presenter["short_name"], matched_presenter["description"])
-
-        self.project_id= p.id
-        task_presenter = open(matched_presenter["path"]).read() #+ "pybossa.run('" + matched_presenter["name"] + "'); })();</script>"
-        p.info['task_presenter'] = task_presenter
-        pbclient.update_project(p)
+            self.project_id = p.id
+            task_presenter = open(matched_presenter["path"]).read() + "pybossa.run('" + str(matched_presenter["short_name"]) + "'); })();</script>"
+            # print task_presenter
+            p.info['task_presenter'] = task_presenter
+            pbclient.update_project(p)
 
 
         # Map the raw_object col to the presenter_object col.
@@ -62,7 +64,8 @@ class CrowdData:
         self.table[output_col] = n * [None]
         for i, d in enumerate(self.table[input_col]):
             self.table[output_col][i] = map_func(d)
-
+        # print "map"
+        # print self.table[output_col]
         return self
 
 
@@ -94,7 +97,8 @@ class CrowdData:
                 assert len(data) == 1
                 self.table[output_col][k] = eval(data[0][2])
                 continue
-
+            # print d
+            # print self.project_id
             task = pbclient.create_task(self.project_id, d, n_answers, priority_0, quorum)
             exe_str = "INSERT INTO " + self.cache_table + " VALUES(?,?,?)"
             cursor.execute(exe_str, (i, output_col, str(task.data), ))
@@ -162,8 +166,8 @@ class CrowdData:
                     exe_str = "SELECT * FROM " + self.cache_table + " WHERE id=? AND col_name=?"
                     self.cc.cursor.execute(exe_str, (i, output_col, ))
                     data = self.cc.cursor.fetchall()
-                    print "data",
-                    print data
+                    # print "data",
+                    # print data
                     if data != []:
                         assert len(data) == 1
                         self.table[output_col][k] = eval(data[0][2])
@@ -171,9 +175,9 @@ class CrowdData:
                 cache_result = self.table[output_col][k]
                 new_result = taskid_to_result.get(task['id'], None)
 
-                print cache_result
-                print new_result
-                print
+                # print cache_result
+                # print new_result
+                # print
 
                 if new_result != None and (cache_result == None or len(cache_result) < len(new_result)):
                     exe_str = "INSERT OR REPLACE INTO " + self.cache_table + " (id, col_name, value) VALUES(?,?,?)"
@@ -185,4 +189,3 @@ class CrowdData:
                 break
             time.sleep(loop_interval)
         return self
-

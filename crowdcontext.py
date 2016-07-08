@@ -25,7 +25,6 @@ class CrowdContext:
         self.db = sqlite3.connect(cache_db)
         self.cursor = self.db.cursor()
 
-        self.start_id = 0
         self.once_id = 0
         try:
             exe_str = "CREATE TABLE once (id integer, value BLOB DEFAULT NULL, PRIMARY KEY(id))"

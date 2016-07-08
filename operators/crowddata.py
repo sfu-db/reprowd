@@ -13,8 +13,7 @@ class CrowdData:
 
         self.cc = crowd_context
 
-        self.table = {'id': range(self.cc.start_id, self.cc.start_id + len(object_list)), 'raw_object':object_list}
-        self.cc.start_id += len(object_list)
+        self.table = {'id': range(len(object_list)), 'raw_object':object_list}
         self.cols = ["id", "raw_object"]
         self.cache_table = cache_table
         try:

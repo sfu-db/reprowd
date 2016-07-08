@@ -2,7 +2,7 @@
 import crowdcontext
 import random
 
-def quicksort(data, cc):
+def quicksort(data, cc, n = 1):
     if len(data) <= 1:
         return
     pivot_index = int(cc.once(lambda d: random.randrange(0, len(d)), data))
@@ -16,7 +16,7 @@ def quicksort(data, cc):
     left = []
     right = []
     print object_list
-    crowddata = cc.crowddata(object_list, cache_table = "quicksort") \
+    crowddata = cc.crowddata(object_list, cache_table = "quicksort_batch" + str(n)) \
                             .map_to_presenter("quicksort", map_func = lambda obj: {'pic1': obj[0], 'pic2':obj[1]}) \
                              .publish_task().get_result()
     # print "123"
@@ -30,8 +30,8 @@ def quicksort(data, cc):
             right.append((crowddata.table['raw_object'][i])[0])
     # print left
     # print right
-    quicksort(left, cc)
-    quicksort(right, cc)
+    quicksort(left, cc, n + 1)
+    quicksort(right, cc, n + 2)
     # p = Process(target = quicksort, args = (left, cc, n + len(o)))
     # p.start()
     # p.join()

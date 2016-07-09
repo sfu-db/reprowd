@@ -9,5 +9,11 @@
     "short_name": "quicksort",
     "description": "Implement quick sort",
     "path": "presenter/compare.html"
+},
+{
+    "name": "Full Pair Join",
+    "short_name": "fullpairjoin",
+    "description": "Implement Full Pair Join",
+    "path": "presenter/join.html"
 }
 ]

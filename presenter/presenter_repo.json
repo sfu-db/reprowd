@@ -3,5 +3,17 @@
     "short_name": "imglabel",
     "description": "Help us to label an image",
     "path": "presenter/img.html"
+},
+{
+    "name": "Quick Sort",
+    "short_name": "quicksort",
+    "description": "Implement quick sort",
+    "path": "presenter/compare.html"
+},
+{
+    "name": "Full Pair Join",
+    "short_name": "fullpairjoin",
+    "description": "Implement Full Pair Join",
+    "path": "presenter/join.html"
 }
 ]

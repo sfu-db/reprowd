@@ -1,9 +1,6 @@
 import pbclient
 import sqlite3
-import requests
 import time
-import sys
-from collections import namedtuple
 
 
 class CrowdData:
@@ -162,18 +159,12 @@ class CrowdData:
                     exe_str = "SELECT * FROM " + self.cache_table + " WHERE id=? AND col_name=?"
                     self.cc.cursor.execute(exe_str, (i, output_col, ))
                     data = self.cc.cursor.fetchall()
-                    print "data",
-                    print data
                     if data != []:
                         assert len(data) == 1
                         self.table[output_col][k] = eval(data[0][2])
 
                 cache_result = self.table[output_col][k]
                 new_result = taskid_to_result.get(task['id'], None)
-
-                print cache_result
-                print new_result
-                print
 
                 if new_result != None and (cache_result == None or len(cache_result) < len(new_result)):
                     exe_str = "INSERT OR REPLACE INTO " + self.cache_table + " (id, col_name, value) VALUES(?,?,?)"

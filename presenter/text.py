@@ -15,9 +15,9 @@ class TextCmp (BasePresenter):
         <h1 id="question"><span id="i18n_question">Do these two things match?</span></h1> <!-- The question will be loaded here -->
         <div id="answer"> <!-- Start DIV for the submission buttons -->
             <!-- If the user clicks this button, the saved answer will be value="yes"-->
-            <button class="btn btn-success btn-answer" value='Match'><i class="icon icon-white icon-thumbs-up"></i>Match</button>
+            <button class="btn btn-success btn-answer" value='Yes'><i class="icon icon-white icon-thumbs-up"></i>Match</button>
             <!-- If the user clicks this button, the saved answer will be value="no"-->
-            <button class="btn btn-danger btn-answer" value='Unmatch'><i class="icon icon-white icon-thumbs-down"></i> Unmatch</button>
+            <button class="btn btn-danger btn-answer" value='No'><i class="icon icon-white icon-thumbs-down"></i> Unmatch</button>
         </div><!-- End of DIV for the submission buttons -->
         <!-- Feedback items for the user -->
         <p><span id="i18n_working_task">You are working now on task:</span> <span id="task-id" class="label label-warning">#</span></p>
@@ -194,10 +194,9 @@ pybossa.presentTask(function(task, deferred) {
         pybossaNotify("Thanks! You have participated in all available tasks. Enjoy some of your time!", true, "info");
     };
 
+
+});
  pybossa.run('textcmp');
  })();
  </script>
         """
-
-
-

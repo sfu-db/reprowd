@@ -12,5 +12,4 @@ if __name__ == "__main__":
     #print crowddata.table["raw_object"]
     #print crowddata.table["presenter_object"]
    # print crowddata.table["task"]
-    print crowddata.table["result"]
-
+    print crowddata

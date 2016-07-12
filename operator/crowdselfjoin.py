@@ -43,13 +43,6 @@ class CrowdSelfJoin:
 
         matched_pairs = []
         for object_pair, result in zip(crowddata.table["raw_object"], crowddata.table['result']):
-            if result.info == 'YES':
+            if result['info'] == 'Yes':
                 matched_pairs.append(object_pair)
         return matched_pairs
-
-
-
-
-
-
-

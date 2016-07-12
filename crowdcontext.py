@@ -1,4 +1,5 @@
-from crowdbase.operators.crowddata import *
+from crowdbase.operator.crowddata import *
+from crowdbase.operator.crowdselfjoin import CrowdSelfJoin
 import sqlite3
 import pbclient
 import json

@@ -1,9 +1,3 @@
-import sys, os
-from os.path import dirname, abspath
-
-sys.path.insert(0,    dirname(dirname(abspath(__file__))))
-
-
 from crowdbase.operators.crowddata import *
 import sqlite3
 import pbclient
@@ -20,7 +14,6 @@ class CrowdContext:
         self.pbclient = pbclient
 
         CrowdContext.all_cache_tables[cache_db] = []
-        self.presenter_repo = json.loads(open("presenter/presenter_repo.json").read())
 
         self.db = sqlite3.connect(cache_db)
         self.cursor = self.db.cursor()
@@ -54,32 +47,4 @@ class CrowdContext:
 
 
 
-if __name__ == "__main__":
 
-    print os.path.abspath(os.path.dirname(__file__))
-
-    #object_list = ['http://farm4.static.flickr.com/3114/2524849923_1c191ef42e.jpg', \
-                         'http://www.7-star-admiral.com/0015_animals/0629_angora_hamster_clipart.jpg']
-    #cc = CrowdContext('http://localhost:7000/', '1588f716-d496-4bb2-b107-9f6b200cbfc9')
-    #crowddata = cc.CrowdData(object_list, cache_table = "flickr10") \
-    #                        .map_to_presenter("imglabel", map_func = lambda obj: {'url_b':obj}) \
-
-    object_list = [['iphone5', 'the fifth iphone'], ['ipad2', 'the second ipad']]
-    cc = CrowdContext('http://localhost:7000/', '8df67fd6-9c9b-4d32-a6ab-b0b5175aba30')
-    crowddata = cc.crowddata(object_list, cache_table = "fullpairjoin") \
-                            .map_to_presenter("fullpairjoin", map_func = lambda obj: {'obj1':obj[0], 'obj2':obj[1]}) \
-                             .publish_task().get_result()
-
-    #print crowddata.table["raw_object"]
-    #print crowddata.table["presenter_object"]
-   # print crowddata.table["task"]
-    print crowddata.table["result"]
-
-    #cc.CrowdSelfJoin(object_list, cache_table) \
-   #     .map_to_presenter("paircmp") \
-   #     .join()
-
-
-     #\
-     # .map_to_presenter("imglabel", map_func = lambda obj: {'url_b':obj}) \
-     # .publish_task().get_result()

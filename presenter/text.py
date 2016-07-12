@@ -1,20 +1,23 @@
-<!--
-    Task DOM for loading the Flickr Images
-    It uses the class="skeleton" to identify the elements that belong to the
-    task.
--->
-<div class="row skeleton"> <!-- Start Skeleton Row-->
+# -*- coding: utf-8 -*-
+
+from crowdbase.presenter.base import *
+
+
+
+class TextCmp (BasePresenter):
+    def __init__(self):
+        self.name = "Text Compare"
+        self.short_name = "textcmp"
+        self.description = "Help us to compare texts"
+        self.template = """
+        <div class="row skeleton"> <!-- Start Skeleton Row-->
     <div class="col-md-6 "><!-- Start of Question and Submission DIV (column) -->
-        <h1 id="question"><span id="i18n_question">Which one is larger?</span></h1> <!-- The question will be loaded here -->
+        <h1 id="question"><span id="i18n_question">Do these two things match?</span></h1> <!-- The question will be loaded here -->
         <div id="answer"> <!-- Start DIV for the submission buttons -->
             <!-- If the user clicks this button, the saved answer will be value="yes"-->
-            <button class="btn btn-success btn-answer" value='Up'><i class="icon icon-white icon-thumbs-up"></i> Up</button>
+            <button class="btn btn-success btn-answer" value='Match'><i class="icon icon-white icon-thumbs-up"></i>Match</button>
             <!-- If the user clicks this button, the saved answer will be value="no"-->
-            <button class="btn btn-danger btn-answer" value='Down'><i class="icon icon-white icon-thumbs-down"></i> Down</button>
-            <!-- If the user clicks this button, the saved answer will be value="NoPhoto"-->
-            <!-- <button class="btn btn-answer" value='NoPhoto'><i class="icon icon-exclamation"></i> <span id="i18n_no_photo">No photo</span></button> -->
-            <!-- If the user clicks this button, the saved answer will be value="NotKnown"-->
-            <!-- <button class="btn btn-answer" value='NotKnown'><i class="icon icon-white icon-question-sign"></i> <span id="i18n_i_dont_know">I don't know</span></button> -->
+            <button class="btn btn-danger btn-answer" value='Unmatch'><i class="icon icon-white icon-thumbs-down"></i> Unmatch</button>
         </div><!-- End of DIV for the submission buttons -->
         <!-- Feedback items for the user -->
         <p><span id="i18n_working_task">You are working now on task:</span> <span id="task-id" class="label label-warning">#</span></p>
@@ -37,12 +40,15 @@
         <div id="disqus_thread" style="margin-top:5px;display:none"></div>
     </div><!-- End of Question and Submission DIV (column) -->
     <div class="col-md-6"><!-- Start of Photo DIV (column) -->
-        <a id="photo-link1" href="#">
+        <!-- <a id="photo-link" href="#">
             <img id="photo" src="http://i.imgur.com/GeHxzb7.png" style="max-width=100%">
-        </a>
-        <a id="photo-link2" href="#">
-            <img id="photo" src="http://i.imgur.com/GeHxzb7.png" style="max-width=100%">
-        </a>
+        </a> -->
+        <table border="1">
+          <tr id = "object-list">
+            <td>Loading</td>
+            <td>Loading</td>
+          </tr>
+        </table>
     </div><!-- End of Photo DIV (columnt) -->
 </div><!-- End of Skeleton Row -->
 
@@ -88,7 +94,7 @@ var messages = {"en": {
                         "i18n_tasks_from": "tasks from",
                         "i18n_show_comments": "Show comments:",
                         "i18n_hide_comments": "Hide comments:",
-                        "i18n_question": "Which one is larger?",
+                        "i18n_question": "Do these two things match?",
                       },
                 "es": {
                         "i18n_welldone": "Bien hecho!",
@@ -140,26 +146,14 @@ function loadUserProgress() {
 pybossa.taskLoaded(function(task, deferred) {
     if ( !$.isEmptyObject(task) ) {
         // load image from flickr
-        console.log(task)
-        var img1 = $('<img />');
-        var img2 = $('<img />');
-        img1.load(function() {
-            // continue as soon as the image is loaded
-            deferred.resolve(task);
-            pybossaNotify("", false, "loading");
-        });
-        img2.load(function() {
-            // continue as soon as the image is loaded
-            deferred.resolve(task);
-            pybossaNotify("", false, "loading");
-        });
-        // console.log(task.info.url_b);
-        img1.attr('src', task.info.pic1).css('height', 460);
-        img1.addClass('img-thumbnail');
-        img2.attr('src', task.info.pic2).css('height', 460);
-        img2.addClass('img-thumbnail');
-        task.info.image1 = img1;
-        task.info.image2 = img2;
+        deferred.resolve(task);
+        console.log(task.info);
+
+        var tr = $('<tr>' +
+                    '<td>' + '<font size="20">' + task.info.obj1 + '</font></td>' +
+                    '<td>' + '<font size="20">' +task.info.obj2 + '</font></td>' +
+                    '</tr>');
+        task.info.tr = tr;
     }
     else {
         console.log("123");
@@ -171,8 +165,8 @@ pybossa.presentTask(function(task, deferred) {
     if ( !$.isEmptyObject(task) ) {
         loadUserProgress();
         i18n_translate();
-        $('#photo-link1').html('').append(task.info.image1);
-        $('#photo-link2').html('').append(task.info.image2)
+        // $('#photo-link').html('').append(task.info.image);
+        $('#object-list').html('').append(task.info.tr);
         // $("#photo-link").attr("href", task.info.link);
         $('#task-id').html(task.id);
         $('.btn-answer').off('click').on('click', function(evt) {
@@ -198,5 +192,12 @@ pybossa.presentTask(function(task, deferred) {
         $(".skeleton").hide();
         pybossaNotify("Loading picture...", false, "loading");
         pybossaNotify("Thanks! You have participated in all available tasks. Enjoy some of your time!", true, "info");
-    }
-});
+    };
+
+ pybossa.run('textcmp');
+ })();
+ </script>
+        """
+
+
+

@@ -20,39 +20,27 @@ class CrowdData:
             pass
 
 
-    def map_to_presenter(self, presenter_name, map_func=lambda object: object):
+    def map_to_presenter(self, presenter, map_func=lambda object: object):
 
         input_col = "raw_object"
         output_col = "presenter_object"
         self.cols.append(output_col)
-        self.presenter_name = presenter_name
-
-        # Check if there exists an project that has used the presenter
-        matched_presenter = None
-        for presenter in self.cc.presenter_repo:
-            if presenter["short_name"] == self.presenter_name :
-                matched_presenter = presenter
-                break
-
-        # The presenter has not been created
-        if matched_presenter == None:
-            raise Exception("""'%s' does not exist.
-                Please choose one from %s.
-                Or, you can use the addPresenter method in CrowdContext to add a new one"""
-                %(presenter, ",".join(self.cc.presenter_repo)))
 
         # Get the project id correponding to the input presenter (if not exists, create a new one)
         pbclient = self.cc.pbclient
-        if len(pbclient.find_project(short_name = self.presenter_name)) > 0: # the presenter has been created
-            p= pbclient.find_project(short_name = self.presenter_name)[0]
+        if len(pbclient.find_project(short_name = presenter.short_name)) > 0: # the presenter has been created
+            p= pbclient.find_project(short_name = presenter.short_name)[0]
+            self.project_id = p.id
+        elif  len(pbclient.find_project(name = presenter.name)) > 0: # the presenter has been created
+            p= pbclient.find_project(name = presenter.name)[0]
             self.project_id = p.id
         else: # create a new project with the presente
-            p = pbclient.create_project(matched_presenter["name"], matched_presenter["short_name"], matched_presenter["description"])
+            p = pbclient.create_project(presenter.name, presenter.short_name, presenter.description)
             self.project_id = p.id
-            task_presenter = open(matched_presenter["path"]).read() + "pybossa.run('" + str(matched_presenter["short_name"]) + "'); })();</script>"
-            # print task_presenter
-            p.info['task_presenter'] = task_presenter
-            pbclient.update_project(p)
+
+        p.info['task_presenter'] = presenter.template
+        p.long_description = presenter.description
+        pbclient.update_project(p)
 
 
         # Map the raw_object col to the presenter_object col.
@@ -60,8 +48,7 @@ class CrowdData:
         self.table[output_col] = n * [None]
         for i, d in enumerate(self.table[input_col]):
             self.table[output_col][i] = map_func(d)
-        # print "map"
-        # print self.table[output_col]
+
         return self
 
 

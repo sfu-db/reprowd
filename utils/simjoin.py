@@ -20,6 +20,35 @@ class InvertedIndex:
         return docids
 
 
+def jaccard(s, t):
+    intersect = len(set(s) & set(t))
+    union = len(s) + len(t) - intersect
+    if union == 0:
+        return 0
+    else:
+        return intersect *1.0/union
+
+def editsim(s, t):
+
+    n = len(t)
+    m = len(s)
+
+    dist = [[0 for i in range(m+1)] for j in range(n+1)]
+
+    for i in range(1,n+1):
+        dist[i][0] = dist[i-1][0] + 1
+
+    for j in range(1,m+1):
+        dist[0][j] = dist[0][j-1] + 1
+
+    for i in range(1,n+1):
+        for j in range(1,m+1):
+           dist[i][j] = min(dist[i-1][j]+1, \
+                                          dist[i][j-1]+1,
+                                dist[i-1][j-1]+1 if s[j-1] == t[i-1] else dist[i-1][j-1])
+
+    return 1- dist[n][m]*1.0/max(m, n)
+
 
 def alphnum(s):
     sep = re.compile(r"[\W]")
@@ -163,10 +192,10 @@ class SimJoin:
         return joined
 
 
-    def join(self, k_o_list, threshold, weight_on = False):
+    def join(self, other_k_o_list, threshold, weight_on = False):
 
         k_o_list1= self.k_o_list
-        k_o_list2 = k_o_list
+        k_o_list2 = other_k_o_list
 
         # Compute IDF for each word
         k_list = [k for k, o in k_o_list1] + [k for k, o in k_o_list2]

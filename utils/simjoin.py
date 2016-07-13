@@ -206,12 +206,12 @@ class SimJoin:
         # Sort the elements in each joinkey in decreasing order of IDF
         sk_list1 = []
         for k, o in k_o_list1:
-            sk = sorted(k, key=lambda x: (self._get_idf(o), o), reverse=True)
+            sk = sorted(k, key=lambda x: (self._get_idf(x), x), reverse=True)
             sk_list1.append(sk)
 
         sk_list2 = []
         for k, o in k_o_list2:
-            sk = sorted(k, key=lambda x: (self._get_idf(o), o), reverse=True)
+            sk = sorted(k, key=lambda x: (self._get_idf(x), x), reverse=True)
             sk_list2.append(sk)
 
 

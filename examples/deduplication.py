@@ -15,34 +15,35 @@ if __name__ == "__main__":
                          'Apple iPod shuffle USB Cable']
 
     cc = CrowdContext('http://localhost:7000/', '1588f716-d496-4bb2-b107-9f6b200cbfc9')
-    matches = cc.CrowdJoin(object_list, cache_table = "fullpairjoin") \
-                            .set_presenter(TextCmp(), map_func = lambda obj_pair: {'obj1':obj_pair[0], 'obj2':obj_pair[1]}) \
-                             .selfjoin()
 
-    print "CrowdJoin (all pairs)"
+    print "=========== CrowdJoin (all pairs) ==========="
+    def map_func(obj_pair):
+        return {'obj1':obj_pair[0], 'obj2':obj_pair[1]}
+    matches = cc.CrowdJoin(object_list, cache_table = "dedup_pairjoin") \
+                            .set_presenter(TextCmp(), map_func) \
+                             .join()
+
     print matches
 
-
-    matches = cc.CrowdJoin(object_list, cache_table = "pairjoin_with_simjoin") \
-                            .set_presenter(TextCmp(), map_func = lambda obj_pair: {'obj1':obj_pair[0], 'obj2':obj_pair[1]}) \
+    print "\n=========== CrowdJoin (simjoin) ==========="
+    matches = cc.CrowdJoin(object_list, cache_table = "dedup_pairjoin_simjoin") \
+                            .set_presenter(TextCmp(), map_func) \
                             .set_simjoin(lambda x: wordset(x), 0.4) \
-                            .selfjoin()
+                            .join()
 
 
-    print "CrowdJoin (simjoin)"
     print matches
 
-
+    print "\n======= CrowdJoin (simjoin & matcher) ======"
     def matcher(o1, o2):
         return jaccard(wordset(o1), wordset(o2)) >= 0.8 or editsim(o1, o2) >= 0.8
 
-    matches = cc.CrowdJoin(object_list, cache_table = "pairjoin_with_simjoin_matcher") \
-                            .set_presenter(TextCmp(), map_func = lambda obj_pair: {'obj1':obj_pair[0], 'obj2':obj_pair[1]}) \
+    matches = cc.CrowdJoin(object_list, cache_table = "dedup_pairjoin_simjoin_matcher") \
+                            .set_presenter(TextCmp(), map_func) \
                             .set_simjoin(lambda x: wordset(x), 0.4) \
                             .set_matcher(matcher) \
-                            .selfjoin()
+                            .join()
 
-    print "CrowdJoin (simjoin & matcher)"
     print matches
 
     #print crowddata.table["raw_object"]

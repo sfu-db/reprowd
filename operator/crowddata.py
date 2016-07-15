@@ -13,11 +13,11 @@ class CrowdData:
         self.table = {'id': range(len(object_list)), 'raw_object':object_list}
         self.cols = ["id", "raw_object"]
         self.cache_table = cache_table
-        try:
-            exe_str = "CREATE TABLE " + self.cache_table + " (id integer, col_name BLOB, value BLOB DEFAULT NULL, PRIMARY KEY(id, col_name))"
+
+        if cache_table not in self.cc.list_cache_tables():
+            exe_str = "CREATE TABLE '%s' (id integer, col_name BLOB, value BLOB DEFAULT NULL, PRIMARY KEY(id, col_name))" %(cache_table)
             self.cc.cursor.execute(exe_str)
-        except:
-            pass
+
 
 
     def map_to_presenter(self, presenter, map_func=lambda object: object):
@@ -73,7 +73,7 @@ class CrowdData:
         assert len(self.table["id"]) == len(self.table[input_col])
 
         for k, (i, d) in enumerate(zip(self.table["id"], self.table[input_col])):
-            exe_str = "SELECT * FROM " + self.cache_table + " WHERE id=? AND col_name=?"
+            exe_str = "SELECT * FROM '%s' WHERE id=? AND col_name=?" %(self.cache_table)
             cursor.execute(exe_str, (i, output_col, ))
             data = cursor.fetchall()
             if data != []:
@@ -83,7 +83,7 @@ class CrowdData:
             # print d
             # print self.project_id
             task = pbclient.create_task(self.project_id, d, n_answers, priority_0, quorum)
-            exe_str = "INSERT INTO " + self.cache_table + " VALUES(?,?,?)"
+            exe_str = "INSERT INTO '%s' VALUES(?,?,?)" %(self.cache_table)
             cursor.execute(exe_str, (i, output_col, str(task.data), ))
             db.commit()
             self.table[output_col][k] = task.data
@@ -98,9 +98,15 @@ class CrowdData:
         limit = 100
         last_id = 0
         taskid_to_result = {}
+        i = 0
         while True:
             #results = pbclient.get_taskruns(project_id, limit = limit, last_id = last_taskid)
-            results = pbclient.get_taskruns(project_id, limit = limit, last_id = last_id)
+            i += 1
+            try:
+                results = pbclient.get_taskruns(project_id, limit = limit, last_id = last_id)
+            except TypeError:
+                print "Cannot connect the server. Try again..."
+                break
             if len(results) == 0:
                 break
             for result in results:
@@ -146,7 +152,7 @@ class CrowdData:
             for k, (i, task) in enumerate(zip(self.table["id"], self.table[input_col])):
 
                 if self.table[output_col][k] == None:
-                    exe_str = "SELECT * FROM " + self.cache_table + " WHERE id=? AND col_name=?"
+                    exe_str = "SELECT * FROM '%s' WHERE id=? AND col_name=?" %(self.cache_table)
                     self.cc.cursor.execute(exe_str, (i, output_col, ))
                     data = self.cc.cursor.fetchall()
                     if data != []:

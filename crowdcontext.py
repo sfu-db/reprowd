@@ -42,16 +42,16 @@ class CrowdContext:
         elif newname in cache_tables:
             print "'%s'  has been used. Please choose another name. " %(newname)
         else:
-            exe_str = "ALTER TABLE %s RENAME TO %s" %(oldname, newname)
+            exe_str = "ALTER TABLE '%s' RENAME TO '%s'" %(oldname, newname)
             self.cursor.execute(exe_str)
             self.db.commit()
 
-    def del_cache_tables(self, *names):
+    def delete_cache_tables(self, *names):
         for name in names:
             if name not in self.list_cache_tables():
-                print "'%s' does not exist" %(name)
+                print "'%s' does not exist " %(name)
             else:
-                exe_str = "DROP TABLE %s" %(name)
+                exe_str = "DROP TABLE '%s'" %(name)
                 self.cursor.execute(exe_str)
                 self.db.commit()
 

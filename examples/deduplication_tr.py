@@ -30,8 +30,6 @@ if __name__ == "__main__":
 
     print matches
 
-    print cc.list_cache_tables()
-    cc.delete_cache_tables('dedup_tr_pairjoin_simjoin_1')
 
     print "\n=========== CrowdJoin (simjoin&transitivity) ==========="
     matches = cc.CrowdJoin(object_list, cache_table = "dedup_tr_pairjoin_simjoin") \

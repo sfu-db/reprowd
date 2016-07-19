@@ -65,7 +65,7 @@ class CrowdJoin:
 
     def join(self, other_object_list = None):
         if not self.presenter_flag:
-            raise Exception("""There is no presenter specified. Please call the 'set_presenter' func to specifiy a presenter.""")
+            raise Exception("""Presenter has not been specified. Please use set_presenter() func to specifiy a presenter.""")
 
         pairs = None
         # Apply fast simjoin algorithms to remove obviously non-matching pairs
@@ -108,7 +108,7 @@ class CrowdJoin:
 
             # Return the matching pairs identified by the crowd and the matcher
             crowdsourced_pairs = []
-            for object_pair, result in zip(crowddata.table["raw_object"], crowddata.table['result']):
+            for object_pair, result in zip(crowddata.table["object"], crowddata.table['result']):
                 if result['info'] == 'Yes':
                     crowdsourced_pairs.append(object_pair)
             return {"all": crowdsourced_pairs+matching_pairs, "crowd":crowdsourced_pairs, "machine": matching_pairs}
@@ -134,7 +134,8 @@ class CrowdJoin:
 
         crowdsourced_pairs = []
         pair_crowdlabel = [] #  a list of published pairs and crowdsourced labels
-        batch_id = 1
+
+        crowddata = self.cc.CrowdData([], self.cache_table).map_to_presenter(self.presenter, self.map_func)
         while True:
             must_crowdsourced_pairs = self._must_crowdsourced_pairs(sorted_pairs, pair_crowdlabel)
 
@@ -143,13 +144,10 @@ class CrowdJoin:
                 break
 
             # publish tasks and wait for results
-            crowddata = self.cc.CrowdData(must_crowdsourced_pairs, "%s_%d" %(self.cache_table, batch_id)) \
-                      .map_to_presenter(self.presenter, self.map_func) \
-                      .publish_task(self.assignment).get_result()
-            batch_id += 1
+            crowddata = crowddata.clear().append(must_crowdsourced_pairs).publish_task(self.assignment).get_result()
 
             # Once all the results are collected, add the newly labled pairs into pair_crowdlabel
-            for object_pair, result in zip(crowddata.table["raw_object"], crowddata.table['result']):
+            for object_pair, result in zip(crowddata.table["object"], crowddata.table['result']):
                 if result['info'] == 'Yes':
                     crowdsourced_pairs.append(object_pair)
                     pair_crowdlabel.append((object_pair, CrowdJoin.MATCHING))

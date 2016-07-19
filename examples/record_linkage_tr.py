@@ -16,7 +16,7 @@ if __name__ == "__main__":
                          {'name': 'Apple iPod shuffle USB Cable', 'price': 19}]
 
     cc = CrowdContext('http://localhost:7000/', '1588f716-d496-4bb2-b107-9f6b200cbfc9')
-    cc.delete_cache_tables("rl_tr_pairjoin_1", "rl_tr_pairjoin_2", "rl_tr_pairjoin_3", "rl_tr_pairjoin_4", "rl_tr_pairjoin_with_simjoin_1", "rl_tr_pairjoin_with_simjoin_2", "rl_tr_pairjoin_with_simjoin_3")
+
     print "=========== CrowdJoin (all pairs&transitivity) ==========="
 
     def map_func(obj_pair):

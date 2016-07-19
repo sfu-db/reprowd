@@ -20,7 +20,7 @@ class CrowdContext:
         self.cursor = self.db.cursor()
 
 
-    def list_cache_tables(self):
+    def show_tables(self):
         exe_str = "SELECT * FROM sqlite_master WHERE type='table'"
         self.cursor.execute(exe_str)
         results = self.cursor.fetchall()
@@ -29,26 +29,26 @@ class CrowdContext:
             tables.append(result[1])
         return tables
 
-    def print_cache_tables(self):
-        tables = self.list_cache_tables()
+    def print_tables(self):
+        tables = self.show_tables()
         tables.sort()
         for table in tables:
             print "*", table
 
-    def rename_cache_table(self, oldname, newname):
-        cache_tables =  self.list_cache_tables()
-        if oldname not in cache_tables:
+    def rename_table(self, oldname, newname):
+        tables =  self.show_tables()
+        if oldname not in tables:
             print "'%s' does not exist. " %(oldname)
-        elif newname in cache_tables:
+        elif newname in tables:
             print "'%s'  has been used. Please choose another name. " %(newname)
         else:
             exe_str = "ALTER TABLE '%s' RENAME TO '%s'" %(oldname, newname)
             self.cursor.execute(exe_str)
             self.db.commit()
 
-    def delete_cache_tables(self, *names):
+    def delete_tables(self, *names):
         for name in names:
-            if name not in self.list_cache_tables():
+            if name not in self.show_tables():
                 print "'%s' does not exist " %(name)
             else:
                 exe_str = "DROP TABLE '%s'" %(name)

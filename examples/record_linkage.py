@@ -38,15 +38,15 @@ if __name__ == "__main__":
     print matches
 
 
-    print "\n=== CrowdJoin (simjoin&unmatcher) ==========="
+    print "\n=== CrowdJoin (simjoin&nonmatcher) ==========="
     # remove the product pairs where one product is twice more expensive than the other
-    def unmatcher(o1, o2):
+    def nonmatcher(o1, o2):
         return (o1['price']*2 < o2['price']) or (o2['price']*2 < o1['price'])
 
     matches = cc.CrowdJoin(object_list1, cache_table = "rl_pairjoin_with_simjoin_unmatcher") \
                             .set_presenter(TextCmp(), map_func) \
                             .set_simjoin(lambda x: wordset(x['name']), 0.4) \
-                            .set_unmatcher(unmatcher) \
+                            .set_nonmatcher(nonmatcher) \
                             .join(object_list2)
     print matches
 
@@ -57,7 +57,7 @@ if __name__ == "__main__":
     matches = cc.CrowdJoin(object_list1, cache_table = "rl_pairjoin_with_simjoin_unmatcher_matcher") \
                             .set_presenter(TextCmp(), map_func) \
                             .set_simjoin(lambda x: wordset(x['name']), 0.4) \
-                            .set_unmatcher(unmatcher) \
+                            .set_nonmatcher(nonmatcher) \
                             .set_matcher(matcher) \
                             .join(object_list2)
     print matches

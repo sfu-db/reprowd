@@ -43,18 +43,18 @@ if __name__ == "__main__":
     def nonmatcher(o1, o2):
         return (o1['price']*2 < o2['price']) or (o2['price']*2 < o1['price'])
 
-    matches = cc.CrowdJoin(object_list1, cache_table = "rl_pairjoin_with_simjoin_unmatcher") \
+    matches = cc.CrowdJoin(object_list1, cache_table = "rl_pairjoin_with_simjoin_nonmatcher") \
                             .set_presenter(TextCmp(), map_func) \
                             .set_simjoin(lambda x: wordset(x['name']), 0.4) \
                             .set_nonmatcher(nonmatcher) \
                             .join(object_list2)
     print matches
 
-    print "\n=== CrowdJoin (simjoin&unmatcher&matcher) ==="
+    print "\n=== CrowdJoin (simjoin&nonmatcher&matcher) ==="
     def matcher(o1, o2):
         return jaccard(wordset(o1['name']), wordset(o2['name'])) >= 0.8 or editsim(o1['name'], o2['name']) >= 0.8
 
-    matches = cc.CrowdJoin(object_list1, cache_table = "rl_pairjoin_with_simjoin_unmatcher_matcher") \
+    matches = cc.CrowdJoin(object_list1, cache_table = "rl_pairjoin_with_simjoin_nonmatcher_matcher") \
                             .set_presenter(TextCmp(), map_func) \
                             .set_simjoin(lambda x: wordset(x['name']), 0.4) \
                             .set_nonmatcher(nonmatcher) \

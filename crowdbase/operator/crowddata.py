@@ -2,11 +2,12 @@ import pbclient
 import sqlite3
 import time
 from collections import namedtuple
-
+from crowdbase.quality.mv import *
+from crowdbase.quality.em import make_em_answer
 
 class CrowdData:
     ALL_COMPLETE, MV_COMPLETE = (0, 1) # stop_conditions
-
+    MV, EM = (0, 1)
     def __init__(self, object_list, cache_table, crowd_context):
 
         self.cc = crowd_context
@@ -118,10 +119,16 @@ class CrowdData:
                 self.table[output_col][k] = eval(data[0][2])
                 continue
             task = pbclient.create_task(self.project_id, self.map_func(d), n_answers, priority_0, quorum)
+            cached_task = {"n_answers": task.data["n_answers"], \
+                           "quorum": task.data["quorum"], \
+                           "create_time": task.data["created"], \
+                           "project_id": task.data["project_id"], \
+                           "id": task.data["id"], \
+                           "priority": task.data["priority_0"]}
             exe_str = "INSERT INTO '%s' VALUES(?,?,?)" %(self.cache_table)
-            cursor.execute(exe_str, (i, output_col, str(task.data), ))
+            cursor.execute(exe_str, (i, output_col, str(cached_task), ))
             db.commit()
-            self.table[output_col][k] = task.data
+            self.table[output_col][k] = cached_task
 
         return self
 
@@ -145,7 +152,17 @@ class CrowdData:
             if len(results) == 0:
                 break
             for result in results:
-                taskid_to_result[result.data['task_id']] = result.data
+                cached_result = {"result_info": result.data["info"], \
+                                 "task_id": result.data["task_id"], \
+                                 "finish_time": result.data["finish_time"], \
+                                 "project_id": result.data["project_id"], \
+                                #  "id": result.data["id"], \
+                                 "worker_id": str(result.data["user_id"]) if result.data["user_id"] else result.data["user_ip"]}
+
+                if cached_result["task_id"] not in taskid_to_result:
+                    taskid_to_result[cached_result["task_id"]] = [cached_result]
+                else:
+                    taskid_to_result[cached_result["task_id"]].append(cached_result)
             last_id += limit
 
         return taskid_to_result
@@ -206,3 +223,21 @@ class CrowdData:
             time.sleep(loop_interval)
 
         return self
+
+    def quality_control(self, method = MV):
+        input_col = "result"
+        output_col = "quality_control_result"
+        if input_col not in self.cols:
+            raise Exception("No result for quality control."
+                                "Please run get_result first.")
+        if output_col not in self.cols:
+            self.cols.append(output_col)
+
+        if method == CrowdData.MV:
+            self.table[output_col] = make_mv_answer(self.table[input_col])
+            return self
+        elif method == CrowdData.EM:
+            self.table[output_col] = make_em_answer(self.table[input_col])
+            return self
+        else:
+            raise Exception("The %s is not defined." %(method))

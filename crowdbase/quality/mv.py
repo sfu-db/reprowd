@@ -1,19 +1,17 @@
-def make_mv_answer(crowd):
-    mv_answer = {}
+def make_mv_answer(task_result):
+    mv_answer = [None] * len(task_result)
     # For each task
-    for (i, r) in zip(crowd.table["id"], crowd.table["result"]):
-        if str(i) not in mv_answer:
-            mv_answer[str(i)] = ""
+    for i, r in enumerate(task_result):
         if len(r) == 0 :
-            mv_answer[str(i)] = ""
+            mv_answer[i] = ""
         else:
             count = {}
             # For each assignment
             for j in r:
-                if j["info"] in count:
-                    count[j["info"]] += 1
+                if j["result_info"] in count:
+                    count[j["result_info"]] += 1
                 else:
-                    count[j["info"]] = 1
+                    count[j["result_info"]] = 1
             # Find the mode
             max_count = -1
             current_answer = ""
@@ -21,6 +19,5 @@ def make_mv_answer(crowd):
                 if value > max_count:
                     max_count = value
                     current_answer = key
-            mv_answer[str(i)] = current_answer
-
+            mv_answer[i] = current_answer
     return mv_answer

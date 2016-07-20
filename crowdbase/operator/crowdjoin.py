@@ -291,13 +291,3 @@ class CrowdJoin:
                 return CrowdJoin.NONMATCHING
             else:
                 return CrowdJoin.UNKNOWN
-
-
-
-
-
-
-
-
-
-

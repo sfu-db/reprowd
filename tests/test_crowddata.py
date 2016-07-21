@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from .context import crowdbase, ENDPOINT, API_KEY
+from .context import crowdbase
 from crowdbase.crowdcontext import CrowdContext
 
 import unittest
@@ -12,15 +12,13 @@ class CrowdDataTestSuite(unittest.TestCase):
 
     @classmethod
     def setup_class(cls):
-        cache_db = "crowdbase_test.db"
+        local_db = "crowdbase_test.db"
         cls.fname = "crowdbase_test.db"
-
         if os.path.isfile(cls.fname):
             os.remove(cls.fname)
-
         assert os.path.isfile(cls.fname) == False
+        cls.cc = CrowdContext(local_db = local_db)
 
-        cls.cc = CrowdContext(ENDPOINT, API_KEY, cache_db)
 
     @classmethod
     def tearDown(cls):
@@ -58,11 +56,11 @@ class CrowdDataTestSuite(unittest.TestCase):
             assert True
 
         # duplicate tables
-        self.cc.CrowdData([], "test 1")
+        try:
+            self.cc.CrowdData([], "test 1")
+        except:
+            assert True
         assert len(self.cc.show_tables()) == 4
-
-
-
 
 
 if __name__ == '__main__':

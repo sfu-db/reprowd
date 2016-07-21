@@ -25,13 +25,7 @@ class CrowdData:
                 exe_str = "CREATE TABLE '%s' (id integer, col_name BLOB, value BLOB DEFAULT NULL, PRIMARY KEY(id, col_name))" %(cache_table)
                 self.cc.cursor.execute(exe_str)
             except sqlite3.OperationalError:
-                print "\"%s\" is an invalid name. Please avoid using \' in the name" %(cache_table)
                 raise
-
-
-
-
-
 
 
     def append(self, object_list):

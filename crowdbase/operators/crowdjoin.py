@@ -1,5 +1,6 @@
 from crowdbase.utils.simjoin import SimJoin, jaccard, editsim
 from crowdbase.utils.union_find import UnionFind
+from crowdbase.operators.crowddata import CrowdData
 from sets import ImmutableSet
 import pbclient
 import sqlite3
@@ -25,6 +26,8 @@ class CrowdJoin:
         self.simjoin_flag = False
         self.transitivity_flag = False
         self.assignment = 1
+
+        self.crowddata = CrowdData(object_list, cache_table, self.cc)
 
 
     def set_presenter(self, presenter, map_func):
@@ -102,7 +105,7 @@ class CrowdJoin:
 
         if not self.transitivity_flag:
             # Ask the crowd to label the remaining pairs
-            crowddata = self.cc.CrowdData(unknown_pairs, self.cache_table) \
+            self.crowddata.append(unknown_pairs)\
                       .map_to_presenter(self.presenter, self.map_func) \
                       .publish_task(self.assignment).get_result()
 
@@ -135,7 +138,7 @@ class CrowdJoin:
         crowdsourced_pairs = []
         pair_crowdlabel = [] #  a list of published pairs and crowdsourced labels
 
-        crowddata = self.cc.CrowdData([], self.cache_table).map_to_presenter(self.presenter, self.map_func)
+        crowddata = self.crowddata.map_to_presenter(self.presenter, self.map_func)
         while True:
             must_crowdsourced_pairs = self._must_crowdsourced_pairs(sorted_pairs, pair_crowdlabel)
 

@@ -3,35 +3,27 @@ from math import log
 
 
 # Make an Expectation Maximization answer for a task
-def make_em_answer(task_obj, model_spec):
+def make_em_answer(task_result):
 
     example_to_worker_label = {}
     worker_to_example_label = {}
-    label_set = []
     answers = []
 
     # Label set
     label_set = []
 
     # Build up initial variables for em
-    responses = model_spec.response_model.objects.filter(
-        task__task_type=task_obj.task_type)
-    for response in responses:
+    for result in task_result:
 
-            answer_list = json.loads(response.content)
-            for point_id in answer_list.keys():
+        for r in result:
 
-                worker_id = response.worker.worker_id
-                unique_id = point_id
-                current_label = answer_list[point_id]
+            example_to_worker_label.setdefault(r["task_id"], []).append(
+                (r["worker_id"], r["result_info"]))
+            worker_to_example_label.setdefault(r["worker_id"], []).append(
+                (r["task_id"], r["result_info"]))
 
-                example_to_worker_label.setdefault(unique_id, []).append(
-                    (worker_id, current_label))
-                worker_to_example_label.setdefault(worker_id, []).append(
-                    (unique_id, current_label))
-
-                if current_label not in label_set :
-                    label_set.append(current_label)
+            if r["result_info"] not in label_set:
+                label_set.append(r["result_info"])
 
     # EM algorithm
     iterations = 20
@@ -41,22 +33,21 @@ def make_em_answer(task_obj, model_spec):
                    label_set).ExpectationMaximization(iterations)
 
     # Gather answer
-    point_ids = json.loads(task_obj.responses.all()[0].content).keys()
-    answer_label = {}
+    em_answer = [None] * len(task_result)
 
-    for point_id in point_ids:
-        unique_id = point_id
-        soft_label = ans[unique_id]
-        maxv = 0
-        cur_label = label_set[0]
-        for label, weight in soft_label.items():
-            if weight > maxv:
-                maxv = weight
-                cur_label = label
-        answer_label[point_id] = float(cur_label)
-
-    return json.dumps(answer_label)
-
+    for i, r in enumerate(task_result):
+        if len(r) == 0:
+            em_answer[i] = ""
+        else:
+            soft_label = ans[r[0]["task_id"]]
+            maxv = 0
+            cur_label = label_set[0]
+            for label, weight in soft_label.items():
+                if weight > maxv:
+                    maxv = weight
+                    cur_label = label
+            em_answer[i] = cur_label
+    return em_answer
 
 class EM:
     def __init__(self, example_to_worker_label, worker_to_example_label, label_set):

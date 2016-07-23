@@ -1,4 +1,4 @@
-CrowdContext Module
+crowdbase.crowdcontext module
 ===================
 
 .. automodule:: crowdbase.crowdcontext

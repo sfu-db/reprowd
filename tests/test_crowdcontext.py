@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from .context import crowdbase
+from .context import crowdbase, init_context, destroy_context, delete_project
 from crowdbase.crowdcontext import CrowdContext
 
 import unittest
@@ -29,41 +29,9 @@ class CrowdContextTestSuite(unittest.TestCase):
         os.environ["CROWDBASE_API_KEY"] = api_backup
 
 
-    def test1(self):
-        local_db = "crowdbase.test.db"
-        CrowdContext.remove_db_file(local_db)
-        assert os.path.isfile(local_db) == False
-        cc = CrowdContext(local_db = local_db)
-        assert os.path.isfile(local_db) == True
-
-        cc.CrowdData([], "test1")
-        assert True
-
-        assert os.path.isfile(local_db) == True
-        CrowdContext.remove_db_file(local_db)
-
-
-    def test2(self):
-        local_db = "crowdbase.test.db"
-        CrowdContext.remove_db_file(local_db)
-        assert os.path.isfile(local_db) == False
-        cc = CrowdContext(local_db = local_db)
-        assert os.path.isfile(local_db) == True
-
-        cc.CrowdData([], "test2")
-
-        assert os.path.isfile(local_db) == True
-        CrowdContext.remove_db_file(local_db)
-        assert True
-
 
     def test_table_manipulation(self):
-        # Create a crowdbase context
-        local_db = "crowdbase.test.db"
-        CrowdContext.remove_db_file(local_db)
-        assert os.path.isfile(local_db) == False
-        cc = CrowdContext(local_db = local_db)
-        assert os.path.isfile(local_db) == True
+        cc = init_context()
 
         assert len(cc.show_tables()) == 0
         cc.CrowdData([], "test1")
@@ -101,19 +69,11 @@ class CrowdContextTestSuite(unittest.TestCase):
         cc.delete_tmp_tables()
         assert len(cc.show_tables()) == 0
 
-        # Clear up the context
-        assert os.path.isfile(local_db) == True
-        CrowdContext.remove_db_file(local_db)
-        assert True
+        destroy_context()
 
 
     def test_operator_initialization(self):
-        # Create a crowdbase context
-        local_db = "crowdbase.test.db"
-        CrowdContext.remove_db_file(local_db)
-        assert os.path.isfile(local_db) == False
-        cc = CrowdContext(local_db = local_db)
-        assert os.path.isfile(local_db) == True
+        cc = init_context()
 
         cc.CrowdData([], "testdata1")
         try:
@@ -154,10 +114,7 @@ class CrowdContextTestSuite(unittest.TestCase):
         assert cc.delete_table("testjoin2") == True
         assert len(cc.show_tables()) == 0
 
-        # Clear up the context
-        assert os.path.isfile(local_db) == True
-        CrowdContext.remove_db_file(local_db)
-        assert True
+        destroy_context()
 
 
 

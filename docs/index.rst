@@ -12,7 +12,8 @@ Contents:
 .. toctree::
    :maxdepth: 2
 
-   context
+   crowdcontext
+   operators
 
 Indices and tables
 ==================

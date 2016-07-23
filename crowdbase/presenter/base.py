@@ -14,3 +14,7 @@ class BasePresenter:
     def set_template(self, template):
         self.template = template
         return self
+
+    def set_short_name(self, short_name):
+        self.short_name = short_name
+        return self

@@ -196,7 +196,7 @@ pybossa.presentTask(function(task, deferred) {
     }
 });
 
- pybossa.run('imglabel');
+ pybossa.run('${short_name}');
  })();
  </script>
         """
@@ -410,7 +410,7 @@ pybossa.presentTask(function(task, deferred) {
     }
 });
 
- pybossa.run('imgcmp');
+ pybossa.run('${short_name}');
  })();
  </script>
         """

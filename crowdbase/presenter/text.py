@@ -196,7 +196,7 @@ pybossa.presentTask(function(task, deferred) {
 
 
 });
- pybossa.run('textcmp');
+ pybossa.run('${short_name}');
  })();
  </script>
         """

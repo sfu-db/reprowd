@@ -28,7 +28,7 @@ def _quicksort(crowddata, object_list):
 
 def quicksort(object_list, cache_table, seed, cc):
     random.seed(seed)  # This is to gaurantee that quicksort is determinintic.
-    crowddata = cc.CrowdData([], cache_table = cache_table) \
+    crowddata = cc.CrowdData([], table_name = cache_table) \
                             .map_to_presenter(ImageCmp(), map_func = lambda obj: {'pic1': obj[0], 'pic2':obj[1]})
     _quicksort(crowddata, object_list)
 
@@ -43,7 +43,7 @@ if __name__ == "__main__":
             "http://www.kidsmathgamesonline.com/images/pictures/numbers600/number6.jpg",
             "http://www.kidsmathgamesonline.com/images/pictures/numbers600/number5.jpg"]
 
-
+    cc.delete_table("quicksort")
     print "Unsorted Data:"
     print "\n".join(object_list)
 

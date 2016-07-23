@@ -1,237 +1,351 @@
+# -*- coding: utf-8 -*-
+
 import pbclient
 import sqlite3
 import time
+import dateutil.parser
+from string import Template
 from collections import namedtuple
-from crowdbase.quality.mv import *
-from crowdbase.quality.em import make_em_answer
+from crowdbase.quality.mv import MV
+from crowdbase.quality.em import EM
+
 
 class CrowdData:
-    ALL_COMPLETE, MV_COMPLETE = (0, 1) # stop_conditions
-    MV, EM = (0, 1)
-    def __init__(self, object_list, cache_table, crowd_context):
 
-        self.cc = crowd_context
+    """
+        A CrowdData is the basic abstraction in CrowdBase. It maps the process of
+        crowdsourcing as manipulating a tabular dataset. For example, collecting results
+        from the crowd can be considered as adding a new column `result` to the data.
 
-        self.table = {'id': range(len(object_list)), 'object':object_list}
+        Furthermore, it provides fault recovery through the data manipulating process.
+        That is, when the program crashes, the user can simply rerun the program as if it
+        has never crashed.
+    """
+
+    def __init__(self, object_list, table_name, crowdcontext):
+        """
+        It is not recommended to use the constructor to create a CrowdData.
+        Please use :func:`crowdbase.crowdcontext.CrowdContext.CrowdData` instead.
+        """
+        self.cc = crowdcontext
+        self.data = {'id': range(len(object_list)), 'object':object_list}
         self.start_id = len(object_list)
         self.cols = ["id", "object"]
-        self.cache_table = cache_table
+        self.table_name = table_name
         self.project_id = None
+        self.project_short_name = None
+        self.n_assignments = 1
 
         if type(object_list) is not list:
-            raise Exception("\"object_list\" should be a list ")
-
-        if cache_table not in self.cc.show_tables():
+            raise Exception("'object_list' should be a list")
+        if table_name not in self.cc.show_tables():
             try:
-                exe_str = "CREATE TABLE '%s' (id integer, col_name BLOB, value BLOB DEFAULT NULL, PRIMARY KEY(id, col_name))" %(cache_table)
+                exe_str = "CREATE TABLE '%s' (id integer, col_name BLOB, value BLOB DEFAULT NULL, PRIMARY KEY(id, col_name))" %(table_name)
                 self.cc.cursor.execute(exe_str)
             except sqlite3.OperationalError:
                 raise
 
 
-    def append(self, object_list):
-        self.table['object'].extend(object_list)
-        self.table['id'].extend(range(self.start_id, self.start_id+len(object_list)))
-        self.start_id += len(object_list)
-        return self
+    def set_presenter(self, presenter, map_func = None):
+        """
+        Specify a presenter for showing tasks to the crowd.
 
+        :param presenter: A Presenter object (e.g., :class:`crowdbase.presenter.test.TextCmp`).
+        :param map_func:  map_func() transforms each object (in the *object_list*) to the data format the presenter requires.
+                                        If map_func() is not specified, it will use the default map_func = lambda obj: obj
 
-    def filter(self, func):
-        n = len(self.table['id'])
-        print self.cols
-        Row = namedtuple("Row", self.cols)
-        new_table = []
-        for i in range(n):
-            row = Row(*[self.table[col][i] for col in self.cols])
-            if func(row):
-                new_table.append(row)
+        >>> object_list = ["image1.jpg", "image2.jpg"]
+        >>> cc.CrowdData(object_list, table_name = "tmp")
+        ...   .set_presenter(ImageLabel(), map_func = lambda obj: {'url_b':obj}) #doctest: +ELLIPSIS
+        <crowdbase.operators.crowddata.CrowdData instance at 0x...>
+        >>> cc.delete_tmp_tables()
+        1
+        """
+        self.map_func = lambda obj: obj if map_func == None else map_func
 
-        for col in self.cols:
-            self.table[col] = []
-            for row in new_table:
-                self.table[col].append(getattr(row,col))
-
-        return self
-
-    def clear(self):
-        for col in self.cols:
-            self.table[col] = []
-        return self
-
-    def map_to_presenter(self, presenter, map_func=lambda object: object):
-
-        self.map_func = map_func
-
-        # Get the project id correponding to the input presenter (if not exists, create a new one)
+        # Get the project id correponding to the input presenter
+        # (if it does not exists, create a new one)
         pbclient = self.cc.pbclient
-        if len(pbclient.find_project(short_name = presenter.short_name)) > 0: # the presenter has been created
-            p= pbclient.find_project(short_name = presenter.short_name)[0]
-            self.project_id = p.id
-        elif  len(pbclient.find_project(name = presenter.name)) > 0: # the presenter has been created
-            p= pbclient.find_project(name = presenter.name)[0]
-            self.project_id = p.id
-        else: # create a new project with the presente
-            p = pbclient.create_project(presenter.name, presenter.short_name, presenter.description)
-            self.project_id = p.id
+        try:
+            if len(pbclient.find_project(short_name = presenter.short_name)) > 0:
+                # the presenter has been created
+                p= pbclient.find_project(short_name = presenter.short_name)[0]
+            elif  len(pbclient.find_project(name = presenter.name)) > 0:
+                # the presenter has been created
+                p= pbclient.find_project(name = presenter.name)[0]
+            else:
+                # create a new project with the presente
+                p = pbclient.create_project(presenter.name, presenter.short_name, presenter.description)
 
-        p.info['task_presenter'] = presenter.template
-        p.long_description = presenter.description
-        pbclient.update_project(p)
+            self.project_id = p.id
+            self.project_short_name = presenter.short_name
+            p.info['task_presenter'] = Template(presenter.template).safe_substitute(short_name = presenter.short_name)
+            p.long_description = presenter.description
+            p.name = presenter.name
+            p.short_name = presenter.short_name
+            pbclient.update_project(p)
+        except:
+            print p
+            raise Exception("Cannot connect the server. Please try again...")
 
         return self
 
-
-
-    def publish_task(self, n_answers = 1, priority_0 = 0, quorum = 0):
+    def publish_task(self, n_assignments = 1, priority = 0):
 
         if self.project_id == None:
             raise Exception("Cannot publish tasks without specifying a presenter."
-                                    "Please use map_to_presenter() to specify a presenter.")
+                                    "Please use set_presenter() to specify a presenter.")
 
         input_col = "object"
         output_col = "task"
         if output_col not in self.cols:
             self.cols.append(output_col)
-            self.table[output_col] = [None] * len(self.table["id"])
+            self.data[output_col] = [None] * len(self.data["id"])
         else:
-            self.table[output_col].extend([None]*(len(self.table["id"] ) - len(self.table[output_col])))
+            self.data[output_col].extend([None]*(len(self.data["id"] ) - len(self.data[output_col])))
 
-        self.n_answers = n_answers
+        self.n_assignments = n_assignments
 
         cursor = self.cc.cursor
         db = self.cc.db
         pbclient = self.cc.pbclient
 
-
-
-        for k, (i, d) in enumerate(zip(self.table["id"], self.table[input_col])):
-            exe_str = "SELECT * FROM '%s' WHERE id=? AND col_name=?" %(self.cache_table)
+        for k, (i, d) in enumerate(zip(self.data["id"], self.data[input_col])):
+            exe_str = "SELECT * FROM '%s' WHERE id=? AND col_name=?" %(self.table_name)
             cursor.execute(exe_str, (i, output_col, ))
             data = cursor.fetchall()
             if data != []:
                 assert len(data) == 1
-                self.table[output_col][k] = eval(data[0][2])
+                self.data[output_col][k] = eval(data[0][2])
                 continue
-            task = pbclient.create_task(self.project_id, self.map_func(d), n_answers, priority_0, quorum)
-            cached_task = {"n_answers": task.data["n_answers"], \
-                           "quorum": task.data["quorum"], \
-                           "create_time": task.data["created"], \
-                           "project_id": task.data["project_id"], \
-                           "id": task.data["id"], \
-                           "priority": task.data["priority_0"]}
-            exe_str = "INSERT INTO '%s' VALUES(?,?,?)" %(self.cache_table)
-            cursor.execute(exe_str, (i, output_col, str(cached_task), ))
+            task = pbclient.create_task(self.project_id, self.map_func(d), n_assignments, priority)
+
+            format_task = {"id": task.data["id"], \
+                            "task_link": self.__task_link(task.data["link"], self.project_short_name, task.data["id"]), \
+                            "task_data": task.data["info"], \
+                            "n_assignments": task.data["n_answers"], \
+                            "priority": task.data["priority_0"], \
+                            "project_id": task.data["project_id"], \
+                           "create_time": task.data["created"]
+                           }
+
+            # BUG. need to test some special chateracters, e.g., single quote.
+            exe_str = "INSERT INTO '%s' VALUES(?,?,?)" %(self.table_name)
+            cursor.execute(exe_str, (i, output_col, str(format_task), ))
             db.commit()
-            self.table[output_col][k] = cached_task
+            self.data[output_col][k] = format_task
 
         return self
 
 
+    def append(self, object_list):
+        self.data['object'].extend(object_list)
+        self.data['id'].extend(range(self.start_id, self.start_id+len(object_list)))
+        self.start_id += len(object_list)
+        return self
 
-    def _fetch_result(self, project_id):
 
+    def filter(self, func):
+        n = len(self.data['id'])
+        Row = namedtuple("Row", self.cols)
+        new_table = []
+        for i in range(n):
+            row = Row(*[self.data[col][i] for col in self.cols])
+            if func(row):
+                new_table.append(row)
+        for col in self.cols:
+            self.data[col] = []
+            for row in new_table:
+                self.data[col].append(getattr(row,col))
+        return self
+
+
+    def clear(self):
+        for col in self.cols:
+            self.data[col] = []
+        return self
+
+
+
+
+
+    def __task_link(self, raw_text, task_id, project_short_name):
+            pattern = r" href=\'(?P<endpoint>[ -~]+?)\/api"
+            m = re.search(pattern, raw_text)
+            endpoint =  m.group("endpoint")
+            return "%sproject/%s/task/%d" %(endpoint, task_id, project_short_name)
+
+
+
+
+
+    def __fetch_result(self, project_id):
         pbclient = self.cc.pbclient
         limit = 100
         last_id = 0
-        taskid_to_result = {}
-        i = 0
+        tid_to_result = {}
+
         while True:
-            #results = pbclient.get_taskruns(project_id, limit = limit, last_id = last_taskid)
-            i += 1
-            try:
-                results = pbclient.get_taskruns(project_id, limit = limit, last_id = last_id)
-            except TypeError:
-                print "Cannot connect the server. Try again..."
-                break
+            # The server has a limitation on the number of API calls in every 15mins,
+            # so once the limit is reached, we will increase the waiting time progressively
+            wait_time = 10
+            while True:
+                try:
+                    results = pbclient.get_taskruns(project_id, limit = limit, last_id = last_id)
+                except TypeError:
+                    print "Cannot connect the server. Will try again in %d secs..." %(wait_time)
+                    time.sleep(wait_time)
+                    wait_time *= 2
             if len(results) == 0:
                 break
             for result in results:
-                cached_result = {"result_info": result.data["info"], \
-                                 "task_id": result.data["task_id"], \
-                                 "finish_time": result.data["finish_time"], \
-                                 "project_id": result.data["project_id"], \
-                                #  "id": result.data["id"], \
-                                 "worker_id": str(result.data["user_id"]) if result.data["user_id"] else result.data["user_ip"]}
-
-                if cached_result["task_id"] not in taskid_to_result:
-                    taskid_to_result[cached_result["task_id"]] = [cached_result]
-                else:
-                    taskid_to_result[cached_result["task_id"]].append(cached_result)
+                tid_to_result[result.data['task_id']] = result.data
             last_id += limit
-
-        return taskid_to_result
-
+        return tid_to_result
 
 
-    def _stop(self, result_col, n_answers, stop_condition):
-        if stop_condition == CrowdData.ALL_COMPLETE:
-            for result in result_col:
-                if result == None or len(result) < n_answers:
-                    return False
-            return True
-        elif stop_condition == CrowdData.MV_COMPLETE:
-            assert (0)
-        else:
-            raise Exception("The %s is not defined." %(stop_condition))
-
-
-
-
-    def get_result(self, loop_interval = 10, stop_condition = ALL_COMPLETE):
+    def get_result(self, blocking = True):
         input_col = "task"
         output_col = "result"
 
         if input_col not in self.cols:
-            raise Exception("""The 'task' column does not exist. Please use the publish_task method to add a task column""")
+            raise Exception("Tasks have not been published. "
+                                    "Please call publish_task() to publish tasks first.")
 
         if output_col not in self.cols:
             self.cols.append(output_col)
-            self.table[output_col] = [None] * len(self.table[input_col])
+            self.data[output_col] = [None] * len(self.data[input_col])
         else:
-            self.table[output_col].extend([None]*(len(self.table["id"])-len(self.table[output_col])))
+            self.data[output_col].extend([None]*(len(self.data["id"])-len(self.data[output_col])))
 
-
-        assert len(self.table["id"]) == len(self.table[input_col])
-
+        assert len(self.data["id"]) == len(self.data[input_col])
         while True:
-            taskid_to_result = self._fetch_result(self.project_id)
+            tid_to_result = self.__fetch_result(self.project_id)
+            tid_to_format_result = {}
 
-            for k, (i, task) in enumerate(zip(self.table["id"], self.table[input_col])):
-                if self.table[output_col][k] == None:
-                    exe_str = "SELECT * FROM '%s' WHERE id=? AND col_name=?" %(self.cache_table)
+            for tid, result in tid_to_result.items():
+                if tid not in tid_to_format_result:
+                    tid_to_format_result[tid] = { \
+                        "task_id": result.data["task_id"], \
+                         "project_id": self.project_id, \
+                         "task_link": self.__task_link(result.data["link"], self.project_short_name, result.data["task_id"]), \
+                         "n_assignment": self.n_assignment, \
+                         "assignments": []
+                    }
+
+                tid_to_format_result[tid]["assignments"].append({ \
+                    "id": result.data["id"], \
+                    "worker_id": str(result.data["user_id"]) if result.data["user_id"] else result.data["user_ip"], \
+                    "worker_response": result.data["info"], \
+                    "start_time": result.data["created"], \
+                    "finish_time": result.data["finish_time"], \
+                    "duration": str(dateutil.parser.parse(result.data["finish_time"]) - dateutil.parser.parse(result.data["created"]))
+                    })
+
+            for k, (i, task) in enumerate(zip(self.data["id"], self.data[input_col])):
+                if self.data[output_col][k] == None:
+                    exe_str = "SELECT * FROM '%s' WHERE id=? AND col_name=?" %(self.table_name)
                     self.cc.cursor.execute(exe_str, (i, output_col, ))
                     data = self.cc.cursor.fetchall()
                     if data != []:
                         assert len(data) == 1
-                        self.table[output_col][k] = eval(data[0][2])
-                cache_result = self.table[output_col][k]
-                new_result = taskid_to_result.get(task['id'], None)
-                if new_result != None and (cache_result == None or len(cache_result) < len(new_result)):
-                    exe_str = "INSERT OR REPLACE INTO " + self.cache_table + " (id, col_name, value) VALUES(?,?,?)"
+                        self.data[output_col][k] = eval(data[0][2])
+                cache_result = self.data[output_col][k]
+                new_result = tid_to_format_result.get(task['id'], None)
+                if new_result == None:
+                    continue
+
+                # Performance issue: Need to do a batch insertion
+                if (cache_result == None or len(cache_result["assignments"]) < len(new_result["assignments"])):
+                    exe_str = "INSERT OR REPLACE INTO " + self.table_name + " (id, col_name, value) VALUES(?,?,?)"
                     self.cc.cursor.execute(exe_str, (i, output_col, str(new_result), ))
                     self.cc.db.commit()
-                    self.table[output_col][k] = new_result
+                    self.data[output_col][k] = new_result
 
-            if self._stop(self.table[output_col], self.n_answers,  stop_condition):
+            if blocking == False:
                 break
-            time.sleep(loop_interval)
+            result_col = self.data[output_col]
+            complete = True
+            for result in result_col:
+                if result == None or len(result["assignments"]) < self.n_assignments:
+                    complete = False
+                    break
+            if complete:
+                break
 
         return self
 
-    def quality_control(self, method = MV):
+
+    def __em_col(self, result_col, **kwargs):
+
+        task_to_worker_label = {}
+        worker_to_task_label = {}
+        label_set = []
+
+        # Build up initial variables for em
+        for result in result_col:
+            tid = result["task_id"]
+            for a in result["assignments"]:
+                wid = a["worker_id"]
+                resp = a["worker_response"]
+                task_to_worker_label.setdefault(tid, []).append((wid, resp))
+                worker_to_task_label.setdefault(wid, []).append((tid, resp))
+                if resp not in label_set:
+                    label_set.append(resp)
+
+        # EM algorithm
+        iteration = kwargs.get("iterartion", 20)
+        em = EM(task_to_worker_label, worker_to_task_label, label_set)
+        task_to_emlabel = em.quality_contral(iteration)
+
+        # Gather answer
+        em_col = [None] * len(result_col)
+        for i, r in enumerate(result_col):
+            tid = r["task_id"]
+            em_col[i] = task_to_emlabel.get(tid, None)
+
+        return em_col
+
+
+    def __mv_col(self, result_col, **kwargs):
+        task_to_label = {}
+
+        # Build up initial variables for mv
+        for result in result_col:
+            tid = result["task_id"]
+            for a in result["assignments"]:
+                wid = a["worker_id"]
+                resp = a["worker_response"]
+                task_to_label.setdefault(tid, []).append(resp)
+
+        mv = MajorityVote(task_to_label)
+        task_to_mvlabel = mv.quality_control()
+
+        # Gather answer
+        mv_col = [None] * len(result_col)
+        for i, r in enumerate(result_col):
+            tid = r["task_id"]
+            mv_col[i] = task_to_mvlabel.get(tid, None)
+
+        return mv_col
+
+    def quality_control(self, method = "mv", **kwargs):
         input_col = "result"
-        output_col = "quality_control_result"
         if input_col not in self.cols:
-            raise Exception("No result for quality control."
-                                "Please run get_result first.")
+            raise Exception("There is no result for quality control. "
+                                    "Pease call get_result() to get results first.")
+
+        output_col = None
+        if method == "mv":
+            output_col = "mv"
+            self.data[output_col] = self.__mv_col(self.data[input_col], kwargs)
+        elif method == "":
+            output_col = "em"
+            self.data[output_col] = self.__em_col(self.data[input_col], kwargs)
+        if output_col == None:
+            raise Exception(str(method)+" is not a valid input.")
+
         if output_col not in self.cols:
             self.cols.append(output_col)
 
-        if method == CrowdData.MV:
-            self.table[output_col] = make_mv_answer(self.table[input_col])
-            return self
-        elif method == CrowdData.EM:
-            self.table[output_col] = make_em_answer(self.table[input_col])
-            return self
-        else:
-            raise Exception("The %s is not defined." %(method))
+        return self

@@ -1,53 +1,10 @@
+# -*- coding: utf-8 -*-
+
 import json
 from math import log
 
 
-# Make an Expectation Maximization answer for a task
-def make_em_answer(task_result):
 
-    example_to_worker_label = {}
-    worker_to_example_label = {}
-    answers = []
-
-    # Label set
-    label_set = []
-
-    # Build up initial variables for em
-    for result in task_result:
-
-        for r in result:
-
-            example_to_worker_label.setdefault(r["task_id"], []).append(
-                (r["worker_id"], r["result_info"]))
-            worker_to_example_label.setdefault(r["worker_id"], []).append(
-                (r["task_id"], r["result_info"]))
-
-            if r["result_info"] not in label_set:
-                label_set.append(r["result_info"])
-
-    # EM algorithm
-    iterations = 20
-
-    ans, b, c = EM(example_to_worker_label,
-                   worker_to_example_label,
-                   label_set).ExpectationMaximization(iterations)
-
-    # Gather answer
-    em_answer = [None] * len(task_result)
-
-    for i, r in enumerate(task_result):
-        if len(r) == 0:
-            em_answer[i] = ""
-        else:
-            soft_label = ans[r[0]["task_id"]]
-            maxv = 0
-            cur_label = label_set[0]
-            for label, weight in soft_label.items():
-                if weight > maxv:
-                    maxv = weight
-                    cur_label = label
-            em_answer[i] = cur_label
-    return em_answer
 
 class EM:
     def __init__(self, example_to_worker_label, worker_to_example_label, label_set):
@@ -168,6 +125,18 @@ class EM:
 
         return example_to_softlabel,label_to_priority_probability,worker_to_confusion_matrix
 
+
+    def quality_control(self, iterr = 10):
+        es, lp, cm = self.ExpectationMaximization(iterr)
+
+        example_to_emlabel = {} # example to final label
+        for example, softlabel in es:
+            final_label =  max(soft_label.iteritems(), key=operator.itemgetter(1))[0]
+            example_to_emlabel[example] = final_label
+
+        return example_to_emlabel
+
+
     def computelikelihood(self,w2cm,l2pd,e2wl):
         lh=0;
         for _,wl in e2wl.items():
@@ -182,44 +151,3 @@ class EM:
             lh+=log(temp)
         return lh
 
-
-def getaccuracy(e2lpd,label_set):
-    accurate=0
-    allexamples=0
-
-    for example in e2lpd.keys():
-
-        distribution=e2lpd[example]
-        maxlabel=0
-        maxxvalue=-1
-        for label in label_set:
-            if maxxvalue<=distribution[label]:
-                maxlabel=label
-                maxxvalue=distribution[label]
-        truelabel=example.split('_')[1]
-        if maxlabel==truelabel:
-            accurate+=1
-
-        allexamples+=1
-
-    return accurate*1.0/allexamples
-
-def gete2wlandw2el(filename):
-    example_to_worker_label = {}
-    worker_to_example_label = {}
-    label_set=[]
-
-    f = open(filename)
-    for line in f.xreadlines():
-        line = line.strip()
-        if not line:
-            continue
-        items =  line.split("\t")
-
-        example_to_worker_label.setdefault(items[1], []).append((items[0], items[2]))
-        worker_to_example_label.setdefault(items[0], []).append((items[1], items[2]))
-
-        if items[2] not in label_set:
-            label_set.append(items[2])
-
-    return example_to_worker_label,worker_to_example_label,label_set

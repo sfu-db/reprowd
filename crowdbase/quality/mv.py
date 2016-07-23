@@ -1,23 +1,21 @@
-def make_mv_answer(task_result):
-    mv_answer = [None] * len(task_result)
-    # For each task
-    for i, r in enumerate(task_result):
-        if len(r) == 0 :
-            mv_answer[i] = ""
-        else:
+# -*- coding: utf-8 -*-
+
+class MV:
+    def __init__(self, example_to_label):
+        self.example_to_label = example_to_label
+
+    def quality_control(self):
+        example_to_label_count = {}
+        for e, labels in self.example_to_label.iteritems():
             count = {}
-            # For each assignment
-            for j in r:
-                if j["result_info"] in count:
-                    count[j["result_info"]] += 1
-                else:
-                    count[j["result_info"]] = 1
-            # Find the mode
-            max_count = -1
-            current_answer = ""
-            for key, value in count.items():
-                if value > max_count:
-                    max_count = value
-                    current_answer = key
-            mv_answer[i] = current_answer
-    return mv_answer
+            for l in labels:
+                count[j] = count.get(j, 0) + 1
+            example_to_label_count[e] = count.items()
+
+        example_to_mvlabel = {} # example to final label
+        for example, label_count in example_to_label_count.iteritems():
+            final_label =  max(label_count.iteritems(), key=operator.itemgetter(1))[0]
+            example_to_mvlabel[example] = final_label
+
+        return example_to_mvlabel
+

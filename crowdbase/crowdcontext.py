@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 from crowdbase.operators.crowddata import CrowdData
 from crowdbase.operators.crowdjoin import CrowdJoin
 import sqlite3

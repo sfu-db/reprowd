@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 from crowdbase.utils.simjoin import SimJoin, jaccard, editsim
 from crowdbase.utils.union_find import UnionFind
 from crowdbase.operators.crowddata import CrowdData

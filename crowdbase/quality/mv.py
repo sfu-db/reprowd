@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import operator
 
 class MV:
     def __init__(self, example_to_label):
@@ -9,8 +10,8 @@ class MV:
         for e, labels in self.example_to_label.iteritems():
             count = {}
             for l in labels:
-                count[j] = count.get(j, 0) + 1
-            example_to_label_count[e] = count.items()
+                count[l] = count.get(l, 0) + 1
+            example_to_label_count[e] = count
 
         example_to_mvlabel = {} # example to final label
         for example, label_count in example_to_label_count.iteritems():

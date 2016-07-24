@@ -10,11 +10,13 @@ import pbclient
 import unittest
 import sys
 import os
+import dateutil.parser
 
 
 class CrowdDataTestSuite(unittest.TestCase):
 
-    def test_initialization(self):
+    #def test_initialization(self):
+    def initialization(self):
         cc = init_context()
 
         # unusual names
@@ -62,7 +64,8 @@ class CrowdDataTestSuite(unittest.TestCase):
             self.description = "This is for testing adding a new presenter"
 
 
-    def test_set_presenter(self):
+    #def test_set_presenter(self):
+    def set_presenter(self):
         cc = init_context()
         name = "Test CrowdData"
         short_name = "testcrowddata"
@@ -113,6 +116,107 @@ class CrowdDataTestSuite(unittest.TestCase):
 
         assert delete_project(short_name = presenter.short_name) == True
         destroy_context()
+
+
+    #def test_publish_task(self):
+    def test_publish_task(self):
+        cc = init_context()
+
+        presenter = ImageLabel()
+        delete_project(short_name = presenter.short_name)
+        object_list = ["1.jpg", "2.jpg"]
+
+        crowddata = cc.CrowdData(object_list, "test1") \
+            .set_presenter(presenter, lambda obj: {'url_b':obj}) \
+            .publish_task(n_assignments = 3)
+
+        # crowddata:
+        #{"id": [0, 1],
+        #   "object": ["1.jpg", "2.jpg"],
+        #    "task": [
+        #       {
+        #            "id": integer (e.g., 300),
+        #            "task_link": url (e.g., "http://localhost:7000/project/textcmp/task/300"),
+        #            "task_data":  {"url_b": "1.jpg"}，
+        #            "n_assignment": 1,
+        #            "priority": 0,
+        #            "project_id": integer (e.g., 4),
+        #           "create_time": ISO 8601 time format (e.g., "2016-07-12T03:46:04.622127")
+        #       },
+        #       {
+        #            "id": integer (e.g., 300),
+        #            "task_link": url (e.g., "http://localhost:7000/project/textcmp/task/300"),
+        #            "task_data":  {"url_b": "1.jpg"}],
+        #            "n_assignment": 1,
+        #            "priority": 0,
+        #            "project_id": integer (e.g., 4)
+        #           "create_time": ISO 8601 time format (e.g., "2016-07-12T03:46:04.622127")
+        #       }
+        #   ]
+        # }
+        d = crowddata.data
+        #check id
+        assert len(d["id"]) == 2 and 0 in d["id"] and 1 in d["id"]
+        #check object
+        assert len(d["object"]) == 2 and "1.jpg" in d["object"] and "2.jpg" in d["object"]
+
+        print d
+        #check task
+        vals = d["task"]
+        i = 1
+        for v in vals:
+            try:
+                print  "%s/project/%s/task/%d" %(cc.endpoint.strip('/'), presenter.short_name, v["id"])
+                print v["task_link"]
+                assert type(v["id"]) is int
+                assert v["task_link"] == "%s/project/%s/task/%d" %(cc.endpoint.strip('/'), presenter.short_name, v["id"])
+                assert v["task_data"]["url_b"] == "%d.jpg" %(i) and len(v["task_data"]) == 1
+                assert v["n_assignments"] == 3
+                assert v["priority"] == 0
+                assert type(v["project_id"]) is int
+                dateutil.parser.parse(v["create_time"])
+            except:
+                assert False
+            i += 1
+
+        # if tasks are published multiple times, only the first takes effect.
+        try:
+            crowddata.publish_task()
+        except:
+            assert False
+
+
+         # publish task before set_presenter
+        try:
+            crowddata = cc.CrowdData(object_list, "test2") \
+                .publish_task(n_assignments = 3)
+        except:
+            assert True
+
+        assert delete_project(short_name = presenter.short_name) == True
+        destroy_context()
+
+
+    def test_get_result(self):
+        cc = init_context()
+        presenter = ImageLabel()
+        delete_project(short_name = presenter.short_name)
+        object_list = ["1.jpg", "2.jpg"]
+
+        crowddata = cc.CrowdData(object_list, "test1") \
+            .set_presenter(presenter, lambda obj: {'url_b':obj}) \
+            .publish_task(n_assignments = 3)
+
+
+
+        assert delete_project(short_name = presenter.short_name) == True
+        destroy_context()
+
+
+
+
+
+
 
 
 

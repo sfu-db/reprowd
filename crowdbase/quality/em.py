@@ -2,7 +2,7 @@
 
 import json
 from math import log
-
+import operator
 
 
 
@@ -130,10 +130,9 @@ class EM:
         es, lp, cm = self.ExpectationMaximization(iterr)
 
         example_to_emlabel = {} # example to final label
-        for example, softlabel in es:
+        for example, soft_label in es.items():
             final_label =  max(soft_label.iteritems(), key=operator.itemgetter(1))[0]
             example_to_emlabel[example] = final_label
-
         return example_to_emlabel
 
 

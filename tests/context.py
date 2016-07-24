@@ -15,6 +15,8 @@ def init_context():
     local_db = "crowdbase.test.db"
     CrowdContext.remove_db_file(local_db)
     assert os.path.isfile(local_db) == False
+    api_key = None
+    #api_key = "005ff9ed-4e1c-4500-9553-17bbb1d96701"
     cc = CrowdContext(local_db = local_db)
     assert os.path.isfile(local_db) == True
     return cc

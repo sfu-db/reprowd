@@ -53,7 +53,8 @@ class CrowdContext:
             "`api_key` is not specified. If you don't want to specify it explictly, "
             "you can set it to a CROWDBASE_API_KEY environment variable."
         )
-
+        self.endpoint = endpoint
+        self.api_key = api_key
         pbclient.set('endpoint', endpoint)
         pbclient.set('api_key', api_key)
         self.pbclient = pbclient

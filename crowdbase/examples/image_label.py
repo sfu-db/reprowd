@@ -7,23 +7,23 @@ if __name__ == "__main__":
                          'http://www.7-star-admiral.com/0015_animals/0629_angora_hamster_clipart.jpg', \
                          'http://www.7-star-admiral.com/0015_animals/0629_angora_hamster_clipart.jpg']
 
-    cc = CrowdContext('http://localhost:7000/', '8df67fd6-9c9b-4d32-a6ab-b0b5175aba30')
+    cc = CrowdContext()
 
-    crowddata = cc.CrowdData(object_list, cache_table = "flickr") \
-                            .map_to_presenter(ImageLabel(), map_func = lambda obj: {'url_b':obj}) \
-                            .publish_task().get_result().quality_control(method = CrowdData.EM)
+    crowddata = cc.CrowdData(object_list, "flickr") \
+                            .set_presenter(ImageLabel(), map_func = lambda obj: {'url_b':obj}) \
+                            .publish_task().get_result(blocking=True).quality_control("mv")
 
 
     print "Data:"
-    print crowddata.table["object"]
+    print crowddata.data["object"]
     print
 
     print "Task:"
-    print crowddata.table["task"]
+    print crowddata.data["task"]
     print
 
     print "Result:"
-    print crowddata.table["result"]
+    print crowddata.data["result"]
 
     print "Quality:"
-    print crowddata.table["quality_control_result"]
+    print crowddata.data["mv"]

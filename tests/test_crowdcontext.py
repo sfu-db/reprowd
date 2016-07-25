@@ -10,26 +10,6 @@ import os
 
 class CrowdContextTestSuite(unittest.TestCase):
 
-    def test_no_input_endpoin_and_api_key(self):
-        local_db = "crowdbase.test.db"
-
-        endpoint_backup = os.environ.get("CROWDBASE_ENDPOINT", None)
-        api_backup = os.environ.get("CROWDBASE_API_KEY", None)
-        os.environ["CROWDBASE_ENDPOINT"] = ""
-        os.environ["CROWDBASE_API_KEY"] = ""
-
-        CrowdContext.remove_db_file(local_db)
-        try:
-            CrowdContext(local_db = local_db)
-        except:
-            assert True
-        assert os.path.isfile(local_db) == False
-
-        os.environ["CROWDBASE_ENDPOINT"] = endpoint_backup
-        os.environ["CROWDBASE_API_KEY"] = api_backup
-
-
-
     def test_table_manipulation(self):
         cc = init_context()
 

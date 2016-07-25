@@ -43,16 +43,6 @@ class CrowdContext:
         if not api_key:
             api_key = os.environ.get("CROWDBASE_API_KEY", "")
 
-        if not endpoint:
-            raise Exception(
-            "`endpoint` is not specified. If you don't want to specify it explictly, "
-            "you can set a CROWDBASE_ENDPOINT environment variable."
-        )
-        if not api_key:
-            raise Exception(
-            "`api_key` is not specified. If you don't want to specify it explictly, "
-            "you can set it to a CROWDBASE_API_KEY environment variable."
-        )
         self.endpoint = endpoint
         self.api_key = api_key
         pbclient.set('endpoint', endpoint)

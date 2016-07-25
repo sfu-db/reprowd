@@ -9,23 +9,24 @@ import pbclient
 from crowdbase.crowdcontext import CrowdContext
 
 
+ENABLE_MANUAL_LABEL = False
 
 def init_context():
     # Create a crowdbase context
     local_db = "crowdbase.test.db"
     CrowdContext.remove_db_file(local_db)
     assert os.path.isfile(local_db) == False
-    api_key = None
-    #api_key = "005ff9ed-4e1c-4500-9553-17bbb1d96701"
     cc = CrowdContext(local_db = local_db)
     assert os.path.isfile(local_db) == True
     return cc
 
+
+
 def delete_project(short_name = "", name = ""):
     p = pbclient.find_project(short_name = short_name)
-    print p
     if len(p) > 0:
         pbclient.delete_project(p[0].id)
+        p = pbclient.find_project(short_name = short_name)
         return True
     p = pbclient.find_project(name = name)
     if len(p) > 0:

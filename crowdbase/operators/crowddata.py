@@ -45,6 +45,7 @@ class CrowdData:
         self.start_id = len(object_list)
         self.cols = ["id", "object"]
         self.table_name = table_name
+        self.presenter = None
         self.project_id = None
         self.project_short_name = None
         self.project_name = None
@@ -61,7 +62,7 @@ class CrowdData:
 
     def set_presenter(self, presenter, map_func = None):
         """
-        Specify a presenter and return the updated CrowdData object. If the presenter does not exist, it will create a new project and link the presenter to the project.
+        Specify a presenter and return the updated CrowdData object.
 
 
         :param presenter: A Presenter object (e.g., :class:`crowdbase.presenter.test.TextCmp`).
@@ -76,17 +77,31 @@ class CrowdData:
         <crowdbase.operators.crowddata.CrowdData instance at 0x...>
         >>> crowddata.data  #doctest: +SKIP
         {'id': [0, 1], 'object': ['image1.jpg', 'image2.jpg']}
-        >>> crowddata.project_name
-        'Image Label'
+        >>> crowddata.presenter   #doctest: +ELLIPSIS
+        <crowdbase.presenter.image.ImageLabel object at 0x...>
         >>> cc.delete_tmp_tables()
         1
         """
         self.map_func = map_func
         if self.map_func == None:
             self.map_func = lambda obj: obj
+        self.presenter = presenter
 
+        return self
+
+
+    def __task_link(self, endpoint, task_id, project_short_name):
+        return "%s/project/%s/task/%d" %(endpoint.strip('/'), task_id, project_short_name)
+
+
+
+    def __init_project(self, presenter):
+        """ Create a new project. If there exists a project corresponding to the presenter, use the existing project."""
         # Get the project id correponding to the input presenter
         # (if it does not exists, create a new one)
+        if presenter == None:
+            raise Exception("Cannot publish tasks without specifying a presenter."
+                                    "Please use set_presenter() to specify a presenter.")
         pbclient = self.cc.pbclient
         p = None
         #try:
@@ -100,23 +115,21 @@ class CrowdData:
             # create a new project with the presente
             p = pbclient.create_project(presenter.name, presenter.short_name, presenter.description)
 
-        self.project_id = p.id
-        self.project_short_name = presenter.short_name
-        self.project_name = presenter.name
-        p.info['task_presenter'] = Template(presenter.template).safe_substitute(short_name = presenter.short_name)
-        p.long_description = presenter.description
-        p.name = presenter.name
-        p.short_name = presenter.short_name
-        pbclient.update_project(p)
-        #except:
-        #    print p
-        #    raise Exception("Cannot connect the server. Please try again...")
-        return self
-
-
-    def __task_link(self, endpoint, task_id, project_short_name):
-        return "%s/project/%s/task/%d" %(endpoint.strip('/'), task_id, project_short_name)
-
+        try:
+            self.project_id = p.id
+            self.project_short_name = presenter.short_name
+            self.project_name = presenter.name
+            p.info['task_presenter'] = Template(presenter.template).safe_substitute(short_name = presenter.short_name)
+            p.long_description = presenter.description
+            p.name = presenter.name
+            p.short_name = presenter.short_name
+            pbclient.update_project(p)
+        except:
+            if p is dict and "exception_cls" in p.keys():
+                raise Exception("%s" %(task["exception_cls"]))
+            else:
+                print p
+                raise
 
     def publish_task(self, n_assignments = 1, priority = 0):
         """
@@ -126,7 +139,7 @@ class CrowdData:
         :param priority:  A float number in [0, 1] that indicates the priority of the published tasks. The larger the value, the higher the priority.
 
 
-        The function adds a new column **task** to the tabular dataset. Each value in the **task** column is a dict with the following attributes:
+        The function adds a new column **task** to the tabular dataset. Each item in the **task** column is a dict with the following attributes:
 
             - *id*: task id (e.g., 400)
             - *task_link*: the URL linked to a task (e.g., "http://localhost:7000/project/textcmp/task/400")
@@ -147,7 +160,7 @@ class CrowdData:
         >>> crowddata.data.keys() #doctest: +SKIP
         ['id', 'object', 'task']
         >>> #
-        >>> # print the **task** col
+        >>> # print the task col
         >>> print crowddata.data['task'] #doctest: +SKIP
         [
             {
@@ -175,9 +188,6 @@ class CrowdData:
         >>> cc.delete_tmp_tables()
         1
         """
-        if self.project_id == None:
-            raise Exception("Cannot publish tasks without specifying a presenter."
-                                    "Please use set_presenter() to specify a presenter.")
 
         input_col = "object"
         output_col = "task"
@@ -191,6 +201,7 @@ class CrowdData:
         db = self.cc.db
         pbclient = self.cc.pbclient
 
+        init_project_flag = False
         for k, (i, d) in enumerate(zip(self.data["id"], self.data[input_col])):
             exe_str = "SELECT * FROM '%s' WHERE id=? AND col_name=?" %(self.table_name)
             cursor.execute(exe_str, (i, output_col, ))
@@ -199,7 +210,15 @@ class CrowdData:
                 assert len(data) == 1
                 self.data[output_col][k] = eval(data[0][2])
                 continue
+
+            # Only initialize a project if the database does not contain all the tasks.
+            if not init_project_flag:
+                self.__init_project(self.presenter)
+                init_project_flag = True
+
             task = pbclient.create_task(self.project_id, self.map_func(d), n_assignments, priority)
+            if task is dict and "exception_cls" in task.keys():
+                raise Exception("%s" %(task["exception_cls"]))
             format_task = {"id": task.data["id"], \
                             "task_link": self.__task_link(self.cc.endpoint, self.project_short_name, task.data["id"]), \
                             "task_data": task.data["info"], \
@@ -223,28 +242,89 @@ class CrowdData:
         limit = 100
         last_id = 0
         tid_to_result = {}
-        results = []
         while True:
-            # The server has a limitation on the number of API calls in every 15mins,
-            # so once the limit is reached, we will increase the waiting time progressively
-            wait_time = 1
-            while True:
-                try:
-                    results = pbclient.get_taskruns(project_id, limit = limit, last_id = last_id)
-                    break
-                except TypeError:
-                    print "Being blocked by the server. Will fetch results again in %d mins..." %(wait_time)
-                    time.sleep(wait_time*60)
-                    wait_time *= 2
+            results = pbclient.get_taskruns(project_id, limit = limit, last_id = last_id)
+            if results is dict and "exception_cls" in results.keys():
+                raise Exception("%s" %(results["exception_cls"]))
+
             if len(results) == 0:
                 break
+
             for result in results:
-                tid_to_result[result.data['task_id']] = result.data
-            last_id += limit
+                tid = result.data['task_id']
+                if tid not in tid_to_result:
+                    tid_to_result[tid] = []
+                tid_to_result[tid].append(result.data)
+
+            for result in results:
+                trid = result.data['id']
+                if trid > last_id:
+                    last_id = trid
+
         return tid_to_result
 
 
     def get_result(self, blocking = True):
+        """
+        Get results from the pybossa server and return the updated CrowdData object.
+
+        :param blocking: Denotes whether the function will be blocked or not.
+
+        - ``blocking = True`` means that the function will continuously collect results from the server until all the tasks are finished by the crowd.
+        - ``blocking = False`` means that the function will get the current results of the tasks immediately even if they have not been finished yet.
+
+        The function adds a new column **result** to the tabular dataset. Each item in the **result** column is a dict with the following attributes:
+
+            - *assigments*: a list of assignments
+
+                - *id*: assignment id (e.g., 100)
+                - *worker_id*: an identifier of a worker (e.g., 2)
+                - *worker_response*: the answer of the task given by the worker (e.g., "YES")
+                - *start_time*: the time when the assignment is created (e.g., "2016-07-12T03:46:04.622127")
+                - *finish_time*: the time when the assignment is finished (e.g., "2016-07-12T03:50:04.622127")
+
+            - *task_id*: task id (e.g., 400)
+            - *task_link*: the URL linked to a task (e.g., "http://localhost:7000/project/textcmp/task/400")
+            - *project_id*: the project id (e.g., 155)
+
+
+        >>> from crowdbase.presenter.image import ImageLabel
+        >>> object_list = ["image1.jpg"]
+        >>> crowddata = cc.CrowdData(object_list, table_name = "tmp").set_presenter(
+        ...  ImageLabel(), lambda obj: {'url_b':obj}).publish_task().get_result(blocking=False)
+        >>> crowddata #doctest: +ELLIPSIS
+        <crowdbase.operators.crowddata.CrowdData instance at 0x...>
+        >>> crowddata.data.keys() #doctest: +SKIP
+        ['id', 'object', 'task', 'result']
+        >>> d = crowddata.get_result(blocking=True).data  #doctest: +SKIP
+        >>> #
+        >>> # print the result col
+        >>> print d['result'] #doctest: +SKIP
+        {
+            'assignments': [
+                {
+                    'id': 236,
+                    'worker_id': '1',
+                    'worker_response': u'YES',
+                    'start_time': u'2016-07-24T22:53:26.173976',
+                    'finish_time': u'2016-07-24T22:53:26.173976'
+                },
+                {
+                    id': 240,
+                    'worker_id': u'10.0.2.2',
+                     'worker_response': u'Yes',
+                     'start_time': u'2016-07-24T22:53:33.943804',
+                     'finish_time': u'2016-07-24T22:53:37.175170'
+                }
+            ]
+            'task_id': 407,
+            'task_link': 'http://localhost:7000/project/imglabel/task/407',
+            'project_id': 190
+        }
+        >>> cc.delete_tmp_tables()
+        1
+        """
+
         input_col = "task"
         output_col = "result"
 
@@ -259,28 +339,10 @@ class CrowdData:
             self.data[output_col].extend([None]*(len(self.data["id"])-len(self.data[output_col])))
 
         assert len(self.data["id"]) == len(self.data[input_col])
+
+        wait_time = 1 # Will be adaptively adjusted based on how fast workers are doing tasks
         while True:
-            tid_to_result = self.__fetch_result(self.project_id)
-            tid_to_format_result = {}
-
-            for tid, result in tid_to_result.items():
-                if tid not in tid_to_format_result:
-                    tid_to_format_result[tid] = { \
-                        "task_id": result["task_id"], \
-                         "project_id": self.project_id, \
-                         "task_link": self.__task_link(result["link"], self.project_short_name, result["task_id"]), \
-                         "assignments": []
-                    }
-
-                tid_to_format_result[tid]["assignments"].append({ \
-                    "id": result["id"], \
-                    "worker_id": str(result["user_id"]) if result["user_id"] else result["user_ip"], \
-                    "worker_response": result["info"], \
-                    "start_time": result["created"], \
-                    "finish_time": result["finish_time"], \
-                    "duration": str(dateutil.parser.parse(result["finish_time"]) - dateutil.parser.parse(result["created"]))
-                    })
-
+            # load results from database
             for k, (i, task) in enumerate(zip(self.data["id"], self.data[input_col])):
                 if self.data[output_col][k] == None:
                     exe_str = "SELECT * FROM '%s' WHERE id=? AND col_name=?" %(self.table_name)
@@ -289,32 +351,67 @@ class CrowdData:
                     if data != []:
                         assert len(data) == 1
                         self.data[output_col][k] = eval(data[0][2])
-                cache_result = self.data[output_col][k]
-                new_result = tid_to_format_result.get(task['id'], None)
-                if new_result == None:
-                    continue
 
-                # Performance issue: Need to do a batch insertion
-                if (cache_result == None or len(cache_result["assignments"]) < len(new_result["assignments"])):
-                    exe_str = "INSERT OR REPLACE INTO " + self.table_name + " (id, col_name, value) VALUES(?,?,?)"
-                    self.cc.cursor.execute(exe_str, (i, output_col, str(new_result), ))
-                    self.cc.db.commit()
-                    self.data[output_col][k] = new_result
-
-            if blocking == False:
-                break
-            result_col = self.data[output_col]
+            # check if it is still necessary to fetch results from the pybossa server
             complete = True
-
-            for task, result in zip(self.data[input_col], result_col):
+            for task, result in zip(self.data[input_col], self.data[output_col]):
                 if result == None or len(result["assignments"]) < task['n_assignments']:
                     complete = False
                     break
             if complete:
                 break
-            time.sleep(10)
+
+            # fetch new results
+            tid_to_result = self.__fetch_result(self.project_id)
+            tid_to_format_result = {}
+
+            # Update crowddata.data and database with new results
+            for tid, results in tid_to_result.items():
+                for result in results:
+                    if tid not in tid_to_format_result:
+                        tid_to_format_result[tid] = { \
+                            "task_id": result["task_id"], \
+                             "project_id": self.project_id, \
+                             "task_link": self.__task_link(self.cc.endpoint, self.project_short_name, result["task_id"]), \
+                             "assignments": []
+                        }
+
+                    tid_to_format_result[tid]["assignments"].append({ \
+                        "id": result["id"], \
+                        "worker_id": str(result["user_id"]) if result["user_id"] else result["user_ip"], \
+                        "worker_response": result["info"], \
+                        "start_time": result["created"], \
+                        "finish_time": result["finish_time"]
+                        })
+
+            updated = False # updated = True means that workers did some new tasks during the waiting time
+            for k, (i, task) in enumerate(zip(self.data["id"], self.data[input_col])):
+                cache_result = self.data[output_col][k]
+                new_result = tid_to_format_result.get(task['id'], None)
+                if new_result == None:
+                    continue
+
+                if (cache_result == None or len(cache_result["assignments"]) < len(new_result["assignments"])):
+                    exe_str = "INSERT OR REPLACE INTO " + self.table_name + " (id, col_name, value) VALUES(?,?,?)"
+                    self.cc.cursor.execute(exe_str, (i, output_col, str(new_result), ))
+                    self.cc.db.commit()
+                    self.data[output_col][k] = new_result
+                    updated = True
+
+            if not updated:
+                wait_time = wait_time * 2
+                if wait_time > 16:
+                    wait_time = 16
+            else:
+                wait_time = 1
+
+            if blocking == False:
+                break
+
+            time.sleep(wait_time)
 
         return self
+
 
     def append(self, object_list):
         self.data['object'].extend(object_list)
@@ -342,18 +439,6 @@ class CrowdData:
         for col in self.cols:
             self.data[col] = []
         return self
-
-
-
-
-
-
-
-
-
-
-
-
 
 
     def __em_col(self, result_col, **kwargs):

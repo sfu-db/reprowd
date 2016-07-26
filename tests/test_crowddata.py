@@ -5,6 +5,7 @@ from crowdbase.crowdcontext import CrowdContext
 from crowdbase.presenter.base import BasePresenter
 from crowdbase.presenter.text import TextCmp
 from crowdbase.presenter.image import ImageCmp, ImageLabel
+from nose.plugins.attrib import attr
 
 import pbclient
 import unittest
@@ -116,8 +117,8 @@ class CrowdDataTestSuite(unittest.TestCase):
     def test_publish_task(self):
     #def publish_task(self):
         cc = init_context()
-
         presenter = ImageLabel()
+        presenter.set_short_name(presenter.short_name+"_test").set_name(presenter.name+"_test")
         delete_project(short_name = presenter.short_name)
         object_list = ["1.jpg", "2.jpg"]
 
@@ -193,8 +194,7 @@ class CrowdDataTestSuite(unittest.TestCase):
         cc = init_context()
 
         presenter = ImageLabel()
-        presenter.set_short_name(presenter.short_name+"_test")
-        presenter.set_name(presenter.name+"_test")
+        presenter.set_short_name(presenter.short_name+"_test").set_name(presenter.name+"_test")
 
         delete_project(short_name = presenter.short_name)
         object_list = ['http://farm4.static.flickr.com/3114/2524849923_1c191ef42e.jpg', \
@@ -302,11 +302,187 @@ class CrowdDataTestSuite(unittest.TestCase):
         destroy_context()
 
 
+    def test_quality_control(self):
+        cc = init_context()
+
+        presenter = ImageLabel()
+
+        # test quality_control()
+        object_list = ["image1.jpg", "image2.jpg"]
+        try:
+            crowddata = cc.CrowdData(object_list, "test1") \
+                .set_presenter(presenter, lambda obj: {'url_b':obj}) \
+                .publish_task().quality_control("mv")
+        except:
+            assert True
+
+        try:
+            crowddata = cc.CrowdData(object_list, "test2") \
+                .set_presenter(presenter, lambda obj: {'url_b':obj}) \
+                .publish_task().get_result(False).quality_control("mv")
+        except Exception as error:
+            print error
+            assert False
+
+        try:
+            crowddata = cc.CrowdData(object_list, "test3") \
+                .set_presenter(presenter, lambda obj: {'url_b':obj}) \
+                .publish_task().get_result(False).quality_control("test")
+        except:
+            assert True
+
+        import json
+        # test __em_col()
+        result_col = [\
+            {\
+                'assignments': [\
+                    {\
+                        'worker_id': '1',\
+                        'worker_response': u'NO'\
+                    },\
+                    {\
+                        'worker_id': u'10.0.2.2',\
+                         'worker_response': u'YES'\
+                    },\
+                    {\
+                        'worker_id': u'2',\
+                         'worker_response': u'YES'\
+                    }\
+                ],\
+                'task_id': 407\
+            },\
+           {\
+                'assignments': [\
+                    {\
+                        'worker_id': '1',\
+                        'worker_response': u'NO'\
+                    },\
+                    {\
+                        'worker_id': u'10.0.2.2',\
+                         'worker_response': u'YES'\
+                    }\
+                ],\
+                'task_id': 408\
+            }\
+        ]
+
+        em_col = crowddata._CrowdData__em_col(result_col, iteration = 10)
+        assert em_col[0] == "YES"
+        assert em_col[1] == "YES"
+
+        result_col[1]["assignments"] = [\
+                    {\
+                        'worker_id': '2',\
+                        'worker_response': u'NO'\
+                    }
+                ]
+
+        print result_col
+        em_col = crowddata._CrowdData__em_col(result_col, iteration = 10)
+        assert em_col[0] == "YES"
+        assert em_col[1] == "NO"
+
+        # test mv
+        result_col[1]["assignments"] = [\
+            {\
+                'worker_id': '1',\
+                'worker_response': u'NO'\
+            },\
+            {\
+                'worker_id': u'10.0.2.2',\
+                 'worker_response': u'NO'\
+            }\
+         ]
+
+        print result_col
+        em_col = crowddata._CrowdData__mv_col(result_col)
+        assert em_col[0] == "YES"
+        assert em_col[1] == "NO"
+
+        # Test none values
+        result_col[1] = None
+
+        em_col = crowddata._CrowdData__mv_col(result_col)
+        assert em_col[0] == "YES"
+        assert em_col[1] == None
+
+        em_col = crowddata._CrowdData__em_col(result_col)
+        assert em_col[0] == "YES"
+        assert em_col[1] == None
+
+        assert delete_project(short_name = presenter.short_name) == True
+        destroy_context()
+
+    @attr('now')
+    def test_filter_clear_append(self):
+        cc = init_context()
+
+        presenter = ImageLabel()
+        presenter.set_short_name(presenter.short_name+"_test").set_name(presenter.name+"_test")
+        delete_project(short_name = presenter.short_name)
+
+        object_list = ["image1.jpg", "image2.jpg"]
+
+        crowddata = cc.CrowdData(object_list, "test1") \
+            .set_presenter(presenter, lambda obj: {'url_b':obj}) \
+            .publish_task()
+
+        for task in crowddata.data["task"]:
+            task_id = task["id"]
+            project_id = task["project_id"]
+            ans = "YES"
+            cc.pbclient._pybossa_req("get", "project", "%s/newtask" %(project_id) )
+            cc.pbclient._pybossa_req("post", "taskrun", \
+                payload={"project_id":project_id,"task_id":task_id,"info":ans})
+
+        d = crowddata.get_result(blocking=True).quality_control("mv").data
+        assert len(d) == 5
+        assert len(d['result']) == 2 and d['result'][0] != None and d['result'][1] != None
+        assert len(d['mv']) == 2 and d['mv'][0] == 'YES' and d['mv'][1] == 'YES'
+
+        d = crowddata.filter(lambda r: r['mv'] == "YES").data
+        assert len(d) == 5
+        assert len(d['result']) == 2 and d['result'][0] != None and d['result'][1] != None
+        assert len(d['mv']) == 2 and d['mv'][0] == 'YES' and d['mv'][1] == 'YES'
+
+        d = crowddata.filter(lambda r: r['object'] == "image2.jpg").data
+        assert len(d) == 5
+        assert len(d['result']) == 1 and d['result'][0] != None
+        assert len(d['mv']) == 1 and d['mv'][0] == 'YES'
+
+        crowddata.extend(["image3.jpg", "image4.jpg", "image5.jpg"]).publish_task()
+        crowddata.append("image6.jpg") # not publish image6.jpg
+
+        for task in crowddata.data["task"]:
+            if task == None:
+                continue
+            task_id = task["id"]
+            project_id = task["project_id"]
+            ans = "NO"
+            cc.pbclient._pybossa_req("get", "project", "%s/newtask" %(project_id) )
+            cc.pbclient._pybossa_req("post", "taskrun", \
+                payload={"project_id":project_id,"task_id":task_id,"info":ans})
 
 
+        d = crowddata.get_result(blocking=True).quality_control("mv").data
+        print crowddata.data
+        assert len(d) == 5
+        assert len(d['result']) == 5 and d['result'][0] != None and d['result'][1] != None and d['result'][2] != None and d['result'][3] != None
+        assert len(d['mv']) == 5 and d['mv'][0] == 'YES' and d['mv'][1] == 'NO' and d['mv'][2] == 'NO' and d['mv'][3] == 'NO'
 
+        d = crowddata.filter(lambda x: x['mv'] == "NO").data
+        assert len(d) == 5
+        assert len(d['result']) == 3 and d['result'][0] != None and d['result'][1] != None and d['result'][2] != None
+        assert len(d['mv']) == 3 and d['mv'][0] == 'NO' and d['mv'][1] == 'NO' and d['result'][2] != None
 
+        crowddata.clear()
+        d = crowddata.get_result(blocking=True).quality_control("mv").data
+        assert len(d) == 5
+        assert len(d['result']) ==0
+        assert len(d['mv']) == 0
 
+        assert delete_project(short_name = presenter.short_name) == True
+        destroy_context()
 
 
 if __name__ == '__main__':

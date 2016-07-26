@@ -5,7 +5,6 @@ import sqlite3
 import time
 import dateutil.parser
 from string import Template
-from collections import namedtuple
 from crowdbase.quality.mv import MV
 from crowdbase.quality.em import EM
 
@@ -35,6 +34,8 @@ class CrowdData:
         >>> crowddata = cc.CrowdData(object_list, table_name = "tmp")
         >>> crowddata  #doctest: +ELLIPSIS
         <crowdbase.operators.crowddata.CrowdData instance at 0x...>
+        >>> crowddata.cols
+        ['id', 'object']
         >>> crowddata.data  #doctest: +SKIP
         {'id': [0, 1], 'object': ['image1.jpg', 'image2.jpg']}
         >>> cc.delete_tmp_tables()
@@ -72,9 +73,10 @@ class CrowdData:
         >>> from crowdbase.presenter.image import ImageLabel
         >>> object_list = ["image1.jpg", "image2.jpg"]
         >>> map_func = lambda obj: {'url_b':obj}
-        >>> crowddata = cc.CrowdData(object_list, table_name = "tmp").set_presenter(ImageLabel(), map_func)
-        >>> crowddata  #doctest: +ELLIPSIS
-        <crowdbase.operators.crowddata.CrowdData instance at 0x...>
+        >>> crowddata = cc.CrowdData(object_list, table_name = "tmp") \\
+        ...               .set_presenter(ImageLabel(), map_func)
+        >>> crowddata.cols
+        ['id', 'object']
         >>> crowddata.data  #doctest: +SKIP
         {'id': [0, 1], 'object': ['image1.jpg', 'image2.jpg']}
         >>> crowddata.presenter   #doctest: +ELLIPSIS
@@ -153,11 +155,10 @@ class CrowdData:
 
         >>> from crowdbase.presenter.image import ImageLabel
         >>> object_list = ["image1.jpg", "image2.jpg"]
-        >>> crowddata = cc.CrowdData(object_list, table_name = "tmp").set_presenter(
-        ...  ImageLabel(), lambda obj: {'url_b':obj}).publish_task()
-        >>> crowddata  #doctest: +ELLIPSIS
-        <crowdbase.operators.crowddata.CrowdData instance at 0x...>
-        >>> crowddata.data.keys() #doctest: +SKIP
+        >>> crowddata = cc.CrowdData(object_list, table_name = "tmp") \\
+        ...               .set_presenter(ImageLabel(), lambda obj: {'url_b':obj}) \\
+        ...               .publish_task()
+        >>> crowddata.cols
         ['id', 'object', 'task']
         >>> #
         >>> # print the task col
@@ -191,24 +192,20 @@ class CrowdData:
 
         input_col = "object"
         output_col = "task"
-        if output_col not in self.cols:
-            self.cols.append(output_col)
-            self.data[output_col] = [None] * len(self.data["id"])
-        else:
-            self.data[output_col].extend([None]*(len(self.data["id"] ) - len(self.data[output_col])))
 
         cursor = self.cc.cursor
         db = self.cc.db
         pbclient = self.cc.pbclient
 
         init_project_flag = False
+        task_col = self.data.get(output_col, [None]*len(self.data["id"]))
         for k, (i, d) in enumerate(zip(self.data["id"], self.data[input_col])):
             exe_str = "SELECT * FROM '%s' WHERE id=? AND col_name=?" %(self.table_name)
             cursor.execute(exe_str, (i, output_col, ))
-            data = cursor.fetchall()
-            if data != []:
-                assert len(data) == 1
-                self.data[output_col][k] = eval(data[0][2])
+            records = cursor.fetchall()
+            if records != []:
+                assert len(records) == 1
+                task_col[k] = eval(records[0][2])
                 continue
 
             # Only initialize a project if the database does not contain all the tasks.
@@ -232,8 +229,11 @@ class CrowdData:
             exe_str = "INSERT INTO '%s' VALUES(?,?,?)" %(self.table_name)
             cursor.execute(exe_str, (i, output_col, str(format_task), ))
             db.commit()
-            self.data[output_col][k] = format_task
+            task_col[k] = format_task
 
+        self.data[output_col] = task_col
+        if output_col not in self.cols:
+            self.cols.append(output_col)
         return self
 
 
@@ -268,7 +268,7 @@ class CrowdData:
         """
         Get results from the pybossa server and return the updated CrowdData object.
 
-        :param blocking: Denotes whether the function will be blocked or not.
+        :param blocking: A boolean value that denotes whether the function will be blocked or not.
 
         - ``blocking = True`` means that the function will continuously collect results from the server until all the tasks are finished by the crowd.
         - ``blocking = False`` means that the function will get the current results of the tasks immediately even if they have not been finished yet.
@@ -290,16 +290,13 @@ class CrowdData:
 
         >>> from crowdbase.presenter.image import ImageLabel
         >>> object_list = ["image1.jpg"]
-        >>> crowddata = cc.CrowdData(object_list, table_name = "tmp").set_presenter(
-        ...  ImageLabel(), lambda obj: {'url_b':obj}).publish_task().get_result(blocking=False)
-        >>> crowddata #doctest: +ELLIPSIS
-        <crowdbase.operators.crowddata.CrowdData instance at 0x...>
-        >>> crowddata.data.keys() #doctest: +SKIP
+        >>> crowddata = cc.CrowdData(object_list, table_name = "tmp") \\
+        ...               .set_presenter(ImageLabel(), lambda obj: {'url_b':obj}) \\
+        ...               .publish_task().get_result(blocking=False)
+        >>> crowddata.cols
         ['id', 'object', 'task', 'result']
         >>> d = crowddata.get_result(blocking=True).data  #doctest: +SKIP
-        >>> #
-        >>> # print the result col
-        >>> print d['result'] #doctest: +SKIP
+        >>> print d['result'] # print the result col #doctest: +SKIP
         {
             'assignments': [
                 {
@@ -332,29 +329,26 @@ class CrowdData:
             raise Exception("Tasks have not been published. "
                                     "Please call publish_task() to publish tasks first.")
 
-        if output_col not in self.cols:
-            self.cols.append(output_col)
-            self.data[output_col] = [None] * len(self.data[input_col])
-        else:
-            self.data[output_col].extend([None]*(len(self.data["id"])-len(self.data[output_col])))
-
         assert len(self.data["id"]) == len(self.data[input_col])
 
         wait_time = 1 # Will be adaptively adjusted based on how fast workers are doing tasks
+        result_col = self.data.get(output_col, [None]*len(self.data["id"]))
         while True:
             # load results from database
             for k, (i, task) in enumerate(zip(self.data["id"], self.data[input_col])):
-                if self.data[output_col][k] == None:
+                if result_col[k] == None:
                     exe_str = "SELECT * FROM '%s' WHERE id=? AND col_name=?" %(self.table_name)
                     self.cc.cursor.execute(exe_str, (i, output_col, ))
                     data = self.cc.cursor.fetchall()
                     if data != []:
                         assert len(data) == 1
-                        self.data[output_col][k] = eval(data[0][2])
+                        result_col[k] = eval(data[0][2])
 
             # check if it is still necessary to fetch results from the pybossa server
             complete = True
-            for task, result in zip(self.data[input_col], self.data[output_col]):
+            for task, result in zip(self.data[input_col], result_col):
+                if task == None: # The task has not been published
+                    continue
                 if result == None or len(result["assignments"]) < task['n_assignments']:
                     complete = False
                     break
@@ -386,16 +380,18 @@ class CrowdData:
 
             updated = False # updated = True means that workers did some new tasks during the waiting time
             for k, (i, task) in enumerate(zip(self.data["id"], self.data[input_col])):
-                cache_result = self.data[output_col][k]
+                if task == None: # task has not been published
+                    continue
+                cache_result = result_col[k]
                 new_result = tid_to_format_result.get(task['id'], None)
-                if new_result == None:
+                if new_result == None: # the result of the task is not available
                     continue
 
                 if (cache_result == None or len(cache_result["assignments"]) < len(new_result["assignments"])):
                     exe_str = "INSERT OR REPLACE INTO " + self.table_name + " (id, col_name, value) VALUES(?,?,?)"
                     self.cc.cursor.execute(exe_str, (i, output_col, str(new_result), ))
                     self.cc.db.commit()
-                    self.data[output_col][k] = new_result
+                    result_col[k] = new_result
                     updated = True
 
             if not updated:
@@ -410,39 +406,14 @@ class CrowdData:
 
             time.sleep(wait_time)
 
-        return self
-
-
-    def append(self, object_list):
-        self.data['object'].extend(object_list)
-        self.data['id'].extend(range(self.start_id, self.start_id+len(object_list)))
-        self.start_id += len(object_list)
-        return self
-
-
-    def filter(self, func):
-        n = len(self.data['id'])
-        Row = namedtuple("Row", self.cols)
-        new_table = []
-        for i in range(n):
-            row = Row(*[self.data[col][i] for col in self.cols])
-            if func(row):
-                new_table.append(row)
-        for col in self.cols:
-            self.data[col] = []
-            for row in new_table:
-                self.data[col].append(getattr(row,col))
-        return self
-
-
-    def clear(self):
-        for col in self.cols:
-            self.data[col] = []
+        self.data[output_col] = result_col
+        if output_col not in self.cols:
+            self.cols.append(output_col)
         return self
 
 
     def __em_col(self, result_col, **kwargs):
-
+        """Using the [Dawid & Skene 1979]'s method"""
         task_to_worker_label = {}
         worker_to_task_label = {}
         label_set = []
@@ -477,6 +448,7 @@ class CrowdData:
 
 
     def __mv_col(self, result_col, **kwargs):
+        """Using Majority Vote"""
         task_to_label = {}
 
         # Build up initial variables for mv
@@ -502,7 +474,33 @@ class CrowdData:
 
         return mv_col
 
+
     def quality_control(self, method = "mv", **kwargs):
+        """
+            Infer the final results using a quality-control method and return the updated CrowdData object.
+
+            :param method: The name of the quality-control method
+            :param \*\*kwargs: Parameters for he quality-control method
+
+            Quality-control methods:
+                - ``mv`` is short for Majority Vote.  It does not have any input parameter
+                - ``em`` is short for Expectation-Maximization [Dawid & Skene 1979]. It has one input parameter: iteration (default: 20).
+
+            The function adds a new column (e.g., **mv**, **em**) to the tabular dataset, which consists of the inferred result of each task.
+
+            >>> from crowdbase.presenter.image import ImageLabel
+            >>> object_list = ["image1.jpg", "image2.jpg"]
+            >>> crowddata = cc.CrowdData(object_list, table_name = "tmp") \\
+            ...               .set_presenter(ImageLabel(), lambda obj: {'url_b':obj}) \\
+            ...               .publish_task(n_assignments=3).get_result() \\
+            ...               .quality_control("em", iteration = 10) #doctest: +SKIP
+            >>> crowddata.cols #doctest: +SKIP
+            ['id', 'object', 'task', 'result', 'em']
+            >>> crowddata.data["em"] #doctest: +SKIP
+            ['YES', 'NO']
+            >>> cc.delete_tmp_tables() #doctest: +SKIP
+            1
+        """
         input_col = "result"
         if input_col not in self.cols:
             raise Exception("There is no result for quality control. "
@@ -515,6 +513,7 @@ class CrowdData:
         elif method == "em":
             output_col = "em"
             self.data[output_col] = self.__em_col(self.data[input_col], **kwargs)
+
         if output_col == None:
             raise Exception(str(method)+" is not a valid input.")
 
@@ -522,3 +521,119 @@ class CrowdData:
             self.cols.append(output_col)
 
         return self
+
+
+    def append(self, object):
+        """
+            Add an object to the end of the  **object** column and return the updated CrowdData
+
+            >>> from crowdbase.presenter.image import ImageLabel
+            >>> object_list = ["image1.jpg", "image2.jpg"]
+            >>> crowddata = cc.CrowdData(object_list, table_name = "tmp") \\
+            ...               .set_presenter(ImageLabel(), lambda obj: {'url_b':obj}) \\
+            ...               .publish_task().get_result().quality_control("mv")  #doctest: +SKIP
+            >>> crowddata.data["object"] #doctest: +SKIP
+            ['image1.jpg', 'image2.jpg']
+            >>> cowddata = crowddata.append( 'image3.jpg')  #doctest: +SKIP
+            >>> crowddata.data["object"] #doctest: +SKIP
+            ['image1.jpg', 'image2.jpg', 'image3.jpg']
+            >>> crowddata = crowddata.publish_task().get_result().quality_control("mv") #doctest: +SKIP
+            >>> crowddata.data["mv"] #doctest: +SKIP
+            ['YES', 'YES', "NO"]
+            >>> cc.delete_tmp_tables() #doctest: +SKIP
+            1
+        """
+        self.data['object'].append(object)
+        self.data['id'].append(self.start_id)
+        for col in self.cols:
+            if col != 'object' and col != 'id':
+                self.data[col].append(None)
+        self.start_id += 1
+        return self
+
+
+    def extend(self, object_list):
+        """
+            Extend the list by appending all the objects in the given list and return the updated CrowdData
+
+            :param: A list of objects where an object can be anything (e.g., int, string, dict)
+
+            >>> from crowdbase.presenter.image import ImageLabel
+            >>> object_list = ["image1.jpg", "image2.jpg"]
+            >>> crowddata = cc.CrowdData(object_list, table_name = "tmp") \\
+            ...  .set_presenter(ImageLabel(), lambda obj: {'url_b':obj}) \\
+            ...  .publish_task().get_result().quality_control("mv")  #doctest: +SKIP
+            >>> crowddata.data["object"] #doctest: +SKIP
+            ['image1.jpg', 'image2.jpg']
+            >>> cowddata = crowddata.extend(['image3.jpg', 'image3.jpg'])  #doctest: +SKIP
+            >>> crowddata.data["object"] #doctest: +SKIP
+            ['image1.jpg', 'image2.jpg', 'image3.jpg', 'image4.jpg']
+            >>> crowddata = crowddata.publish_task().get_result().quality_control("mv") #doctest: +SKIP
+            >>> crowddata.data["mv"] #doctest: +SKIP
+            ['YES', 'YES', "NO", 'NO']
+            >>> cc.delete_tmp_tables() #doctest: +SKIP
+            1
+        """
+        self.data['object'].extend(object_list)
+        self.data['id'].extend(range(self.start_id, self.start_id+len(object_list)))
+        for col in self.cols:
+            if col != 'object' and col != 'id':
+                self.data[col].extend([None]*(len(self.data["id"] ) - len(self.data[col])))
+        self.start_id += len(object_list)
+        return self
+
+
+    def filter(self, func):
+        """
+            Return the updated crowddata by selecting the rows, for which func returns True
+
+            :param: A function that returns True for the selected rows
+
+            >>> from crowdbase.presenter.image import ImageLabel
+            >>> object_list = ["image1.jpg", "image2.jpg"]
+            >>> crowddata = cc.CrowdData(object_list, table_name = "tmp")  \\
+            ...               .set_presenter(ImageLabel(), lambda obj: {'url_b':obj}) \\
+            ...               .publish_task().get_result().quality_control("mv")  #doctest: +SKIP
+            >>> crowddata.data["mv"] #doctest: +SKIP
+            ['YES', 'NO']
+            >>> crowddata.filter(lambda r: r["mv"] == 'YES' ) # Only keeps the images labled by 'YES' #doctest: +SKIP
+            >>> crowddata.data["object"] #doctest: +SKIP
+            ['image1.jpg']
+            >>> cc.delete_tmp_tables() #doctest: +SKIP
+            1
+        """
+        n = len(self.data['id'])
+        new_table = []
+        for i in range(n):
+            row = dict([(col, self.data[col][i]) for col in self.cols])
+            if func(row):
+                new_table.append(row)
+        for col in self.cols:
+            self.data[col] = []
+            for row in new_table:
+                self.data[col].append(row[col])
+        return self
+
+
+    def clear(self):
+        """
+            Remove all the rows in the crowddata
+
+            >>> from crowdbase.presenter.image import ImageLabel
+            >>> object_list = ["image1.jpg", "image2.jpg"]
+            >>> crowddata = cc.CrowdData(object_list, table_name = "tmp")  \\
+            ...               .set_presenter(ImageLabel(), lambda obj: {'url_b':obj}) \\
+            ...               .publish_task().get_result().quality_control("mv")  #doctest: +SKIP
+            >>> crowddata.data["mv"] #doctest: +SKIP
+            ['YES', 'NO']
+            >>> crowddata.clear()  #doctest: +SKIP
+            <crowdbase.operators.crowddata.CrowdData instance at 0x...>
+            >>> crowddata.data["object"] #doctest: +SKIP
+            []
+            >>> cc.delete_tmp_tables() #doctest: +SKIP
+            1
+        """
+        for col in self.cols:
+            self.data[col] = []
+        return self
+

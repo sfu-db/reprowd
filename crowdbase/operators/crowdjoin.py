@@ -267,14 +267,13 @@ class CrowdJoin:
                     matching_pairs.append(pair)
                 else:
                     unknown_pairs.append(pair)
-        matching_pairs = self._unique(matching_pairs) # remove duplicate matching pairs
+        matching_pairs = self._unique_pair(matching_pairs) # remove duplicate matching pairs
 
         crowddata = self.crowddata
         # Ask the crowd to label the remaining pairs
         if not self.transitivity_on:
             # Get the unique unknown pairs
-            unique_unknown_pairs = self._unique(unknown_pairs)
-
+            unique_unknown_pairs = self._unique_pair(unknown_pairs)
             crowddata.extend(unique_unknown_pairs).set_presenter(self.presenter, self.map_func) \
                       .publish_task(self.n_assignments, self.priority).get_result().quality_control("em")
 
@@ -337,9 +336,9 @@ class CrowdJoin:
     def _id(self, pair):
         return (id(pair[0]), id(pair[1]))
 
-    def _unique(self, l):
+    def _unique_pair(self, l):
         seen = set()
-        return [x for x in l if id(x) not in seen and not seen.add(id(x))]
+        return [x for x in l if self._id(x) not in seen and not seen.add(self._id(x))]
 
     def _deduce_labels(self, unlabeled_pairs, pair_crowdlabel):
         """

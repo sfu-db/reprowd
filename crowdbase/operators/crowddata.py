@@ -123,8 +123,8 @@ class CrowdData:
             p.short_name = presenter.short_name
             pbclient.update_project(p)
         except:
-            if p is dict and "exception_cls" in p.keys():
-                raise Exception("%s" %(task["exception_cls"]))
+            if type(p) is dict and "exception_msg" in p.keys():
+                raise Exception("%s" %(p["exception_msg"]))
             else:
                 print p
                 raise
@@ -196,6 +196,7 @@ class CrowdData:
             if records != []:
                 assert len(records) == 1
                 task_col[k] = eval(records[0][2])
+                self.project_id = task_col[k]["project_id"]
                 continue
 
             # Only initialize a project if the database does not contain all the tasks.
@@ -204,8 +205,8 @@ class CrowdData:
                 init_project_flag = True
 
             task = pbclient.create_task(self.project_id, self.map_func(d), n_assignments, priority)
-            if task is dict and "exception_cls" in task.keys():
-                raise Exception("%s" %(task["exception_cls"]))
+            if type(task) is dict and "exception_msg" in task.keys():
+                raise Exception("%s" %(task["exception_msg"]))
             format_task = {"id": task.data["id"], \
                             "task_link": self.__task_link(self.cc.endpoint, self.project_short_name, task.data["id"]), \
                             "task_data": task.data["info"], \
@@ -233,9 +234,11 @@ class CrowdData:
         last_id = 0
         tid_to_result = {}
         while True:
-            results = pbclient.get_taskruns(project_id, limit = limit, last_id = last_id)
-            if results is dict and "exception_cls" in results.keys():
-                raise Exception("%s" %(results["exception_cls"]))
+            try:
+                results = pbclient.get_taskruns(project_id, limit = limit, last_id = last_id)
+            except:
+                print "Too many requests. Will try again in 10s..."
+                time.sleep(10)
 
             if len(results) == 0:
                 break

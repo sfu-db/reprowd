@@ -2,6 +2,7 @@ import re
 import math
 import copy
 
+
 class InvertedIndex:
     def __init__(self):
         self.index = {}
@@ -28,8 +29,8 @@ def jaccard(s, t):
     else:
         return intersect *1.0/union
 
-def editsim(s, t):
 
+def editsim(s, t):
     n = len(t)
     m = len(s)
 
@@ -82,7 +83,6 @@ class SimJoin:
         self.k_o_list = k_o_list
 
 
-
     def _idf(self, docs):
         word_to_idf = {}
         word_to_count = {}
@@ -125,9 +125,7 @@ class SimJoin:
         else:
             last_pos = len(key)-int(math.ceil(len(key)*threshold))+1
 
-
         return key[:last_pos]
-
 
 
     # if Jaccard(s, t) >= threshold, the function will return the real similarity; Otherwise, it will return 0.
@@ -157,7 +155,6 @@ class SimJoin:
             return intersect*1.0/union
         else:
             return 0
-
 
 
     def selfjoin(self, threshold, weight_on = False):
@@ -207,7 +204,6 @@ class SimJoin:
         self.word_to_idf = self._idf(k_list)
         self.max_idf = math.log(len(k_list)*2.0) # For the words that are not in docs, their idf will be set to self.max_idf
 
-
         # Sort the elements in each joinkey in decreasing order of IDF
         sk_list1 = []
         for k, o in k_o_list1:
@@ -218,7 +214,6 @@ class SimJoin:
         for k, o in k_o_list2:
             sk = sorted(k, key=lambda x: (self._get_idf(x), x), reverse=True)
             sk_list2.append(sk)
-
 
         # (1) Generate candidate pairs whose prefixes share elements;
         # (2) Compute the similarity of the candidate pairs and return the ones whose similarity is above  the threshold
@@ -239,8 +234,6 @@ class SimJoin:
                     joined.append((k_o_list1[i], k_o_list2[j], sim))
 
         return joined
-
-
 
 
 if __name__ == "__main__":

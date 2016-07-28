@@ -1,5 +1,6 @@
 from crowdbase.crowdcontext import *
 from crowdbase.presenter.image import ImageLabel
+import pprint
 
 if __name__ == "__main__":
 
@@ -10,19 +11,17 @@ if __name__ == "__main__":
 
     crowddata = cc.CrowdData(object_list, "flickr") \
                             .set_presenter(ImageLabel(), map_func = lambda obj: {'url_b':obj}) \
-                            .publish_task(3).get_result(blocking=True).quality_control("mv")
+                            .publish_task().get_result(False).quality_control("mv")
 
+    pp = pprint.PrettyPrinter(indent=4)
+    print "Images:"
+    pp.pprint(crowddata.data["object"])
 
-    print "Data:"
-    print crowddata.data["object"]
-    print
+    print "\nTask:"
+    pp.pprint(crowddata.data["task"])
 
-    print "Task:"
-    print crowddata.data["task"]
-    print
+    print "\nResult:"
+    pp.pprint(crowddata.data["result"])
 
-    print "Result:"
-    print crowddata.data["result"]
-
-    print "Quality:"
-    print crowddata.data["mv"]
+    print "\nLabels:"
+    pp.pprint(crowddata.data["mv"])

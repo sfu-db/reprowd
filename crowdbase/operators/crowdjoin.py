@@ -31,8 +31,7 @@ class CrowdJoin:
         Please call it through :func:`crowdbase.crowdcontext.CrowdContext.CrowdJoin`.
 
         >>> object_list = ["iPad 2", "iPad Two", "iPhone 2", "iPad2"]
-        >>> crowdjoin = cc.CrowdJoin(object_list, table_name = "jointest")  #doctest: +SKIP
-        >>> crowdjoin #doctest: +SKIP
+        >>> cc.CrowdJoin(object_list, table_name = "jointest")  #doctest: +SKIP
         <crowdbase.operators.crowdjoin.CrowdJoin instance at 0x...>
         """
         self.cc = crowdcontext
@@ -66,9 +65,8 @@ class CrowdJoin:
         >>> def map_func(obj_pair):
         ...     o1, o2 = obj_pair
         ...     return {'obj1':o1, 'obj2':o2}
-        >>> crowdjoin = cc.CrowdJoin(object_list, table_name = "jointest") \\ #doctest: +SKIP
-        ...               .set_presenter(TextCmp(), map_func) #doctest: +SKIP
-        >>> crowdjoin  #doctest: +SKIP
+        >>> cc.CrowdJoin(object_list, table_name = "jointest") \\ #doctest: +SKIP
+        ...   .set_presenter(TextCmp(), map_func) #doctest: +SKIP
         <crowdbase.operators.crowdjoin.CrowdJoin instance at 0x...>
         """
         self.presenter = presenter
@@ -96,16 +94,12 @@ class CrowdJoin:
         >>> from crowdbase.presenter.text import TextCmp
         >>> from crowdbase.utils.simjoin import gramset
         >>> object_list = ["iPad 2", "iPad Two", "iPhone 2", "iPad2"]
-        >>> def map_func(obj_pair):
-        ...     o1, o2 = obj_pair
-        ...     return {'obj1':o1, 'obj2':o2}
-        >>> crowdjoin = cc.CrowdJoin(object_list, table_name = "jointest") \\ #doctest: +SKIP
-        ...               .set_presenter(TextCmp(), map_func) #doctest: +SKIP
-        >>> # Use a 2-gram set as a joinkey
         >>> def joinkey_func(obj):
+        ...     # Use a 2-gram set as a joinkey
         ...     return gramset(obj, 2)
-        >>> crowdjoin.set_simjoin(joinkey_func, 0.2) #doctest: +SKIP
-        <crowdbase.operators.crowdjoin.CrowdJoin instance at 0x...>
+        >>> crowdjoin = cc.CrowdJoin(object_list, table_name = "jointest") \\ #doctest: +SKIP
+        ...               .set_presenter(TextCmp()) \\ #doctest: +SKIP
+        ...               .set_simjoin(joinkey_func, 0.2) #doctest: +SKIP
         """
         self.joinkey_func = joinkey_func
         self.threshold = threshold
@@ -124,17 +118,13 @@ class CrowdJoin:
         >>> from crowdbase.presenter.text import TextCmp
         >>> from crowdbase.utils.simjoin import gramset, jaccard
         >>> object_list = ["iPad 2", "iPad Two", "iPhone 2", "iPad2"]
-        >>> def map_func(obj_pair):
-        ...     o1, o2 = obj_pair
-        ...     return {'obj1':o1, 'obj2':o2}
-        >>> crowdjoin = cc.CrowdJoin(object_list, table_name = "jointest") \\ #doctest: +SKIP
-        ...               .set_presenter(TextCmp(), map_func) #doctest: +SKIP
         >>> # Identify the pairs whose Jaccard similarity is above 0.9 as matching.
         >>> def matcher_func(obj_pair):
         ...     o1, o2 = obj_pair
         ...     return jaccard(gramset(o1, 2), gramset(o2, 2)) >= 0.9
-        >>> crowdjoin.set_matcher(matcher_func) #doctest: +SKIP
-        <crowdbase.operators.crowdjoin.CrowdJoin instance at 0x...>
+        >>> crowdjoin = cc.CrowdJoin(object_list, table_name = "jointest") \\ #doctest: +SKIP
+        ...               .set_presenter(TextCmp(), map_func) \\ #doctest: +SKIP
+        ...               .set_matcher(matcher_func) #doctest: +SKIP
         """
         self.matcher_func = matcher_func
         return self
@@ -149,18 +139,18 @@ class CrowdJoin:
 
         >>> from crowdbase.presenter.text import TextCmp
         >>> from crowdbase.utils.simjoin import gramset
-        >>> object_list = [("iPad 2", 300), ("iPad Two", 305), ("iPhone 2", 400), ("iPad2", 298)] # (name, price\)
+        >>> object_list = [("iPad 2", 300), ("iPad Two", 305), ("iPhone 2", 400), ("iPad2", 298)] # (name, price)
         >>> def map_func(obj_pair):
         ...     o1, o2 = obj_pair
         ...     return {'obj1':o1[0] + " | " + str(o1[1]), 'obj2':o2[0] + " | " + str(o2[1])}
-        >>> crowdjoin = cc.CrowdJoin(object_list, table_name = "jointest") \\ #doctest: +SKIP
-        ...               .set_presenter(TextCmp(), map_func) #doctest: +SKIP
         >>> # If the prices of two product differ by more than 80, they will be identified as a non-matching pair
         >>> def nonmatcher_func(obj_pair):
         ...     o1, o2 = obj_pair
         ...     return abs(o1[1]-o2[1]) > 80
-        >>> crowdjoin.set_nonmatcher(nonmatcher_func) #doctest: +SKIP
-        <crowdbase.operators.crowdjoin.CrowdJoin instance at 0x...>
+        >>>
+        >>> crowdjoin = cc.CrowdJoin(object_list, table_name = "jointest") \\ #doctest: +SKIP
+        ...               .set_presenter(TextCmp(), map_func) \\#doctest: +SKIP
+        ...               .set_nonmatcher(nonmatcher_func) #doctest: +SKIP
         """
         self.nonmatcher_func = nonmatcher_func
         return self
@@ -182,16 +172,12 @@ class CrowdJoin:
         >>> from crowdbase.presenter.text import TextCmp
         >>> from crowdbase.utils.simjoin import gramset, jaccard
         >>> object_list = ["iPhone 2", "iPad 2", "iPad Two", "iPad2"]
-        >>> def map_func(obj_pair):
-        ...     o1, o2 = obj_pair
-        ...     return {'obj1':o1, 'obj2':o2}
-        >>> crowdjoin = cc.CrowdJoin(object_list, table_name = "jointest") \\ #doctest: +SKIP
-        ...               .set_presenter(TextCmp(), map_func) #doctest: +SKIP
         >>> def score_func(obj_pair):
         ...     o1, o2 = obj_pair
         ...     return jaccard(gramset(o1, 2), gramset(o2, 2))
-        >>> crowdjoin.set_transitivity(score_func) #doctest: +SKIP
-        <crowdbase.operators.crowdjoin.CrowdJoin instance at 0x...>
+        >>> crowdjoin = cc.CrowdJoin(object_list, table_name = "jointest") \\ #doctest: +SKIP
+        ...               .set_presenter(TextCmp()) \\ #doctest: +SKIP
+        ...               .set_transitivity(score_func) #doctest: +SKIP
         """
         self.transitivity_on = True
         self.score_func = score_func
@@ -234,12 +220,9 @@ class CrowdJoin:
 
         >>> from crowdbase.presenter.text import TextCmp
         >>> object_list = ["iPad 2", "iPad Two", "iPhone 2"]
-        >>> def map_func(obj_pair):
-        ...     o1, o2 = obj_pair
-        ...     return {'obj1':o1, 'obj2':o2}
         >>> crowdjoin = cc.CrowdJoin(object_list, table_name = "jointest") \\  #doctest: +SKIP
-        ...               .set_presenter(TextCmp(), map_func) #doctest: +SKIP
-        >>> matches = crowdjoin.join() # Ask workers to check all pairs #doctest: +SKIP
+        ...               .set_presenter(TextCmp()) \\ #doctest: +SKIP
+        ...               .join() # Ask workers to check all pairs #doctest: +SKIP
         >>> matches['all'] #doctest: +SKIP
         [('iPad 2', 'iPad Two')]
         >>> matches['human'] #doctest: +SKIP
@@ -284,13 +267,13 @@ class CrowdJoin:
                     matching_pairs.append(pair)
                 else:
                     unknown_pairs.append(pair)
-        matching_pairs = list(set(matching_pairs)) # remove duplicate matching pairs
+        matching_pairs = self._unique(matching_pairs) # remove duplicate matching pairs
 
         crowddata = self.crowddata
         # Ask the crowd to label the remaining pairs
         if not self.transitivity_on:
             # Get the unique unknown pairs
-            unique_unknown_pairs = list(set(unknown_pairs))
+            unique_unknown_pairs = self._unique(unknown_pairs)
 
             crowddata.extend(unique_unknown_pairs).set_presenter(self.presenter, self.map_func) \
                       .publish_task(self.n_assignments, self.priority).get_result().quality_control("em")
@@ -353,6 +336,10 @@ class CrowdJoin:
 
     def _id(self, pair):
         return (id(pair[0]), id(pair[1]))
+
+    def _unique(self, l):
+        seen = set()
+        return [x for x in l if id(x) not in seen and not seen.add(id(x))]
 
     def _deduce_labels(self, unlabeled_pairs, pair_crowdlabel):
         """

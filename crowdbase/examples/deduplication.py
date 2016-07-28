@@ -1,6 +1,7 @@
 from crowdbase.crowdcontext import *
 from crowdbase.presenter.text import TextCmp
 from crowdbase.utils.simjoin import wordset, gramset, jaccard, editsim
+import pprint
 
 if __name__ == "__main__":
 
@@ -14,39 +15,50 @@ if __name__ == "__main__":
                          'Apple iPod shuffle 2GB Blue', \
                          'Apple iPod shuffle USB Cable']
 
-    cc = CrowdContext('http://localhost:7000/', '1588f716-d496-4bb2-b107-9f6b200cbfc9')
+    cc = CrowdContext()
 
     print "=========== CrowdJoin (all pairs) ==========="
-    def map_func(obj_pair):
-        return {'obj1':obj_pair[0], 'obj2':obj_pair[1]}
-    matches = cc.CrowdJoin(object_list, cache_table = "dedup_pairjoin") \
-                            .set_presenter(TextCmp(), map_func) \
-                             .join()
+    matches = cc.CrowdJoin(object_list, table_name = "dedup_allpair") \
+                        .set_presenter(TextCmp()) \
+                        .join()
+    pp = pprint.PrettyPrinter(indent=4)
+    pp.pprint(matches)
 
-    print matches
 
     print "\n=========== CrowdJoin (simjoin) ==========="
-    matches = cc.CrowdJoin(object_list, cache_table = "dedup_pairjoin_simjoin") \
-                            .set_presenter(TextCmp(), map_func) \
-                            .set_simjoin(lambda x: wordset(x), 0.4) \
-                            .join()
+    matches = cc.CrowdJoin(object_list, table_name = "dedup_simjoin") \
+                        .set_presenter(TextCmp()) \
+                        .set_simjoin(lambda x: wordset(x), 0.4) \
+                        .join()
 
 
-    print matches
+    pp.pprint(matches)
+
 
     print "\n======= CrowdJoin (simjoin & matcher) ======"
-    def matcher(o1, o2):
+    def matcher(obj_pair):
+        o1, o2 = obj_pair
         return jaccard(wordset(o1), wordset(o2)) >= 0.8 or editsim(o1, o2) >= 0.8
 
-    matches = cc.CrowdJoin(object_list, cache_table = "dedup_pairjoin_simjoin_matcher") \
-                            .set_presenter(TextCmp(), map_func) \
-                            .set_simjoin(lambda x: wordset(x), 0.4) \
-                            .set_matcher(matcher) \
+    matches = cc.CrowdJoin(object_list, table_name = "dedup_simjoin_matcher") \
+                        .set_presenter(TextCmp()) \
+                        .set_simjoin(lambda x: wordset(x), 0.4) \
+                        .set_matcher(matcher) \
+                        .join()
+    pp.pprint(matches)
+
+
+    print "\n=========== CrowdJoin (simjoin&transitivity) ==========="
+    def score_func(obj_pair):
+        o1, o2 = obj_pair
+        return jaccard(wordset(o1), wordset(o2))
+    matches = cc.CrowdJoin(object_list, table_name = "dedup_simjoin_trans") \
+                            .set_presenter(TextCmp()) \
+                            .set_simjoin(lambda x: wordset(x), 0.2) \
+                            .set_transitivity(score_func) \
                             .join()
 
-    print matches
+    pp.pprint(matches)
 
-    #print crowddata.table["raw_object"]
-    #print crowddata.table["presenter_object"]
-   # print crowddata.table["task"]
+
 

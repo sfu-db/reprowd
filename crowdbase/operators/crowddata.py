@@ -14,7 +14,7 @@ class CrowdData:
     """
         A CrowdData is the basic abstraction in CrowdBase. It treats crowdsourcing
         as a process of manipulating a tabular dataset. For example, collecting results
-        from the crowd can be considered as adding a new column `result` to the data.
+        from the crowd is considered as adding a new column **result** to the data.
 
         Furthermore, it provides fault recovery through the data manipulating process.
         That is, when the program crashes, the user can simply rerun the program as if it
@@ -31,15 +31,13 @@ class CrowdData:
         Please call it through :func:`crowdbase.crowdcontext.CrowdContext.CrowdData`.
 
         >>> object_list = ["image1.jpg", "image2.jpg"]
-        >>> crowddata = cc.CrowdData(object_list, table_name = "tmp")
-        >>> crowddata  #doctest: +ELLIPSIS
+        >>> crowddata = cc.CrowdData(object_list, table_name = "test")  #doctest: +SKIP
+        >>> crowddata  #doctest: +SKIP
         <crowdbase.operators.crowddata.CrowdData instance at 0x...>
-        >>> crowddata.cols
+        >>> crowddata.cols  #doctest: +SKIP
         ['id', 'object']
         >>> crowddata.data  #doctest: +SKIP
         {'id': [0, 1], 'object': ['image1.jpg', 'image2.jpg']}
-        >>> cc.delete_tmp_tables()
-        1
         """
         self.cc = crowdcontext
         self.data = {'id': range(len(object_list)), 'object':object_list}
@@ -63,26 +61,25 @@ class CrowdData:
 
     def set_presenter(self, presenter, map_func = None):
         """
-        Specify a presenter and return the updated CrowdData object.
+        Specify a presenter
 
 
         :param presenter: A Presenter object (e.g., :class:`crowdbase.presenter.test.TextCmp`).
-        :param map_func:  map_func() transforms each object (in the *object_list*) to the data format the presenter requires.
-                                        If map_func() is not specified, it will use the default map_func = lambda obj: obj
+        :param map_func:  map_func() maps an object into the data format the presenter requires.
+                                        If map_func() is not specified, it will use the default ``map_func = lambda obj: obj``
+        :return: The updated CrowdData object
 
         >>> from crowdbase.presenter.image import ImageLabel
         >>> object_list = ["image1.jpg", "image2.jpg"]
         >>> map_func = lambda obj: {'url_b':obj}
-        >>> crowddata = cc.CrowdData(object_list, table_name = "tmp") \\
-        ...               .set_presenter(ImageLabel(), map_func)
-        >>> crowddata.cols
+        >>> crowddata = cc.CrowdData(object_list, table_name = "test") \\  #doctest: +SKIP
+        ...               .set_presenter(ImageLabel(), map_func)   #doctest: +SKIP
+        >>> crowddata.cols   #doctest: +SKIP
         ['id', 'object']
         >>> crowddata.data  #doctest: +SKIP
         {'id': [0, 1], 'object': ['image1.jpg', 'image2.jpg']}
-        >>> crowddata.presenter   #doctest: +ELLIPSIS
+        >>> crowddata.presenter    #doctest: +SKIP
         <crowdbase.presenter.image.ImageLabel object at 0x...>
-        >>> cc.delete_tmp_tables()
-        1
         """
         self.map_func = map_func
         if self.map_func == None:
@@ -94,7 +91,6 @@ class CrowdData:
 
     def __task_link(self, endpoint, task_id, project_short_name):
         return "%s/project/%s/task/%d" %(endpoint.strip('/'), task_id, project_short_name)
-
 
 
     def __init_project(self, presenter):
@@ -135,11 +131,11 @@ class CrowdData:
 
     def publish_task(self, n_assignments = 1, priority = 0):
         """
-        Publish tasks to the pybossa server and return the updated CrowdData object.
+        Publish tasks to the pybossa server
 
         :param n_assignments: The number of assignments. For example, ``n_assignments`` = 3 means that each task needs to be done by three different workers
         :param priority:  A float number in [0, 1] that indicates the priority of the published tasks. The larger the value, the higher the priority.
-
+        :return: The updated CrowdData object
 
         The function adds a new column **task** to the tabular dataset. Each item in the **task** column is a dict with the following attributes:
 
@@ -151,18 +147,14 @@ class CrowdData:
             - *project_id*: the project id (e.g., 155)
             - *create_time*: the time created a task (e.g., "2016-07-12T03:46:04.622127")
 
-
-
         >>> from crowdbase.presenter.image import ImageLabel
         >>> object_list = ["image1.jpg", "image2.jpg"]
-        >>> crowddata = cc.CrowdData(object_list, table_name = "tmp") \\
-        ...               .set_presenter(ImageLabel(), lambda obj: {'url_b':obj}) \\
-        ...               .publish_task()
-        >>> crowddata.cols
+        >>> crowddata = cc.CrowdData(object_list, table_name = "test") \\  #doctest: +SKIP
+        ...               .set_presenter(ImageLabel(), lambda obj: {'url_b':obj}) \\  #doctest: +SKIP
+        ...               .publish_task()  #doctest: +SKIP
+        >>> crowddata.cols  #doctest: +SKIP
         ['id', 'object', 'task']
-        >>> #
-        >>> # print the task col
-        >>> print crowddata.data['task'] #doctest: +SKIP
+        >>> print crowddata.data['task']  # print the task col #doctest: +SKIP
         [
             {
                 'id': 91,
@@ -183,11 +175,9 @@ class CrowdData:
                 'create_time': u'2016-07-23T23:52:50.570035'
             }
         ]
-        >>> first_task = crowddata.data['task'][0]
-        >>> sorted(first_task.keys())
+        >>> first_task = crowddata.data['task'][0]  #doctest: +SKIP
+        >>> sorted(first_task.keys())  #doctest: +SKIP
         ['create_time', 'id', 'n_assignments', 'priority', 'project_id', 'task_data', 'task_link']
-        >>> cc.delete_tmp_tables()
-        1
         """
 
         input_col = "object"
@@ -266,12 +256,14 @@ class CrowdData:
 
     def get_result(self, blocking = True):
         """
-        Get results from the pybossa server and return the updated CrowdData object.
+        Get results from the pybossa server
 
         :param blocking: A boolean value that denotes whether the function will be blocked or not.
 
         - ``blocking = True`` means that the function will continuously collect results from the server until all the tasks are finished by the crowd.
         - ``blocking = False`` means that the function will get the current results of the tasks immediately even if they have not been finished yet.
+
+        :return: The updated CrowdData object
 
         The function adds a new column **result** to the tabular dataset. Each item in the **result** column is a dict with the following attributes:
 
@@ -290,10 +282,10 @@ class CrowdData:
 
         >>> from crowdbase.presenter.image import ImageLabel
         >>> object_list = ["image1.jpg"]
-        >>> crowddata = cc.CrowdData(object_list, table_name = "tmp") \\
-        ...               .set_presenter(ImageLabel(), lambda obj: {'url_b':obj}) \\
-        ...               .publish_task().get_result(blocking=False)
-        >>> crowddata.cols
+        >>> crowddata = cc.CrowdData(object_list, table_name = "test") \\ #doctest: +SKIP
+        ...               .set_presenter(ImageLabel(), lambda obj: {'url_b':obj}) \\  #doctest: +SKIP
+        ...               .publish_task().get_result(blocking=False)  #doctest: +SKIP
+        >>> crowddata.cols  #doctest: +SKIP
         ['id', 'object', 'task', 'result']
         >>> d = crowddata.get_result(blocking=True).data  #doctest: +SKIP
         >>> print d['result'] # print the result col #doctest: +SKIP
@@ -318,8 +310,6 @@ class CrowdData:
             'task_link': 'http://localhost:7000/project/imglabel/task/407',
             'project_id': 190
         }
-        >>> cc.delete_tmp_tables()
-        1
         """
 
         input_col = "task"
@@ -477,10 +467,11 @@ class CrowdData:
 
     def quality_control(self, method = "mv", **kwargs):
         """
-            Infer the final results using a quality-control method and return the updated CrowdData object.
+            Infer the final results using a quality-control method
 
             :param method: The name of the quality-control method
             :param \*\*kwargs: Parameters for he quality-control method
+            :return: The updated CrowdData object
 
             Quality-control methods:
                 - ``mv`` is short for Majority Vote.  It does not have any input parameter
@@ -490,16 +481,14 @@ class CrowdData:
 
             >>> from crowdbase.presenter.image import ImageLabel
             >>> object_list = ["image1.jpg", "image2.jpg"]
-            >>> crowddata = cc.CrowdData(object_list, table_name = "tmp") \\
-            ...               .set_presenter(ImageLabel(), lambda obj: {'url_b':obj}) \\
-            ...               .publish_task(n_assignments=3).get_result() \\
+            >>> crowddata = cc.CrowdData(object_list, table_name = "test") \\  #doctest: +SKIP
+            ...               .set_presenter(ImageLabel(), lambda obj: {'url_b':obj}) \\  #doctest: +SKIP
+            ...               .publish_task(n_assignments=3).get_result() \\  #doctest: +SKIP
             ...               .quality_control("em", iteration = 10) #doctest: +SKIP
             >>> crowddata.cols #doctest: +SKIP
             ['id', 'object', 'task', 'result', 'em']
             >>> crowddata.data["em"] #doctest: +SKIP
             ['YES', 'NO']
-            >>> cc.delete_tmp_tables() #doctest: +SKIP
-            1
         """
         input_col = "result"
         if input_col not in self.cols:
@@ -525,23 +514,24 @@ class CrowdData:
 
     def append(self, object):
         """
-            Add an object to the end of the  **object** column and return the updated CrowdData
+            Add an object to the end of the  **object** column
+
+            :param: An object that can be anything (e.g., int, string, dict)
+            :return: The updated CrowdData object
 
             >>> from crowdbase.presenter.image import ImageLabel
             >>> object_list = ["image1.jpg", "image2.jpg"]
-            >>> crowddata = cc.CrowdData(object_list, table_name = "tmp") \\
-            ...               .set_presenter(ImageLabel(), lambda obj: {'url_b':obj}) \\
+            >>> crowddata = cc.CrowdData(object_list, table_name = "test") \\  #doctest: +SKIP
+            ...               .set_presenter(ImageLabel(), lambda obj: {'url_b':obj}) \\  #doctest: +SKIP
             ...               .publish_task().get_result().quality_control("mv")  #doctest: +SKIP
             >>> crowddata.data["object"] #doctest: +SKIP
             ['image1.jpg', 'image2.jpg']
-            >>> cowddata = crowddata.append( 'image3.jpg')  #doctest: +SKIP
+            >>> crowddata.append( 'image3.jpg')  #doctest: +SKIP
             >>> crowddata.data["object"] #doctest: +SKIP
             ['image1.jpg', 'image2.jpg', 'image3.jpg']
-            >>> crowddata = crowddata.publish_task().get_result().quality_control("mv") #doctest: +SKIP
+            >>> crowddata.publish_task().get_result().quality_control("mv") #doctest: +SKIP
             >>> crowddata.data["mv"] #doctest: +SKIP
             ['YES', 'YES', "NO"]
-            >>> cc.delete_tmp_tables() #doctest: +SKIP
-            1
         """
         self.data['object'].append(object)
         self.data['id'].append(self.start_id)
@@ -554,25 +544,24 @@ class CrowdData:
 
     def extend(self, object_list):
         """
-            Extend the list by appending all the objects in the given list and return the updated CrowdData
+            Extend the list by appending all the objects in the given list
 
             :param: A list of objects where an object can be anything (e.g., int, string, dict)
+            :return: The updated CrowdData object
 
             >>> from crowdbase.presenter.image import ImageLabel
             >>> object_list = ["image1.jpg", "image2.jpg"]
-            >>> crowddata = cc.CrowdData(object_list, table_name = "tmp") \\
-            ...  .set_presenter(ImageLabel(), lambda obj: {'url_b':obj}) \\
+            >>> crowddata = cc.CrowdData(object_list, table_name = "test") \\   #doctest: +SKIP
+            ...  .set_presenter(ImageLabel(), lambda obj: {'url_b':obj}) \\  #doctest: +SKIP
             ...  .publish_task().get_result().quality_control("mv")  #doctest: +SKIP
             >>> crowddata.data["object"] #doctest: +SKIP
             ['image1.jpg', 'image2.jpg']
-            >>> cowddata = crowddata.extend(['image3.jpg', 'image3.jpg'])  #doctest: +SKIP
+            >>> crowddata.extend(['image3.jpg', 'image3.jpg'])  #doctest: +SKIP
             >>> crowddata.data["object"] #doctest: +SKIP
             ['image1.jpg', 'image2.jpg', 'image3.jpg', 'image4.jpg']
-            >>> crowddata = crowddata.publish_task().get_result().quality_control("mv") #doctest: +SKIP
+            >>> crowddata.publish_task().get_result().quality_control("mv") #doctest: +SKIP
             >>> crowddata.data["mv"] #doctest: +SKIP
             ['YES', 'YES', "NO", 'NO']
-            >>> cc.delete_tmp_tables() #doctest: +SKIP
-            1
         """
         self.data['object'].extend(object_list)
         self.data['id'].extend(range(self.start_id, self.start_id+len(object_list)))
@@ -588,19 +577,18 @@ class CrowdData:
             Return the updated crowddata by selecting the rows, for which func returns True
 
             :param: A function that returns True for the selected rows
+            :return: The updated CrowdData object
 
             >>> from crowdbase.presenter.image import ImageLabel
             >>> object_list = ["image1.jpg", "image2.jpg"]
-            >>> crowddata = cc.CrowdData(object_list, table_name = "tmp")  \\
-            ...               .set_presenter(ImageLabel(), lambda obj: {'url_b':obj}) \\
+            >>> crowddata = cc.CrowdData(object_list, table_name = "test")  \\  #doctest: +SKIP
+            ...               .set_presenter(ImageLabel(), lambda obj: {'url_b':obj}) \\  #doctest: +SKIP
             ...               .publish_task().get_result().quality_control("mv")  #doctest: +SKIP
             >>> crowddata.data["mv"] #doctest: +SKIP
             ['YES', 'NO']
             >>> crowddata.filter(lambda r: r["mv"] == 'YES' ) # Only keeps the images labled by 'YES' #doctest: +SKIP
             >>> crowddata.data["object"] #doctest: +SKIP
             ['image1.jpg']
-            >>> cc.delete_tmp_tables() #doctest: +SKIP
-            1
         """
         n = len(self.data['id'])
         new_table = []
@@ -619,10 +607,12 @@ class CrowdData:
         """
             Remove all the rows in the crowddata
 
+            :return: The updated CrowdData object
+
             >>> from crowdbase.presenter.image import ImageLabel
             >>> object_list = ["image1.jpg", "image2.jpg"]
-            >>> crowddata = cc.CrowdData(object_list, table_name = "tmp")  \\
-            ...               .set_presenter(ImageLabel(), lambda obj: {'url_b':obj}) \\
+            >>> crowddata = cc.CrowdData(object_list, table_name = "test")  \\ #doctest: +SKIP
+            ...               .set_presenter(ImageLabel(), lambda obj: {'url_b':obj}) \\  #doctest: +SKIP
             ...               .publish_task().get_result().quality_control("mv")  #doctest: +SKIP
             >>> crowddata.data["mv"] #doctest: +SKIP
             ['YES', 'NO']
@@ -630,8 +620,6 @@ class CrowdData:
             <crowdbase.operators.crowddata.CrowdData instance at 0x...>
             >>> crowddata.data["object"] #doctest: +SKIP
             []
-            >>> cc.delete_tmp_tables() #doctest: +SKIP
-            1
         """
         for col in self.cols:
             self.data[col] = []

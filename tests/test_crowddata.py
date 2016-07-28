@@ -261,6 +261,8 @@ class CrowdDataTestSuite(unittest.TestCase):
         # test multiple assignment
         global ENABLE_MANUAL_LABEL
         if ENABLE_MANUAL_LABEL:
+            presenter = ImageLabel()
+            presenter.set_short_name(presenter.short_name).set_name(presenter.name)
             # In order to test multi-assignments, you have to manually do tasks
             assert False
             n = 2
@@ -413,7 +415,7 @@ class CrowdDataTestSuite(unittest.TestCase):
         assert delete_project(short_name = presenter.short_name) == True
         destroy_context()
 
-    @attr('now')
+
     def test_filter_clear_append(self):
         cc = init_context()
 
@@ -462,7 +464,6 @@ class CrowdDataTestSuite(unittest.TestCase):
             cc.pbclient._pybossa_req("get", "project", "%s/newtask" %(project_id) )
             cc.pbclient._pybossa_req("post", "taskrun", \
                 payload={"project_id":project_id,"task_id":task_id,"info":ans})
-
 
         d = crowddata.get_result(blocking=True).quality_control("mv").data
         print crowddata.data

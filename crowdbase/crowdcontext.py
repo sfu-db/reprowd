@@ -32,9 +32,10 @@ class CrowdContext:
             creating an account in the pybossa server, and check the api_key of the account by clicking the
             "account name" --> "My Profile" on the top right of the page.
         :param local_db: The local database name
+        :return: A CrowdContext object
 
         >>> from crowdbase.crowdcontext import CrowdContext
-        >>> CrowdContext("http://localhost:7000", api_key = "test", local_db = "crowdbase.test.db")  #doctest: +ELLIPSIS
+        >>> CrowdContext("http://localhost:7000", api_key = "test", local_db = "crowdbase.test.db")  #doctest: +SKIP
         <crowdbase.crowdcontext.CrowdContext instance at 0x...>
         """
 
@@ -64,10 +65,8 @@ class CrowdContext:
 
 
         >>> # Create a CrowdData object for image labeling
-        >>> cc.CrowdData(["image1.jpg", "image2.jpg"], "tmp") #doctest: +ELLIPSIS
+        >>> cc.CrowdData(["image1.jpg", "image2.jpg"], "tmp")   #doctest: +SKIP
         <crowdbase.operators.crowddata.CrowdData instance at 0x...>
-        >>> cc.delete_tmp_tables()
-        1
         """
         # Check if table_name has been used before
         if table_name in CrowdContext.__current_cd[self.local_db]:
@@ -87,10 +86,8 @@ class CrowdContext:
         :param table_name:  The table used for caching the crowd tasks/results related to the :class:`CrowdJoin` object
 
         >>> # Create a CrowdJoin object for deduplication
-        >>> cc.CrowdJoin(["iphone 4", "ipad 2", "ipad two"], "tmp") #doctest: +ELLIPSIS
+        >>> cc.CrowdJoin(["iphone 4", "ipad 2", "ipad two"], "tmp") #doctest: +SKIP
         <crowdbase.operators.crowdjoin.CrowdJoin instance at 0x...>
-        >>> cc.delete_tmp_tables()
-        1
         """
         # Check if the table_name has been used before
         if table_name in CrowdContext.__current_cd[self.local_db]:

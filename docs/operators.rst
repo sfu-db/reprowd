@@ -1,5 +1,6 @@
-crowdbase.operators package 
+crowdbase.operators package
 ==============================
+
 
 crowdbase.operators.crowddata module
 --------------------------------------
@@ -7,9 +8,11 @@ crowdbase.operators.crowddata module
     :members:
     :special-members: __init__
 
+
 crowdbase.operators.crowdjoin module
 -----------------------------------------
 .. automodule:: crowdbase.operators.crowdjoin
     :members:
     :special-members: __init__
+
 

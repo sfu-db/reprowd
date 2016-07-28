@@ -65,6 +65,8 @@ def wordset(s, lower_case = True, alphanum_only = True):
 
 
 def gramset(s, gram_size, lower_case = True, alphanum_only = True):
+    if gram_size <= 0 or type(gram_size) is not int:
+        raise Exception("'gram_size="+str(gram_size) + "' is not a non-negative integer.")
     if lower_case:
        s = s.lower()
     if alphanum_only:
@@ -159,7 +161,8 @@ class SimJoin:
 
 
     def selfjoin(self, threshold, weight_on = False):
-
+        if threshold < 0 or threshold > 1:
+            raise Exception("threshold is not in the range of [0, 1]")
         # Compute IDF for each word
         k_list = [k for k, o in self.k_o_list]
         self.word_to_idf = self._idf(k_list)
@@ -193,6 +196,8 @@ class SimJoin:
 
 
     def join(self, other_k_o_list, threshold, weight_on = False):
+        if threshold < 0 or threshold > 1:
+            raise Exception("threshold is not in the range of [0, 1]")
 
         k_o_list1= self.k_o_list
         k_o_list2 = other_k_o_list

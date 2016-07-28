@@ -37,5 +37,21 @@ class CrowdBaseDocTestSuite(unittest.TestCase):
         if failure_count:
             exit(-1)
 
+
+    def test_crowdjoin(self):
+        import doctest
+        from crowdbase.operators import crowdjoin
+        from crowdbase.presenter.image import ImageLabel
+        globs = globals().copy()
+        test_db = 'crowdbase.test.db'
+        CrowdContext.remove_db_file(test_db)
+        globs['cc'] =  CrowdContext(local_db = test_db)
+        (failure_count, test_count) = doctest.testmod(crowdjoin, globs=globs)
+        delete_project(short_name = ImageLabel().short_name)
+        CrowdContext.remove_db_file(test_db)
+        if failure_count:
+            exit(-1)
+
+
 if __name__ == '__main__':
     unittest.main()

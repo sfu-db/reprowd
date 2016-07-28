@@ -69,7 +69,6 @@ class CrowdJoinTestSuite(unittest.TestCase):
             time.sleep(0.5)
 
 
-
     def map_func(self, obj_pair):
         o1, o2 = obj_pair
         return {'obj1':o1, 'obj2':o2}
@@ -312,7 +311,6 @@ class CrowdJoinTestSuite(unittest.TestCase):
             delete_project(short_name = presenter.short_name)
 
 
-
     def test_set_join(self):
         cc = self.cc
         presenter = self.presenter
@@ -388,27 +386,6 @@ class CrowdJoinTestSuite(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

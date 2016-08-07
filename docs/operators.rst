@@ -1,18 +1,16 @@
-crowdbase.operators package
+reprowd.operators package
 ==============================
 
 
-crowdbase.operators.crowddata module
+reprowd.operators.crowddata module
 --------------------------------------
-.. automodule:: crowdbase.operators.crowddata
+.. automodule:: reprowd.operators.crowddata
     :members:
     :special-members: __init__
 
 
-crowdbase.operators.crowdjoin module
+reprowd.operators.crowdjoin module
 -----------------------------------------
-.. automodule:: crowdbase.operators.crowdjoin
+.. automodule:: reprowd.operators.crowdjoin
     :members:
     :special-members: __init__
-
-

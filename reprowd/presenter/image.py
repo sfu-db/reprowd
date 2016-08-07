@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from crowdbase.presenter.base import *
+from reprowd.presenter.base import *
 
 class ImageLabel (BasePresenter):
     def __init__(self):
@@ -414,8 +414,3 @@ pybossa.presentTask(function(task, deferred) {
  })();
  </script>
         """
-
-
-
-
-

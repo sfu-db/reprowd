@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
-from crowdbase.operators.crowddata import CrowdData
-from crowdbase.operators.crowdjoin import CrowdJoin
+from reprowd.operators.crowddata import CrowdData
+from reprowd.operators.crowdjoin import CrowdJoin
 import sqlite3
 import pbclient
 import json
@@ -10,7 +10,7 @@ import os
 class CrowdContext:
 
     """
-    Main entry point for CrowdBase functionality. Intuitively, a CrowdContext can be
+    Main entry point for Reprowd functionality. Intuitively, a CrowdContext can be
     thought of as a fault-tolerant and reproducible environment for doing crowdsourced
     data processing tasks. Once a CrowdContext is created, it will connect to a pybossa
     server and a local database, providing APIs for creating crowd operators(e.g., CrowdJoin),
@@ -21,11 +21,11 @@ class CrowdContext:
     # but only contains those created by the current CrowdContext
     __current_cd = {}
 
-    def __init__(self, endpoint=None, api_key=None, local_db = "crowdbase.db"):
+    def __init__(self, endpoint=None, api_key=None, local_db = "reprowd.db"):
         """
         Create a new CrowdContext. The endpoint and api_key should be set,
         either through the named parameters here or through environment variables (
-        CROWDBASE_ENDPOINT, CROWDBASE_API_KEY)
+        REPROWD_ENDPOINT, REPROWD_API_KEY)
 
         :param endpoint: Pybossa server URL (e.g. http://localhost:7000).
         :param api_key: An api_key to access the pybossa server. You can get an api_key by
@@ -34,15 +34,15 @@ class CrowdContext:
         :param local_db: The local database name
         :return: A CrowdContext object
 
-        >>> from crowdbase.crowdcontext import CrowdContext
-        >>> CrowdContext("http://localhost:7000", api_key = "test", local_db = "crowdbase.test.db")  #doctest: +SKIP
-        <crowdbase.crowdcontext.CrowdContext instance at 0x...>
+        >>> from reprowd.crowdcontext import CrowdContext
+        >>> CrowdContext("http://localhost:7000", api_key = "test", local_db = "reprowd.test.db")  #doctest: +SKIP
+        <reprowd.crowdcontext.CrowdContext instance at 0x...>
         """
 
         if not endpoint:
-            endpoint = os.environ.get("CROWDBASE_ENDPOINT", "")
+            endpoint = os.environ.get("REPROWD_ENDPOINT", "")
         if not api_key:
-            api_key = os.environ.get("CROWDBASE_API_KEY", "")
+            api_key = os.environ.get("REPROWD_API_KEY", "")
 
         self.endpoint = endpoint
         self.api_key = api_key
@@ -66,7 +66,7 @@ class CrowdContext:
 
         >>> # Create a CrowdData object for image labeling
         >>> cc.CrowdData(["image1.jpg", "image2.jpg"], "tmp")   #doctest: +SKIP
-        <crowdbase.operators.crowddata.CrowdData instance at 0x...>
+        <reprowd.operators.crowddata.CrowdData instance at 0x...>
         """
         # Check if table_name has been used before
         if table_name in CrowdContext.__current_cd[self.local_db]:
@@ -87,7 +87,7 @@ class CrowdContext:
 
         >>> # Create a CrowdJoin object for deduplication
         >>> cc.CrowdJoin(["iphone 4", "ipad 2", "ipad two"], "tmp") #doctest: +SKIP
-        <crowdbase.operators.crowdjoin.CrowdJoin instance at 0x...>
+        <reprowd.operators.crowdjoin.CrowdJoin instance at 0x...>
         """
         # Check if the table_name has been used before
         if table_name in CrowdContext.__current_cd[self.local_db]:
@@ -105,9 +105,9 @@ class CrowdContext:
         Return the list of the tables cached in the local database
 
         >>> cc.CrowdData(["image1.jpg", "image2.jpg"], "tmp1") #doctest: +ELLIPSIS
-        <crowdbase.operators.crowddata.CrowdData instance at 0x...>
+        <reprowd.operators.crowddata.CrowdData instance at 0x...>
         >>> cc.CrowdJoin(["iphone 4", "ipad 2", "ipad two"], "tmp2") #doctest: +ELLIPSIS
-        <crowdbase.operators.crowdjoin.CrowdJoin instance at 0x...>
+        <reprowd.operators.crowdjoin.CrowdJoin instance at 0x...>
         >>> tables = cc.show_tables()
         >>> print ", ".join(tables)
         tmp1, tmp2
@@ -128,9 +128,9 @@ class CrowdContext:
         Print a sorted list of the tables cached in the local database (alphabetical order)
 
         >>> cc.CrowdData(["image1.jpg", "image2.jpg"], "tmp2") #doctest: +ELLIPSIS
-        <crowdbase.operators.crowddata.CrowdData instance at 0x...>
+        <reprowd.operators.crowddata.CrowdData instance at 0x...>
         >>> cc.CrowdJoin(["iphone 4", "ipad 2", "ipad two"], "tmp1") #doctest: +ELLIPSIS
-        <crowdbase.operators.crowdjoin.CrowdJoin instance at 0x...>
+        <reprowd.operators.crowdjoin.CrowdJoin instance at 0x...>
         >>> cc.print_tables()
         1 tmp1
         2 tmp2
@@ -148,7 +148,7 @@ class CrowdContext:
         Rename a cached table
 
         >>> cc.CrowdData(["image1.jpg", "image2.jpg"], "tmp1") #doctest: +ELLIPSIS
-        <crowdbase.operators.crowddata.CrowdData instance at 0x...>
+        <reprowd.operators.crowddata.CrowdData instance at 0x...>
         >>> cc.rename_table("tmp1", "tmp2")
         True
         >>> cc.print_tables()
@@ -179,9 +179,9 @@ class CrowdContext:
         Delete a cached table
 
         >>> cc.CrowdData(["image1.jpg", "image2.jpg"], "tmp1") #doctest: +ELLIPSIS
-        <crowdbase.operators.crowddata.CrowdData instance at 0x...>
+        <reprowd.operators.crowddata.CrowdData instance at 0x...>
         >>> cc.CrowdJoin(["iphone 4", "ipad 2", "ipad two"], "tmp2") #doctest: +ELLIPSIS
-        <crowdbase.operators.crowdjoin.CrowdJoin instance at 0x...>
+        <reprowd.operators.crowdjoin.CrowdJoin instance at 0x...>
         >>> cc.print_tables()
         1 tmp1
         2 tmp2
@@ -211,9 +211,9 @@ class CrowdContext:
         and returns the number of deleted tables
 
         >>> cc.CrowdData(["image1.jpg", "image2.jpg"], "tmp1") #doctest: +ELLIPSIS
-        <crowdbase.operators.crowddata.CrowdData instance at 0x...>
+        <reprowd.operators.crowddata.CrowdData instance at 0x...>
         >>> cc.CrowdJoin(["iphone 4", "ipad 2", "ipad two"], "not_tmp") #doctest: +ELLIPSIS
-        <crowdbase.operators.crowdjoin.CrowdJoin instance at 0x...>
+        <reprowd.operators.crowdjoin.CrowdJoin instance at 0x...>
         >>> cc.delete_tmp_tables()
         1
         >>> cc.delete_table("not_tmp")
@@ -259,9 +259,9 @@ class CrowdContext:
 
 def _test():
     import doctest
-    from crowdbase.crowdcontext import CrowdContext
+    from reprowd.crowdcontext import CrowdContext
     globs = globals().copy()
-    test_db = 'crowdbase.test.db'
+    test_db = 'reprowd.test.db'
     CrowdContext.remove_db_file(test_db)
     globs['cc'] =  CrowdContext(local_db = test_db)
     (failure_count, test_count) = doctest.testmod(globs=globs)
@@ -272,8 +272,3 @@ def _test():
 
 if __name__ == "__main__":
     _test()
-
-
-
-
-

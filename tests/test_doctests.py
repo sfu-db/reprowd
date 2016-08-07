@@ -1,20 +1,20 @@
 # -*- coding: utf-8 -*-
 
-from .context import crowdbase, delete_project
-from crowdbase.crowdcontext import CrowdContext
+from .context import reprowd, delete_project
+from reprowd.crowdcontext import CrowdContext
 
 import unittest
 import sys
 import os
 
 
-class CrowdBaseDocTestSuite(unittest.TestCase):
+class ReprowdDocTestSuite(unittest.TestCase):
 
     def test_crowdcontext(self):
         import doctest
-        from crowdbase import crowdcontext
+        from reprowd import crowdcontext
         globs = globals().copy()
-        test_db = 'crowdbase.test.db'
+        test_db = 'reprowd.test.db'
         CrowdContext.remove_db_file(test_db)
         globs['cc'] =  CrowdContext(local_db = test_db)
         (failure_count, test_count) = doctest.testmod(crowdcontext, globs=globs)
@@ -25,10 +25,10 @@ class CrowdBaseDocTestSuite(unittest.TestCase):
 
     def test_crowddata(self):
         import doctest
-        from crowdbase.operators import crowddata
-        from crowdbase.presenter.image import ImageLabel
+        from reprowd.operators import crowddata
+        from reprowd.presenter.image import ImageLabel
         globs = globals().copy()
-        test_db = 'crowdbase.test.db'
+        test_db = 'reprowd.test.db'
         CrowdContext.remove_db_file(test_db)
         globs['cc'] =  CrowdContext(local_db = test_db)
         (failure_count, test_count) = doctest.testmod(crowddata, globs=globs)
@@ -40,10 +40,10 @@ class CrowdBaseDocTestSuite(unittest.TestCase):
 
     def test_crowdjoin(self):
         import doctest
-        from crowdbase.operators import crowdjoin
-        from crowdbase.presenter.image import ImageLabel
+        from reprowd.operators import crowdjoin
+        from reprowd.presenter.image import ImageLabel
         globs = globals().copy()
-        test_db = 'crowdbase.test.db'
+        test_db = 'reprowd.test.db'
         CrowdContext.remove_db_file(test_db)
         globs['cc'] =  CrowdContext(local_db = test_db)
         (failure_count, test_count) = doctest.testmod(crowdjoin, globs=globs)

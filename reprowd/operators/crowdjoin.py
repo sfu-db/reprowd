@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
-from crowdbase.utils.simjoin import SimJoin, jaccard, editsim
-from crowdbase.utils.union_find import UnionFind
-from crowdbase.operators.crowddata import CrowdData
+from reprowd.utils.simjoin import SimJoin, jaccard, editsim
+from reprowd.utils.union_find import UnionFind
+from reprowd.operators.crowddata import CrowdData
 from sets import ImmutableSet
 import pbclient
 import sqlite3
@@ -28,11 +28,11 @@ class CrowdJoin:
         Initialize a CrowdJoin object.
 
         Note: It is not recommended to call the constructor directly.
-        Please call it through :func:`crowdbase.crowdcontext.CrowdContext.CrowdJoin`.
+        Please call it through :func:`reprowd.crowdcontext.CrowdContext.CrowdJoin`.
 
         >>> object_list = ["iPad 2", "iPad Two", "iPhone 2", "iPad2"]
         >>> cc.CrowdJoin(object_list, table_name = "jointest")  #doctest: +SKIP
-        <crowdbase.operators.crowdjoin.CrowdJoin instance at 0x...>
+        <reprowd.operators.crowdjoin.CrowdJoin instance at 0x...>
         """
         self.cc = crowdcontext
         self.object_list =object_list
@@ -55,19 +55,19 @@ class CrowdJoin:
         """
         Specify a presenter
 
-        :param presenter: A Presenter object (e.g., :class:`crowdbase.presenter.test.TextCmp`).
+        :param presenter: A Presenter object (e.g., :class:`reprowd.presenter.test.TextCmp`).
         :param map_func:  map_func() maps a pair of objects into the data format the presenter requires.
                                        If ``map_func`` is not specified, it will use the default ``map_func = lambda op: {'obj1':op[0], 'obj2':op[1]}``
         :return: The updated CrowdJoin object
 
-        >>> from crowdbase.presenter.text import TextCmp
+        >>> from reprowd.presenter.text import TextCmp
         >>> object_list = ["iPad 2", "iPad Two", "iPhone 2", "iPad2"]
         >>> def map_func(obj_pair):
         ...     o1, o2 = obj_pair
         ...     return {'obj1':o1, 'obj2':o2}
         >>> cc.CrowdJoin(object_list, table_name = "jointest") \\ #doctest: +SKIP
         ...   .set_presenter(TextCmp(), map_func) #doctest: +SKIP
-        <crowdbase.operators.crowdjoin.CrowdJoin instance at 0x...>
+        <reprowd.operators.crowdjoin.CrowdJoin instance at 0x...>
         """
         self.presenter = presenter
         self.map_func = map_func
@@ -91,8 +91,8 @@ class CrowdJoin:
         these obviously non-matching pairs. Specifically, when it is set, all the object pairs whose Jaccard
         similarity values are below the threshold will be removed.
 
-        >>> from crowdbase.presenter.text import TextCmp
-        >>> from crowdbase.utils.simjoin import gramset
+        >>> from reprowd.presenter.text import TextCmp
+        >>> from reprowd.utils.simjoin import gramset
         >>> object_list = ["iPad 2", "iPad Two", "iPhone 2", "iPad2"]
         >>> def joinkey_func(obj):
         ...     # Use a 2-gram set as a joinkey
@@ -115,8 +115,8 @@ class CrowdJoin:
         :param matcher_func: A function that takes a pair of objects as input and outputs True for matching pairs
         :return: The updated CrowdJoin object
 
-        >>> from crowdbase.presenter.text import TextCmp
-        >>> from crowdbase.utils.simjoin import gramset, jaccard
+        >>> from reprowd.presenter.text import TextCmp
+        >>> from reprowd.utils.simjoin import gramset, jaccard
         >>> object_list = ["iPad 2", "iPad Two", "iPhone 2", "iPad2"]
         >>> # Identify the pairs whose Jaccard similarity is above 0.9 as matching.
         >>> def matcher_func(obj_pair):
@@ -137,8 +137,8 @@ class CrowdJoin:
         :param nonmatcher_func: A function that takes a pair of objects as input and outputs True for non-matching pairs
         :return: The updated CrowdJoin object
 
-        >>> from crowdbase.presenter.text import TextCmp
-        >>> from crowdbase.utils.simjoin import gramset
+        >>> from reprowd.presenter.text import TextCmp
+        >>> from reprowd.utils.simjoin import gramset
         >>> object_list = [("iPad 2", 300), ("iPad Two", 305), ("iPhone 2", 400), ("iPad2", 298)] # (name, price)
         >>> def map_func(obj_pair):
         ...     o1, o2 = obj_pair
@@ -169,8 +169,8 @@ class CrowdJoin:
                                         Having this function will increase the effectiveness of transitivity (See [Wang et al. SIGMOD 2013] for more detail).
         :return: The updated CrowdJoin object
 
-        >>> from crowdbase.presenter.text import TextCmp
-        >>> from crowdbase.utils.simjoin import gramset, jaccard
+        >>> from reprowd.presenter.text import TextCmp
+        >>> from reprowd.utils.simjoin import gramset, jaccard
         >>> object_list = ["iPhone 2", "iPad 2", "iPad Two", "iPad2"]
         >>> def score_func(obj_pair):
         ...     o1, o2 = obj_pair
@@ -218,7 +218,7 @@ class CrowdJoin:
                  2. set_nonmatcher()
                  3. set_matcher()
 
-        >>> from crowdbase.presenter.text import TextCmp
+        >>> from reprowd.presenter.text import TextCmp
         >>> object_list = ["iPad 2", "iPad Two", "iPhone 2"]
         >>> crowdjoin = cc.CrowdJoin(object_list, table_name = "jointest") \\  #doctest: +SKIP
         ...               .set_presenter(TextCmp()) \\ #doctest: +SKIP
@@ -465,4 +465,3 @@ class CrowdJoin:
                 return CrowdJoin.NONMATCHING
             else:
                 return CrowdJoin.UNKNOWN
-

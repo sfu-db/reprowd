@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
 
-from .context import crowdbase, init_context, destroy_context, delete_project, ENABLE_MANUAL_LABEL
-from crowdbase.crowdcontext import CrowdContext
+from .context import reprowd, init_context, destroy_context, delete_project, ENABLE_MANUAL_LABEL
+from reprowd.crowdcontext import CrowdContext
 from multiprocessing import Process
-from crowdbase.presenter.base import BasePresenter
-from crowdbase.presenter.text import TextCmp
-from crowdbase.presenter.image import ImageCmp, ImageLabel
+from reprowd.presenter.base import BasePresenter
+from reprowd.presenter.text import TextCmp
+from reprowd.presenter.image import ImageCmp, ImageLabel
 from nose.plugins.attrib import attr
-from crowdbase.utils.simjoin import gramset, wordset, jaccard, editsim
+from reprowd.utils.simjoin import gramset, wordset, jaccard, editsim
 
 import pbclient
 import unittest
@@ -386,6 +386,3 @@ class CrowdJoinTestSuite(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
-
-
-

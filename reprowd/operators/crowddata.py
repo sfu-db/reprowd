@@ -5,14 +5,14 @@ import sqlite3
 import time
 import dateutil.parser
 from string import Template
-from crowdbase.quality.mv import MV
-from crowdbase.quality.em import EM
+from reprowd.quality.mv import MV
+from reprowd.quality.em import EM
 
 
 class CrowdData:
 
     """
-        A CrowdData is the basic abstraction in CrowdBase. It treats crowdsourcing
+        A CrowdData is the basic abstraction in Reprowd. It treats crowdsourcing
         as a process of manipulating a tabular dataset. For example, collecting results
         from the crowd is considered as adding a new column **result** to the data.
 
@@ -28,12 +28,12 @@ class CrowdData:
         and *object* is populated by the input ``object_list``.
 
         Note: It is not recommended to call the constructor directly.
-        Please call it through :func:`crowdbase.crowdcontext.CrowdContext.CrowdData`.
+        Please call it through :func:`reprowd.crowdcontext.CrowdContext.CrowdData`.
 
         >>> object_list = ["image1.jpg", "image2.jpg"]
         >>> crowddata = cc.CrowdData(object_list, table_name = "test")  #doctest: +SKIP
         >>> crowddata  #doctest: +SKIP
-        <crowdbase.operators.crowddata.CrowdData instance at 0x...>
+        <reprowd.operators.crowddata.CrowdData instance at 0x...>
         >>> crowddata.cols  #doctest: +SKIP
         ['id', 'object']
         >>> crowddata.data  #doctest: +SKIP
@@ -64,12 +64,12 @@ class CrowdData:
         Specify a presenter
 
 
-        :param presenter: A Presenter object (e.g., :class:`crowdbase.presenter.test.TextCmp`).
+        :param presenter: A Presenter object (e.g., :class:`reprowd.presenter.test.TextCmp`).
         :param map_func:  map_func() maps an object into the data format the presenter requires.
                                         If map_func() is not specified, it will use the default ``map_func = lambda obj: obj``
         :return: The updated CrowdData object
 
-        >>> from crowdbase.presenter.image import ImageLabel
+        >>> from reprowd.presenter.image import ImageLabel
         >>> object_list = ["image1.jpg", "image2.jpg"]
         >>> map_func = lambda obj: {'url_b':obj}
         >>> crowddata = cc.CrowdData(object_list, table_name = "test") \\  #doctest: +SKIP
@@ -79,7 +79,7 @@ class CrowdData:
         >>> crowddata.data  #doctest: +SKIP
         {'id': [0, 1], 'object': ['image1.jpg', 'image2.jpg']}
         >>> crowddata.presenter    #doctest: +SKIP
-        <crowdbase.presenter.image.ImageLabel object at 0x...>
+        <reprowd.presenter.image.ImageLabel object at 0x...>
         """
         self.map_func = map_func
         if self.map_func == None:
@@ -147,7 +147,7 @@ class CrowdData:
             - *project_id*: the project id (e.g., 155)
             - *create_time*: the time created a task (e.g., "2016-07-12T03:46:04.622127")
 
-        >>> from crowdbase.presenter.image import ImageLabel
+        >>> from reprowd.presenter.image import ImageLabel
         >>> object_list = ["image1.jpg", "image2.jpg"]
         >>> crowddata = cc.CrowdData(object_list, table_name = "test") \\  #doctest: +SKIP
         ...               .set_presenter(ImageLabel(), lambda obj: {'url_b':obj}) \\  #doctest: +SKIP
@@ -283,7 +283,7 @@ class CrowdData:
             - *project_id*: the project id (e.g., 155)
 
 
-        >>> from crowdbase.presenter.image import ImageLabel
+        >>> from reprowd.presenter.image import ImageLabel
         >>> object_list = ["image1.jpg"]
         >>> crowddata = cc.CrowdData(object_list, table_name = "test") \\ #doctest: +SKIP
         ...               .set_presenter(ImageLabel(), lambda obj: {'url_b':obj}) \\  #doctest: +SKIP
@@ -482,7 +482,7 @@ class CrowdData:
 
             The function adds a new column (e.g., **mv**, **em**) to the tabular dataset, which consists of the inferred result of each task.
 
-            >>> from crowdbase.presenter.image import ImageLabel
+            >>> from reprowd.presenter.image import ImageLabel
             >>> object_list = ["image1.jpg", "image2.jpg"]
             >>> crowddata = cc.CrowdData(object_list, table_name = "test") \\  #doctest: +SKIP
             ...               .set_presenter(ImageLabel(), lambda obj: {'url_b':obj}) \\  #doctest: +SKIP
@@ -522,7 +522,7 @@ class CrowdData:
             :param: An object that can be anything (e.g., int, string, dict)
             :return: The updated CrowdData object
 
-            >>> from crowdbase.presenter.image import ImageLabel
+            >>> from reprowd.presenter.image import ImageLabel
             >>> object_list = ["image1.jpg", "image2.jpg"]
             >>> crowddata = cc.CrowdData(object_list, table_name = "test") \\  #doctest: +SKIP
             ...               .set_presenter(ImageLabel(), lambda obj: {'url_b':obj}) \\  #doctest: +SKIP
@@ -552,7 +552,7 @@ class CrowdData:
             :param: A list of objects where an object can be anything (e.g., int, string, dict)
             :return: The updated CrowdData object
 
-            >>> from crowdbase.presenter.image import ImageLabel
+            >>> from reprowd.presenter.image import ImageLabel
             >>> object_list = ["image1.jpg", "image2.jpg"]
             >>> crowddata = cc.CrowdData(object_list, table_name = "test") \\   #doctest: +SKIP
             ...  .set_presenter(ImageLabel(), lambda obj: {'url_b':obj}) \\  #doctest: +SKIP
@@ -582,7 +582,7 @@ class CrowdData:
             :param: A function that returns True for the selected rows
             :return: The updated CrowdData object
 
-            >>> from crowdbase.presenter.image import ImageLabel
+            >>> from reprowd.presenter.image import ImageLabel
             >>> object_list = ["image1.jpg", "image2.jpg"]
             >>> crowddata = cc.CrowdData(object_list, table_name = "test")  \\  #doctest: +SKIP
             ...               .set_presenter(ImageLabel(), lambda obj: {'url_b':obj}) \\  #doctest: +SKIP
@@ -612,7 +612,7 @@ class CrowdData:
 
             :return: The updated CrowdData object
 
-            >>> from crowdbase.presenter.image import ImageLabel
+            >>> from reprowd.presenter.image import ImageLabel
             >>> object_list = ["image1.jpg", "image2.jpg"]
             >>> crowddata = cc.CrowdData(object_list, table_name = "test")  \\ #doctest: +SKIP
             ...               .set_presenter(ImageLabel(), lambda obj: {'url_b':obj}) \\  #doctest: +SKIP
@@ -620,11 +620,10 @@ class CrowdData:
             >>> crowddata.data["mv"] #doctest: +SKIP
             ['YES', 'NO']
             >>> crowddata.clear()  #doctest: +SKIP
-            <crowdbase.operators.crowddata.CrowdData instance at 0x...>
+            <reprowd.operators.crowddata.CrowdData instance at 0x...>
             >>> crowddata.data["object"] #doctest: +SKIP
             []
         """
         for col in self.cols:
             self.data[col] = []
         return self
-

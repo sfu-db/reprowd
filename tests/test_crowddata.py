@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 
-from .context import crowdbase, init_context, destroy_context, delete_project, ENABLE_MANUAL_LABEL
-from crowdbase.crowdcontext import CrowdContext
-from crowdbase.presenter.base import BasePresenter
-from crowdbase.presenter.text import TextCmp
-from crowdbase.presenter.image import ImageCmp, ImageLabel
+from .context import reprowd, init_context, destroy_context, delete_project, ENABLE_MANUAL_LABEL
+from reprowd.crowdcontext import CrowdContext
+from reprowd.presenter.base import BasePresenter
+from reprowd.presenter.text import TextCmp
+from reprowd.presenter.image import ImageCmp, ImageLabel
 from nose.plugins.attrib import attr
 
 import pbclient
@@ -488,17 +488,3 @@ class CrowdDataTestSuite(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
-
-
-
-
-
-
-
-
-
-
-
-
-
-

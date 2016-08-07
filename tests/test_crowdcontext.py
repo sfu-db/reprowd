@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
-from .context import crowdbase, init_context, destroy_context, delete_project
-from crowdbase.crowdcontext import CrowdContext
+from .context import reprowd, init_context, destroy_context, delete_project
+from reprowd.crowdcontext import CrowdContext
 
 import unittest
 import sys
@@ -100,48 +100,3 @@ class CrowdContextTestSuite(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

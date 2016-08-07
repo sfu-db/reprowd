@@ -1,6 +1,6 @@
-crowdbase.crowdcontext module
+reprowd.crowdcontext module
 =================================
 
-.. automodule:: crowdbase.crowdcontext
+.. automodule:: reprowd.crowdcontext
     :members:
     :special-members: __init__

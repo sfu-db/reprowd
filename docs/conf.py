@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# CrowdBase documentation build configuration file, created by
+# Reprowd documentation build configuration file, created by
 # sphinx-quickstart on Tue Jul 19 10:39:18 2016.
 #
 # This file is execfile()d with the current directory set to its
@@ -19,7 +19,7 @@ import shlex
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'crowdbase')))
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '')))
 
 # -- General configuration ------------------------------------------------
 
@@ -55,7 +55,7 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = u'CrowdBase'
+project = u'Reprowd'
 copyright = u'2016, SFU-DB'
 author = u'SFU-DB'
 
@@ -209,7 +209,7 @@ html_static_path = ['_static']
 #html_search_scorer = 'scorer.js'
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = 'CrowdBasedoc'
+htmlhelp_basename = 'Reprowddoc'
 
 # -- Options for LaTeX output ---------------------------------------------
 
@@ -231,7 +231,7 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-  (master_doc, 'CrowdBase.tex', u'CrowdBase Documentation',
+  (master_doc, 'Reprowd.tex', u'Reprowd Documentation',
    u'SFU-DB', 'manual'),
 ]
 
@@ -261,7 +261,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    (master_doc, 'crowdbase', u'CrowdBase Documentation',
+    (master_doc, 'reprowd', u'Reprowd Documentation',
      [author], 1)
 ]
 
@@ -275,8 +275,8 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-  (master_doc, 'CrowdBase', u'CrowdBase Documentation',
-   author, 'CrowdBase', 'One line description of project.',
+  (master_doc, 'Reprowd', u'Reprowd Documentation',
+   author, 'Reprowd', 'One line description of project.',
    'Miscellaneous'),
 ]
 

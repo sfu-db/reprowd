@@ -4,15 +4,15 @@ title: DevGuide
 ---
 # Reprowd DevGuide
 
-## Welcome
+# Welcome
 
 Reprowd is a python package which offers a fault-tolerant and reproducible environment for doing crowdsourced data processing tasks based on [Pybossa Server](http://pybossa.com/)
 
-## Bug Reports
+# Bug Reports
 
 If you have encounter a problem with Reprowd or have an idea for new features, please submit it to the [issue tracker](https://github.com/sfu-db/reprowd/issues) on Github,
 
-## Contributing
+# Contributing
 
 The way for new contributors to submit code to Reprowd is to fork the repository on Github and then submit a pull request after committing the changes.
 

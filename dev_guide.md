@@ -18,7 +18,7 @@ The way for new contributors to submit code to Reprowd is to fork the repository
 
 The pull request will then need to be approved by one of the core developers before it is merged into the main repository.
 
-## Getting Started
+# Getting Started
 
 There are the basic steps needed to start developing on Reprowd.
 
@@ -50,7 +50,7 @@ There are the basic steps needed to start developing on Reprowd.
 10. Submit a pull request.
 11. Wait for a core developer to review your changes
 
-## Contact
+# Contact
 
 [Jiannan Wang](jnwang@sfu.ca)
 

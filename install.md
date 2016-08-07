@@ -12,9 +12,9 @@ title: Installation
 
 # Install Reprowd
 
-    $git clone https://github.com/sfu-db/reprowd.git
-    $cd reprowd
-    $python setup.py
+         $git clone https://github.com/sfu-db/reprowd.git
+         $cd reprowd
+         $python setup.py
 
 # Setting
 1. Get endpoint(http://localhost:7000/) and api_key by registering on pybossa server

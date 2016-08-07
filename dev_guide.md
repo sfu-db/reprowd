@@ -22,31 +22,31 @@ The pull request will then need to be approved by one of the core developers bef
 
 There are the basic steps needed to start developing on Reprowd.
 
-1. Install your own [Pybossa Server](http://docs.pybossa.com/en/latest/juju_pybossa.html)
+1. [Installation and setting](install.html)
 2. Create an account on Github.
 3. Fork the Reprowd repository
 4. Clone the forked repository to your machine.
 
-		git clone https://github.com/sfu-db/reprowd.git
-		cd crowbase
+		$git clone https://github.com/sfu-db/reprowd.git
+		$cd reprowd
 5. Check out the appropriate branch.
 6. Creating a new working branch.
 
-		git checkout -b test
+		$git checkout -b test
 6. <b>Optional:</b> setup a virtual enviroment.
 
-		virtualenv ~/reprowd
-		. ~/reprowd/bin/active
-		pip install pybossa-client
+		$virtualenv ~/reprowd
+		$. ~/reprowd/bin/active
+		$pip install pybossa-client
 7. Develop.
 8. Test.
 	See [nosetests](http://nose.readthedocs.io/en/latest/)
 
-		cd tests
-		nosetests
+		$cd tests
+		$nosetests
 9. Push changes in the branch to your forked repository.
 
-		git push origin test
+		$git push origin test
 10. Submit a pull request.
 11. Wait for a core developer to review your changes
 

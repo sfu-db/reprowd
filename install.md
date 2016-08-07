@@ -11,7 +11,7 @@ title: Installation
         $pip install pybossa-client
 
 # Install Reprowd
-  install Reprowd package
+1. install Reprowd package
 
          $git clone https://github.com/sfu-db/reprowd.git
          $cd reprowd

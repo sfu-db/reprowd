@@ -1,6 +1,6 @@
 import random
-from crowdbase.crowdcontext import *
-from crowdbase.presenter.image import ImageCmp
+from reprowd.crowdcontext import *
+from reprowd.presenter.image import ImageCmp
 
 def _quicksort(crowddata, object_list):
     if len(object_list) <= 1:
@@ -51,5 +51,3 @@ if __name__ == "__main__":
 
     print "Sorted Data:"
     print "\n".join(object_list)
-
-

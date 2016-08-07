@@ -1,5 +1,5 @@
-from crowdbase.crowdcontext import *
-from crowdbase.presenter.image import ImageLabel
+from reprowd.crowdcontext import *
+from reprowd.presenter.image import ImageLabel
 import pprint
 
 if __name__ == "__main__":

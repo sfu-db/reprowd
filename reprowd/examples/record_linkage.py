@@ -1,6 +1,6 @@
-from crowdbase.crowdcontext import *
-from crowdbase.presenter.text import TextCmp
-from crowdbase.utils.simjoin import wordset, gramset, jaccard, editsim
+from reprowd.crowdcontext import *
+from reprowd.presenter.text import TextCmp
+from reprowd.utils.simjoin import wordset, gramset, jaccard, editsim
 import pprint
 
 if __name__ == "__main__":
@@ -67,4 +67,3 @@ if __name__ == "__main__":
     #print crowddata.table["raw_object"]
     #print crowddata.table["presenter_object"]
    # print crowddata.table["task"]
-

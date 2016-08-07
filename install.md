@@ -12,6 +12,7 @@ title: Installation
 
 # Install Reprowd
 install Reprowd package
+
          $git clone https://github.com/sfu-db/reprowd.git
          $cd reprowd
          $python setup.py

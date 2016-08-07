@@ -10,5 +10,5 @@ Reprowd is a system making crowdsourced data process reproducible
 
 # Documents:
 
-* [Installation and setting Instructions](install.md) 
+* [Installation and setting Instructions](install.html) 
 * [Developer Guide](dev_guide.html)

@@ -10,7 +10,7 @@ title: CrowdContext API
 
   **__init__**(endpoint=None, api_key=None, local_db='reprowd.db')
     
-	  Create a new CrowdContext. The endpoint and api_key should be set, either through the named parameters here or through environment variables ( REPROWD_ENDPOINT, REPROWD_API_KEY)
+    Create a new CrowdContext. The endpoint and api_key should be set, either through the named parameters here or through environment variables ( REPROWD_ENDPOINT, REPROWD_API_KEY)
 
     * **Parameters:**
 

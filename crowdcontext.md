@@ -16,10 +16,10 @@ title: CrowdContext API
       * **local_db** – The local database name
     * **Returns :** A CrowdContext object
     * **Example:**
-    		
-		>>> from reprowd.crowdcontext import CrowdContext
-		>>> CrowdContext("http://localhost:7000", api_key = "test", local_db = "reprowd.test.db")
-		<reprowd.crowdcontext.CrowdContext instance at 0x...>
+		    
+		    >>> from reprowd.crowdcontext import CrowdContext
+			>>> CrowdContext("http://localhost:7000", api_key = "test", local_db = "reprowd.test.db")
+			<reprowd.crowdcontext.CrowdContext instance at 0x...>
 
 * **CrowdData**(object_list, table_name)
     * Return CrowdData object
@@ -28,9 +28,9 @@ title: CrowdContext API
       * **table_name** – The table used for caching the crowd tasks/results related to the CrowdData object
     * **Example:**
     
-                >>> # Create a CrowdData object for image labeling
-         	>>> cc.CrowdData(["image1.jpg", "image2.jpg"], "tmp")   
-         	<reprowd.operators.crowddata.CrowdData instance at 0x...>
+		    >>> # Create a CrowdData object for image labeling
+	        >>> cc.CrowdData(["image1.jpg", "image2.jpg"], "tmp")   
+	        <reprowd.operators.crowddata.CrowdData instance at 0x...>
 
 * **CrowdJoin**(object_list, table_name)[source]
     * Return CrowdJoin object

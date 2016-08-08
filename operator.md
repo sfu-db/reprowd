@@ -1,10 +1,10 @@
 ---
 layout: site
-title: CrowdData Operator API
+title: Operators API
 ---
 # Operators API
-
-### reprowd.operators.crowddata module
+{% include toc.md %}
+## reprowd.operators.crowddata module
 ### class reprowd.operators.crowddata.CrowdData(object_list, table_name, crowdcontext)
 
 * A CrowdData is the basic abstraction in Reprowd. It treats crowdsourcing as a process of manipulating a tabular dataset. For example, collecting results from the crowd is considered as adding a new column result to the data.
@@ -235,3 +235,139 @@ The function adds a new column (e.g., mv, em) to the tabular dataset, which cons
 			<reprowd.operators.crowddata.CrowdData instance at 0x...>
 			>>> crowddata.data["object"]
 			[]
+      ## reprowd.operators.crowdjoin module
+      ### class reprowd.operators.crowdjoin.CrowdJoin(object_list, table_name, crowdcontext)
+      * Given a list of objects (or two lists of objects), the CrowdJoin operator finds matching objects in the list (or between the two lists).
+      * **__init__**(object_list, table_name, crowdcontext)
+      	* Initialize a CrowdJoin object.
+      	Note: It is not recommended to call the constructor directly. Please call it through reprowd.crowdcontext.CrowdContext.CrowdJoin().
+      	* **Example:**
+
+      			>>> object_list = ["iPad 2", "iPad Two", "iPhone 2", "iPad2"]
+      			>>> cc.CrowdJoin(object_list, table_name = "jointest")  
+      			<reprowd.operators.crowdjoin.CrowdJoin instance at 0x...>
+      * **set_presenter**(presenter, map_func=<function <lambda>>)
+      	* Specify a presenter
+      	* **Parameters:**
+      		* **presenter** – A Presenter object (e.g., reprowd.presenter.test.TextCmp).
+      		* **map_func** – map_func() maps a pair of objects into the data format the presenter requires. If map_func is not specified, it will use the default map_func = lambda op: {'obj1':op[0], 'obj2':op[1]}
+      	* **Returns:**	The updated CrowdJoin object
+      	* **Example:**
+
+      			>>> from reprowd.presenter.text import TextCmp
+      			>>> object_list = ["iPad 2", "iPad Two", "iPhone 2", "iPad2"]
+      			>>> def map_func(obj_pair):
+      			...     o1, o2 = obj_pair
+      			...     return {'obj1':o1, 'obj2':o2}
+      			>>> cc.CrowdJoin(object_list, table_name = "jointest") \
+      			...   .set_presenter(TextCmp(), map_func)
+      			<reprowd.operators.crowdjoin.CrowdJoin instance at 0x...>
+      * **set_simjoin**(joinkey_func, threshold=0.4, weight_on=False)
+      	 * Set a simjoin operator
+      	 * **Parameters:**
+      		 * **joinkey_func** – A function that takes an object as input and outputs a join key on which simjoin will perform. The join key has to be a set of elements (e.g., bag of words, n-grams)
+      		 * **threshold** – A float number in [0, 1]. The higher the value, the more the number of object pairs that are removed.
+      		 * **weight_on** – A boolean value that indicates which similarity function, non-weighted Jaccard (weight_on = False) or weighted Jaccard (weight_on = True), will be used to compute similarity.
+      	 * **Returns:**	The updated CrowdJoin object
+           * **Note:**  Why do we need this? Consider a list of n objects. A naive implementation of CrowdJoin is to ask workers to label all n^2 object pairs. In fact, among these pairs, most of them look quite dissimilar and can be easily identified as non-matching pairs. Setting a simjoin operator will help us to remove these obviously non-matching pairs. Specifically, when it is set, all the object pairs whose Jaccard similarity values are below the threshold will be removed.
+           * **Example:**
+
+      				>>> from reprowd.presenter.text import TextCmp
+      				>>> from reprowd.utils.simjoin import gramset
+      				>>> object_list = ["iPad 2", "iPad Two", "iPhone 2", "iPad2"]
+      				>>> def joinkey_func(obj):
+      				...     # Use a 2-gram set as a joinkey
+      				...     return gramset(obj, 2)
+      				>>> crowdjoin = cc.CrowdJoin(object_list, table_name = "jointest") \
+      				...               .set_presenter(TextCmp()) \
+      				...               .set_simjoin(joinkey_func, 0.2)
+      * **set_matcher**(matcher_func)
+      	* Specify a function for determining which object pairs are matching
+      	* **Parameters:**
+      		* **matcher_func** – A function that takes a pair of objects as input and outputs True for matching pairs
+      	* **Returns:**	The updated CrowdJoin object
+      	* **Example:**
+
+      			>>> from reprowd.presenter.text import TextCmp
+      			>>> from reprowd.utils.simjoin import gramset, jaccard
+      			>>> object_list = ["iPad 2", "iPad Two", "iPhone 2", "iPad2"]
+      			>>> # Identify the pairs whose Jaccard similarity is above 0.9 as matching.
+      			>>> def matcher_func(obj_pair):
+      			...     o1, o2 = obj_pair
+      			...     return jaccard(gramset(o1, 2), gramset(o2, 2)) >= 0.9
+      			>>> crowdjoin = cc.CrowdJoin(object_list, table_name = "jointest") \
+      			...               .set_presenter(TextCmp(), map_func) \
+      			...               .set_matcher(matcher_func)
+      * **set_nonmatcher**(nonmatcher_func)
+      	* Specify a function for determining which object pairs are not matching
+      	* **Parameters:**
+      		* **nonmatcher_func** – A function that takes a pair of objects as input and outputs True for non-matching pairs
+      	* **Returns:**	The updated CrowdJoin object
+      	* **Example:**
+
+      			>>> from reprowd.presenter.text import TextCmp
+      			>>> from reprowd.utils.simjoin import gramset
+      			>>> object_list = [("iPad 2", 300), ("iPad Two", 305), ("iPhone 2", 400), ("iPad2", 298)] # (name, price)
+      			>>> def map_func(obj_pair):
+      			...     o1, o2 = obj_pair
+      			...     return {'obj1':o1[0] + " | " + str(o1[1]), 'obj2':o2[0] + " | " + str(o2[1])}
+      			>>> # If the prices of two product differ by more than 80, they will be identified as a non-matching pair
+      			>>> def nonmatcher_func(obj_pair):
+      			...     o1, o2 = obj_pair
+      			...     return abs(o1[1]-o2[1]) > 80
+      			>>>
+      			>>> crowdjoin = cc.CrowdJoin(object_list, table_name = "jointest") \
+      			...               .set_presenter(TextCmp(), map_func) \
+      			...               .set_nonmatcher(nonmatcher_func)
+      * **set_transitivity**(score_func=None)
+      	* Use transitivity to reduce the number of the pairs that need to be labeled by workers. Two types of transitivity will be considered:
+      	If A and B are matching, B and C are matching, then A and C will be deduced as matching
+      	If A and B are matching, B and C are non-matching, then A and C will be deduced as non-matching.
+      	* **Parameters:**
+      		* 	**score_func** – A score function that tends to return a high score for matching pairs and a low score for non-matching pairs. Having this function will increase the effectiveness of transitivity (See [Wang et al. SIGMOD 2013] for more detail).
+      	* **Returns:**	The updated CrowdJoin object
+      	* **Example:**
+
+      			>>> from reprowd.presenter.text import TextCmp
+      			>>> from reprowd.utils.simjoin import gramset, jaccard
+      			>>> object_list = ["iPhone 2", "iPad 2", "iPad Two", "iPad2"]
+      			>>> def score_func(obj_pair):
+      			...     o1, o2 = obj_pair
+      			...     return jaccard(gramset(o1, 2), gramset(o2, 2))
+      			>>> crowdjoin = cc.CrowdJoin(object_list, table_name = "jointest") \
+      			...               .set_presenter(TextCmp()) \
+      			...               .set_transitivity(score_func)
+      * **set_task_parameters**(n_assignments=1, priority=0)
+      	* Set the values of the parameters for published tasks
+      	* **Parameters:**
+      		* **n_assignments** – The number of assignments. For example, n_assignments = 3 means that each task needs to be done by three different workers
+      		* **priority** – A float number in [0, 1] that indicates the priority of the published tasks. The larger the value, the higher the priority.
+      	* **Returns:**	The updated CrowdJoin object
+      * **join**(other_object_list=None)
+      	* If other_object_list is not specified, perform a self-join on self.object_list; otherwise, perform a join between self.object_list and other_object_list
+      	* **Parameters:**
+      		* **other_object_list** – A list of objects that will be joined with self.object_list
+      	* **Returns:**	A dict with the following attributes:
+      		* **“all”**: All the matching pairs
+      		* **“human”**: A subset of matching pairs identified by humans
+      		* **“machine”**: A subset of matching pairs identified by matcher_func() in set_matcher()
+      		* **“transitivity”**: A subset of matching pairs deduced based on transitivity
+      	* **Note: ** No matter in which order set_simjoin(), set_matcher(), and set_nonmatcher() are being called, they will be applied in the join() function in the following order:
+
+      			set_simjoin()
+      			set_nonmatcher()
+      			set_matcher()
+
+      			>>> from reprowd.presenter.text import TextCmp
+      			>>> object_list = ["iPad 2", "iPad Two", "iPhone 2"]
+      			>>> crowdjoin = cc.CrowdJoin(object_list, table_name = "jointest") \  
+      			...               .set_presenter(TextCmp()) \
+      			...               .join() # Ask workers to check all pairs
+      			>>> matches['all']
+      			[('iPad 2', 'iPad Two')]
+      			>>> matches['human']
+      			[('iPad 2', 'iPad Two')]
+      			>>> matches['machine']
+      			[]
+      			>>> matches['transitivity']
+      			[]

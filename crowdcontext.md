@@ -12,18 +12,18 @@ title: CrowdContext API
 
     Create a new CrowdContext. The endpoint and api_key should be set, either through the named parameters here or through environment variables ( REPROWD_ENDPOINT, REPROWD_API_KEY)
 
-    <b> Parameters: </b>
+    * **Parameters:**
 
       * endpoint – Pybossa server URL (e.g. http://localhost:7000).
       * api_key – An api_key to access the pybossa server. You can get an api_key by creating an account in the pybossa server, and check the api_key of the account by clicking the “account name” –> “My Profile” on the top right of the page.
       * local_db – The local database name
 
-    <b> Returns : </b>
+    * **Returns :**
 
       * A CrowdContext object
 
     Example:
 
-        > from reprowd.crowdcontext import CrowdContext
-        > CrowdContext("http://localhost:7000", api_key = "test", local_db = "reprowd.test.db")  
+        >>> from reprowd.crowdcontext import CrowdContext
+        >>> CrowdContext("http://localhost:7000", api_key = "test", local_db = "reprowd.test.db")  
         <reprowd.crowdcontext.CrowdContext instance at 0x...>

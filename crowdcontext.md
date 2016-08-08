@@ -16,10 +16,10 @@ title: CrowdContext API
       * **local_db** – The local database name
     * **Returns :** A CrowdContext object
     * **Example:**
-
-	         >>> from reprowd.crowdcontext import CrowdContext
-	         >>> CrowdContext("http://localhost:7000", api_key = "test", local_db = "reprowd.test.db")  
-	         <reprowd.crowdcontext.CrowdContext instance at 0x...>
+    		
+		>>> from reprowd.crowdcontext import CrowdContext
+	        >>> CrowdContext("http://localhost:7000", api_key = "test", local_db = "reprowd.test.db")  
+	        <reprowd.crowdcontext.CrowdContext instance at 0x...>
 
 * **CrowdData**(object_list, table_name)
     * Return CrowdData object
@@ -27,10 +27,10 @@ title: CrowdContext API
       * **object_list** – A list of objects where an object can be anything (e.g., int, string, dict)
       * **table_name** – The table used for caching the crowd tasks/results related to the CrowdData object
     * **Example:**
-
-        	 >>> # Create a CrowdData object for image labeling
-         	 >>> cc.CrowdData(["image1.jpg", "image2.jpg"], "tmp")   
-         	 <reprowd.operators.crowddata.CrowdData instance at 0x...>
+    
+                >>> # Create a CrowdData object for image labeling
+         	>>> cc.CrowdData(["image1.jpg", "image2.jpg"], "tmp")   
+         	<reprowd.operators.crowddata.CrowdData instance at 0x...>
 
 * **CrowdJoin**(object_list, table_name)[source]
     * Return CrowdJoin object
@@ -39,81 +39,81 @@ title: CrowdContext API
       * **table_name** – The table used for caching the crowd tasks/results related to the CrowdJoin object
     * **Example:**
 
-	         >>> # Create a CrowdJoin object for deduplication
-	         >>> cc.CrowdJoin(["iphone 4", "ipad 2", "ipad two"], "tmp")
-	         <reprowd.operators.crowdjoin.CrowdJoin instance at 0x...>
+	        >>> # Create a CrowdJoin object for deduplication
+	        >>> cc.CrowdJoin(["iphone 4", "ipad 2", "ipad two"], "tmp")
+	        <reprowd.operators.crowdjoin.CrowdJoin instance at 0x...>
 
 * **show_tables()**
     * Return the list of the tables cached in the local database
     * **Example:**
 
-	         >>> cc.CrowdData(["image1.jpg", "image2.jpg"], "tmp1")
-	         <reprowd.operators.crowddata.CrowdData instance at 0x...>
-	         >>> cc.CrowdJoin(["iphone 4", "ipad 2", "ipad two"], "tmp2")
-	         <reprowd.operators.crowdjoin.CrowdJoin instance at 0x...>
-	         >>> tables = cc.show_tables()
-	         >>> print ", ".join(tables)
-	         tmp1, tmp2
-	         >>> cc.delete_tmp_tables()
-	         2
+	        >>> cc.CrowdData(["image1.jpg", "image2.jpg"], "tmp1")
+	        <reprowd.operators.crowddata.CrowdData instance at 0x...>
+	        >>> cc.CrowdJoin(["iphone 4", "ipad 2", "ipad two"], "tmp2")
+	        <reprowd.operators.crowdjoin.CrowdJoin instance at 0x...>
+	        >>> tables = cc.show_tables()
+	        >>> print ", ".join(tables)
+	        tmp1, tmp2
+	        >>> cc.delete_tmp_tables()
+	        2
 
 * **print_tables()**
     * Print a sorted list of the tables cached in the local database (alphabetical order)
     * **Example:**
 
-	         >>> cc.CrowdData(["image1.jpg", "image2.jpg"], "tmp2")
-	         <reprowd.operators.crowddata.CrowdData instance at 0x...>
-	         >>> cc.CrowdJoin(["iphone 4", "ipad 2", "ipad two"], "tmp1")
-	         <reprowd.operators.crowdjoin.CrowdJoin instance at 0x...>
-	         >>> cc.print_tables()
-	         1 tmp1
-	         2 tmp2
-	         >>> cc.delete_tmp_tables()
-	         2
+	        >>> cc.CrowdData(["image1.jpg", "image2.jpg"], "tmp2")
+	        <reprowd.operators.crowddata.CrowdData instance at 0x...>
+	        >>> cc.CrowdJoin(["iphone 4", "ipad 2", "ipad two"], "tmp1")
+	        <reprowd.operators.crowdjoin.CrowdJoin instance at 0x...>
+	        >>> cc.print_tables()
+	        1 tmp1
+	        2 tmp2
+	        >>> cc.delete_tmp_tables()
+	        2
 
 * **rename_table**(oldname, newname)
     * Rename a cached table
     * **Example:**
 
-	         >>> cc.CrowdData(["image1.jpg", "image2.jpg"], "tmp1")
-	         <reprowd.operators.crowddata.CrowdData instance at 0x...>
-	         >>> cc.rename_table("tmp1", "tmp2")
-	         True
-	         >>> cc.print_tables()
-	         1 tmp2
-	         >>> cc.delete_tmp_tables()
-	         1
+	        >>> cc.CrowdData(["image1.jpg", "image2.jpg"], "tmp1")
+	        <reprowd.operators.crowddata.CrowdData instance at 0x...>
+	        >>> cc.rename_table("tmp1", "tmp2")
+	        True
+	        >>> cc.print_tables()
+	        1 tmp2
+	        >>> cc.delete_tmp_tables()
+	        1
 
 * **delete_table**(table_name)
     * Delete a cached table
     * **Example:**
 
-	         >>> cc.CrowdData(["image1.jpg", "image2.jpg"], "tmp1")
-	         <reprowd.operators.crowddata.CrowdData instance at 0x...>
-	         >>> cc.CrowdJoin(["iphone 4", "ipad 2", "ipad two"], "tmp2")
-	         <reprowd.operators.crowdjoin.CrowdJoin instance at 0x...>
-	         >>> cc.print_tables()
-	         1 tmp1
-	         2 tmp2
-	         >>> cc.delete_table("tmp1")
-	         True
-	         >>> cc.print_tables()
-	         1 tmp2
-	         >>> cc.delete_tmp_tables()
-	         1
+	        >>> cc.CrowdData(["image1.jpg", "image2.jpg"], "tmp1")
+	        <reprowd.operators.crowddata.CrowdData instance at 0x...>
+	        >>> cc.CrowdJoin(["iphone 4", "ipad 2", "ipad two"], "tmp2")
+	        <reprowd.operators.crowdjoin.CrowdJoin instance at 0x...>
+	        >>> cc.print_tables()
+	        1 tmp1
+	        2 tmp2
+	        >>> cc.delete_table("tmp1")
+	        True
+	        >>> cc.print_tables()
+	        1 tmp2
+	        >>> cc.delete_tmp_tables()
+	        1
 
 * **delete_tmp_tables()**
     * The function deletes all the tables whose names start with “tmp”, and returns the number of deleted tables
     * **Example:**
 
-	         >>> cc.CrowdData(["image1.jpg", "image2.jpg"], "tmp1")
-	         <reprowd.operators.crowddata.CrowdData instance at 0x...>
-	         >>> cc.CrowdJoin(["iphone 4", "ipad 2", "ipad two"], "not_tmp")
-	         <reprowd.operators.crowdjoin.CrowdJoin instance at 0x...>
-	         >>> cc.delete_tmp_tables()
-	         1
-	         >>> cc.delete_table("not_tmp")
-	         True
+	        >>> cc.CrowdData(["image1.jpg", "image2.jpg"], "tmp1")
+	        <reprowd.operators.crowddata.CrowdData instance at 0x...>
+	        >>> cc.CrowdJoin(["iphone 4", "ipad 2", "ipad two"], "not_tmp")
+	        <reprowd.operators.crowdjoin.CrowdJoin instance at 0x...>
+	        >>> cc.delete_tmp_tables()
+	        1
+	        >>> cc.delete_table("not_tmp")
+	        True
 
 * **static remove_db_file(filename)**
     * Remove a database file. Note that it is dangerous to remove a database. Please make sure you understand the meaning of the function and only use it if you have to.

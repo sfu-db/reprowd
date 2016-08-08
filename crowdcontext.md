@@ -4,11 +4,11 @@ title: CrowdContext API
 ---
 # CrowdContext API
 
-* class reprowd.crowdcontext.CrowdContext(endpoint=None, api_key=None, local_db='reprowd.db')
+## class reprowd.crowdcontext.CrowdContext(endpoint=None, api_key=None, local_db='reprowd.db')
 
   Main entry point for Reprowd functionality. Intuitively, a CrowdContext can be thought of as a fault-tolerant and reproducible environment for doing crowdsourced data processing tasks. Once a CrowdContext is created, it will connect to a pybossa server and a local database, providing APIs for creating crowd operators(e.g., CrowdJoin), and manipulating cached crowddata.
 
-  * __init__(endpoint=None, api_key=None, local_db='reprowd.db')
+  ### __init__(endpoint=None, api_key=None, local_db='reprowd.db')
 
     Create a new CrowdContext. The endpoint and api_key should be set, either through the named parameters here or through environment variables ( REPROWD_ENDPOINT, REPROWD_API_KEY)
 

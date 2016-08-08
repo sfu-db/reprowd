@@ -18,8 +18,8 @@ title: CrowdContext API
     * **Example:**
     		
 		>>> from reprowd.crowdcontext import CrowdContext
-	        >>> CrowdContext("http://localhost:7000", api_key = "test", local_db = "reprowd.test.db")  
-	        <reprowd.crowdcontext.CrowdContext instance at 0x...>
+		>>> CrowdContext("http://localhost:7000", api_key = "test", local_db = "reprowd.test.db")
+		<reprowd.crowdcontext.CrowdContext instance at 0x...>
 
 * **CrowdData**(object_list, table_name)
     * Return CrowdData object

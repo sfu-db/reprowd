@@ -5,7 +5,7 @@ title: Operators API
 # Operators API
 {% include toc.md %}
 ## reprowd.operators.crowddata module
-### class reprowd.operators.crowddata.CrowdData(object_list, table_name, crowdcontext)
+* class reprowd.operators.crowddata.CrowdData(object_list, table_name, crowdcontext)
 
 * A CrowdData is the basic abstraction in Reprowd. It treats crowdsourcing as a process of manipulating a tabular dataset. For example, collecting results from the crowd is considered as adding a new column result to the data.
 Furthermore, it provides fault recovery through the data manipulating process. That is, when the program crashes, the user can simply rerun the program as if it has never crashed.
@@ -235,8 +235,9 @@ The function adds a new column (e.g., mv, em) to the tabular dataset, which cons
 			<reprowd.operators.crowddata.CrowdData instance at 0x...>
 			>>> crowddata.data["object"]
 			[]
+			
 ## reprowd.operators.crowdjoin module
-### class reprowd.operators.crowdjoin.CrowdJoin(object_list, table_name, crowdcontext)
+* class reprowd.operators.crowdjoin.CrowdJoin(object_list, table_name, crowdcontext)
 * Given a list of objects (or two lists of objects), the CrowdJoin operator finds matching objects in the list (or between the two lists).
 * **__init__**(object_list, table_name, crowdcontext)
 	* Initialize a CrowdJoin object.

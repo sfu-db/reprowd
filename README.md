@@ -1,1 +1,3 @@
-Crowdsourced Data Processing Made Easy
+Crowdsourced Data Processing Made Reproducible 
+
+http://sfu-db.github.io/reprowd/

@@ -165,7 +165,6 @@ pybossa.taskLoaded(function(task, deferred) {
 
 pybossa.presentTask(function(task, deferred) {
     if ( !$.isEmptyObject(task) ) {
-        loadUserProgress();
         i18n_translate();
         $('#photo-link').html('').append(task.info.image);
         // $("#photo-link").attr("href", task.info.link);
@@ -207,52 +206,25 @@ class ImageCmp(BasePresenter):
         self.short_name = "imgcmp"
         self.description = "Help us to compare images"
         self.template = """
-        <!--
+<!--
     Task DOM for loading the Flickr Images
     It uses the class="skeleton" to identify the elements that belong to the
     task.
 -->
 <div class="row skeleton"> <!-- Start Skeleton Row-->
-    <div class="col-md-6 "><!-- Start of Question and Submission DIV (column) -->
-        <h1 id="question"><span id="i18n_question">Which one is larger?</span></h1> <!-- The question will be loaded here -->
-        <div id="answer"> <!-- Start DIV for the submission buttons -->
-            <!-- If the user clicks this button, the saved answer will be value="yes"-->
-            <button class="btn btn-success btn-answer" value='Up'><i class="icon icon-white icon-thumbs-up"></i> Up</button>
-            <!-- If the user clicks this button, the saved answer will be value="no"-->
-            <button class="btn btn-danger btn-answer" value='Down'><i class="icon icon-white icon-thumbs-down"></i> Down</button>
-            <!-- If the user clicks this button, the saved answer will be value="NoPhoto"-->
-            <!-- <button class="btn btn-answer" value='NoPhoto'><i class="icon icon-exclamation"></i> <span id="i18n_no_photo">No photo</span></button> -->
-            <!-- If the user clicks this button, the saved answer will be value="NotKnown"-->
-            <!-- <button class="btn btn-answer" value='NotKnown'><i class="icon icon-white icon-question-sign"></i> <span id="i18n_i_dont_know">I don't know</span></button> -->
-        </div><!-- End of DIV for the submission buttons -->
-        <!-- Feedback items for the user -->
-        <p><span id="i18n_working_task">You are working now on task:</span> <span id="task-id" class="label label-warning">#</span></p>
-        <p><span id="i18n_tasks_completed">You have completed:</span> <span id="done" class="label label-info"></span> <span id="i18n_tasks_from">tasks from</span>
-        <!-- Progress progress-bar for the user -->
-        <span id="total" class="label label-inverse"></span></p>
-        <div class="progress progress-striped">
-            <div id="progress" rel="tooltip" title="#" class="progress-bar" style="width: 0%;"></div>
-        </div>
-        <!--
-            This project uses Disqus to allow users to provide some feedback.
-            The next section includes a button that when a user clicks on it will
-            load the comments, if any, for the given task
-        -->
-        <div id="disqus_show_btn" style="margin-top:5px;">
-            <button class="btn btn-primary btn-lg btn-disqus" onclick="loadDisqus()"><i class="icon-comments"></i> <span id="i18n_show_comments">Show comments</span></button>
-            <button class="btn btn-lg btn-disqus" onclick="loadDisqus()" style="display:none"><i class="icon-comments"></i> <span id="i18n_hide_comments">Hide comments</span></button>
-        </div><!-- End of Disqus Button section -->
-        <!-- Disqus thread for the given task -->
-        <div id="disqus_thread" style="margin-top:5px;display:none"></div>
-    </div><!-- End of Question and Submission DIV (column) -->
-    <div class="col-md-6"><!-- Start of Photo DIV (column) -->
-        <a id="photo-link1" href="#">
-            <img id="photo" src="http://i.imgur.com/GeHxzb7.png" style="max-width=100%">
-        </a>
-        <a id="photo-link2" href="#">
-            <img id="photo" src="http://i.imgur.com/GeHxzb7.png" style="max-width=100%">
-        </a>
-    </div><!-- End of Photo DIV (columnt) -->
+    <div class="col-md-6 " style="width:100%;text-align:center;margin-left:auto;margin-right:auto"><!-- Start of Question and Submission DIV (column) -->
+        <h1 id="question"><span id="i18n_question">Do you see a human face in this photo?</span></h1> <!-- The question will be loaded here -->
+        <br>
+        <div class="col-md-6" style="width:100%"><!-- Start of Photo DIV (column) -->
+            <a class="a-answer" id="photo-link1" href="#" value="left">
+              <img id="photo" style="float:left" src="http://i.imgur.com/GeHxzb7.png">
+            </a>
+            <a style="text-transform:none;text-decoration:none;font-size:50px"><b>OR</a>
+            <a class="a-answer" id="photo-link2" href="#" value="right">
+              <img id="photo" style="float:right" src="http://i.imgur.com/GeHxzb7.png">
+            </a>
+        </div><!-- End of Photo DIV (columnt) -->
+    </div>
 </div><!-- End of Skeleton Row -->
 
 <script type="text/javascript">
@@ -297,7 +269,7 @@ var messages = {"en": {
                         "i18n_tasks_from": "tasks from",
                         "i18n_show_comments": "Show comments:",
                         "i18n_hide_comments": "Hide comments:",
-                        "i18n_question": "Which one is larger?",
+                        "i18n_question": "Do you see a human face in this photo?",
                       },
                 "es": {
                         "i18n_welldone": "Bien hecho!",
@@ -336,7 +308,7 @@ function i18n_translate() {
 
 
 function loadUserProgress() {
-    pybossa.userProgress('rm').done(function(data){
+    pybossa.userProgress('dd').done(function(data){
         var pct = Math.round((data.done*100)/data.total);
         $("#progress").css("width", pct.toString() +"%");
         $("#progress").attr("title", pct.toString() + "% completed!");
@@ -349,7 +321,6 @@ function loadUserProgress() {
 pybossa.taskLoaded(function(task, deferred) {
     if ( !$.isEmptyObject(task) ) {
         // load image from flickr
-        console.log(task)
         var img1 = $('<img />');
         var img2 = $('<img />');
         img1.load(function() {
@@ -357,34 +328,36 @@ pybossa.taskLoaded(function(task, deferred) {
             deferred.resolve(task);
             pybossaNotify("", false, "loading");
         });
+        img1.attr('src', task.info.pic1).css('height', 400);
+        img1.addClass('img-thumbnail');
         img2.load(function() {
             // continue as soon as the image is loaded
             deferred.resolve(task);
             pybossaNotify("", false, "loading");
         });
-        // console.log(task.info.url_b);
-        img1.attr('src', task.info.pic1).css('height', 460);
-        img1.addClass('img-thumbnail');
-        img2.attr('src', task.info.pic2).css('height', 460);
+        img2.attr('src', task.info.pic2).css('height', 400);
         img2.addClass('img-thumbnail');
         task.info.image1 = img1;
         task.info.image2 = img2;
+        console.log(task.info);
     }
     else {
-        console.log("123");
         deferred.resolve(task);
     }
 });
 
+function sleep (time) {
+  return new Promise((resolve) => setTimeout(resolve, time));
+}
+
 pybossa.presentTask(function(task, deferred) {
-    if ( !$.isEmptyObject(task) ) {
-        loadUserProgress();
-        i18n_translate();
+    if (!$.isEmptyObject(task)) {
+        // i18n_translate();
         $('#photo-link1').html('').append(task.info.image1);
-        $('#photo-link2').html('').append(task.info.image2)
+        $('#photo-link2').html('').append(task.info.image2);
         // $("#photo-link").attr("href", task.info.link);
         $('#task-id').html(task.id);
-        $('.btn-answer').off('click').on('click', function(evt) {
+        $('.a-answer').off('click').on('click', function(evt) {
             var btn = $(this);
             var answer = btn.attr("value");
             if (typeof answer != 'undefined') {
@@ -402,14 +375,25 @@ pybossa.presentTask(function(task, deferred) {
             }
         });
         pybossaNotify("Loading picture...", false, "loading");
+        url = window.location.href;
+        index = url.indexOf(task.id.toString());
+        pre_id = task.id;
     }
     else {
-        $(".skeleton").hide();
-        pybossaNotify("Loading picture...", false, "loading");
-        pybossaNotify("Thanks! You have participated in all available tasks. Enjoy some of your time!", true, "info");
-    }
+            var processing = false;
+            new_url = url.substring(0, index) + (pre_id + 1).toString();
+            console.log(new_url);
+            sleep(6000).then(() => {
+                $.get(new_url, function() {
+                    window.location.href = new_url;
+                }).fail(function(){
+                    $(".skeleton").hide();
+                    pybossaNotify("Loading picture...", false, "loading");
+                    pybossaNotify("Thanks! You have participated in all available tasks. Enjoy some of your time!", true, "info");
+                });
+            });
+                }
 });
-
  pybossa.run('${short_name}');
  })();
  </script>

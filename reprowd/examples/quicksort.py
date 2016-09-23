@@ -15,7 +15,7 @@ def _quicksort(crowddata, object_list):
     left = []
     right = []
     for obj, result in zip(crowddata.data['object'], crowddata.data['mv']):
-        if result == 'Down':
+        if result == 'right':
             left.append(obj[0])
         else:
             right.append(obj[0])

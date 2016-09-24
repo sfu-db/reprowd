@@ -3,6 +3,7 @@ from reprowd.presenter.base import *
 
 class ImageLabel (BasePresenter):
     def __init__(self):
+        self.question = "Do you see a human face in this photo?"
         self.name = "Image Label"
         self.short_name = "imglabel"
         self.description = "Help us to label an image"
@@ -14,7 +15,7 @@ class ImageLabel (BasePresenter):
 -->
 <div class="row skeleton"> <!-- Start Skeleton Row-->
     <div class="col-md-6 "><!-- Start of Question and Submission DIV (column) -->
-        <h1 id="question"><span id="i18n_question">Do you see a human face in this photo?</span></h1> <!-- The question will be loaded here -->
+        <h1 id="question"><span id="i18n_question">${question}</span></h1> <!-- The question will be loaded here -->
         <div id="answer"> <!-- Start DIV for the submission buttons -->
             <!-- If the user clicks this button, the saved answer will be value="yes"-->
             <button class="btn btn-success btn-answer" value='Yes'><i class="icon icon-white icon-thumbs-up"></i> <span id="i18n_yes">Yes</span></button>
@@ -202,6 +203,7 @@ pybossa.presentTask(function(task, deferred) {
 
 class ImageCmp(BasePresenter):
     def __init__(self):
+        self.question = "Which one is bigger"
         self.name = "Image Compare"
         self.short_name = "imgcmp"
         self.description = "Help us to compare images"
@@ -213,7 +215,7 @@ class ImageCmp(BasePresenter):
 -->
 <div class="row skeleton"> <!-- Start Skeleton Row-->
     <div class="col-md-6 " style="width:100%;text-align:center;margin-left:auto;margin-right:auto"><!-- Start of Question and Submission DIV (column) -->
-        <h1 id="question"><span id="i18n_question">Do you see a human face in this photo?</span></h1> <!-- The question will be loaded here -->
+        <h1 id="question"><span id="i18n_question">${question}</span></h1> <!-- The question will be loaded here -->
         <br>
         <div class="col-md-6" style="width:100%"><!-- Start of Photo DIV (column) -->
             <a class="a-answer" id="photo-link1" href="#" value="left">
@@ -369,6 +371,7 @@ pybossa.presentTask(function(task, deferred) {
                     $('#disqus_thread').toggle();
                     $('.btn-disqus').toggle();
                 }
+                console.log('finish answer');
             }
             else {
                 pybossaNotify("Oops... Something went wrong.", true, "error");
@@ -383,7 +386,7 @@ pybossa.presentTask(function(task, deferred) {
             var processing = false;
             new_url = url.substring(0, index) + (pre_id + 1).toString();
             console.log(new_url);
-            sleep(6000).then(() => {
+            sleep(10000).then(() => {
                 $.get(new_url, function() {
                     window.location.href = new_url;
                 }).fail(function(){

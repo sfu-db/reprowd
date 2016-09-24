@@ -18,3 +18,7 @@ class BasePresenter:
     def set_short_name(self, short_name):
         self.short_name = short_name
         return self
+
+    def set_question(self, question):
+        self.question = question
+        return self

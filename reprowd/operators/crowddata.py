@@ -117,6 +117,7 @@ class CrowdData:
             self.project_id = p.id
             self.project_short_name = presenter.short_name
             self.project_name = presenter.name
+            p= pbclient.find_project(short_name = presenter.short_name)[0]
             p.info['task_presenter'] = Template(presenter.template).safe_substitute(short_name = presenter.short_name, question = presenter.question)
             p.long_description = presenter.description
             p.name = presenter.name

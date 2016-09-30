@@ -218,8 +218,9 @@ class ImageCmp(BasePresenter):
         <h1 id="question"><span id="i18n_question">${question}</span></h1> <!-- The question will be loaded here -->
         <br>
         <div class="col-md-6" style="width:100%"><!-- Start of Photo DIV (column) -->
+
             <a class="a-answer" id="photo-link1" href="#" value="left">
-              <img id="photo" style="float:left" src="http://i.imgur.com/GeHxzb7.png">
+              <img id="photo" style="float:left"src="http://i.imgur.com/GeHxzb7.png">
             </a>
             <a style="text-transform:none;text-decoration:none;font-size:50px"><b>OR</a>
             <a class="a-answer" id="photo-link2" href="#" value="right">
@@ -330,14 +331,16 @@ pybossa.taskLoaded(function(task, deferred) {
             deferred.resolve(task);
             pybossaNotify("", false, "loading");
         });
-        img1.attr('src', task.info.pic1).css('height', 400);
+        img1.attr('id','pic1');
+        img1.attr('src', task.info.pic1).css('height', 300);
         img1.addClass('img-thumbnail');
         img2.load(function() {
             // continue as soon as the image is loaded
             deferred.resolve(task);
             pybossaNotify("", false, "loading");
         });
-        img2.attr('src', task.info.pic2).css('height', 400);
+        img2.attr('id','pic2');
+        img2.attr('src', task.info.pic2).css('height', 300);
         img2.addClass('img-thumbnail');
         task.info.image1 = img1;
         task.info.image2 = img2;
@@ -355,8 +358,33 @@ function sleep (time) {
 pybossa.presentTask(function(task, deferred) {
     if (!$.isEmptyObject(task)) {
         // i18n_translate();
+        var whole_width = 500;
         $('#photo-link1').html('').append(task.info.image1);
+        var image1 = $('#pic1');
+        image1.one('load', function(){
+            console.log("13213123");
+            console.log(image1);
+            var img1_padding = ((whole_width - image1.width()) / 2).toString() + "px";
+            image1.css("background", "#000000");
+            image1.css("padding-left", img1_padding);
+            image1.css("padding-right", img1_padding);
+        }).each(function() {
+            if (this.complete) $(this).load();
+        });
+
         $('#photo-link2').html('').append(task.info.image2);
+        var image2 = $('#pic2');
+        image2.one('load', function(){
+            console.log(image2.height());
+            console.log(image2.width())
+            var img2_padding = ((whole_width - image2.width()) / 2).toString() + "px";
+            image2.css("background", "#000000");
+            image2.css("padding-left", img2_padding);
+            image2.css("padding-right", img2_padding);
+        }).each(function() {
+            if (this.complete) $(this).load();
+        });
+
         // $("#photo-link").attr("href", task.info.link);
         $('#task-id').html(task.id);
         $('.a-answer').off('click').on('click', function(evt) {
@@ -385,9 +413,11 @@ pybossa.presentTask(function(task, deferred) {
     else {
             var processing = false;
             new_url = url.substring(0, index) + (pre_id + 1).toString();
-            console.log(new_url);
+            query_url = url.split('/')[0] + "//" + url.split('/')[2]+ "/api/task/" + (pre_id + 1).toString();
+            console.log(query_url);
+            var i = 0;
             sleep(10000).then(() => {
-                $.get(new_url, function() {
+                $.get(query_url, function() {
                     window.location.href = new_url;
                 }).fail(function(){
                     $(".skeleton").hide();

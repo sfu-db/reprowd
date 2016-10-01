@@ -153,13 +153,11 @@ pybossa.taskLoaded(function(task, deferred) {
             deferred.resolve(task);
             pybossaNotify("", false, "loading");
         });
-        console.log(task.info.url_b);
         img.attr('src', task.info.url_b).css('height', 460);
         img.addClass('img-thumbnail');
         task.info.image = img;
     }
     else {
-        console.log("123");
         deferred.resolve(task);
     }
 });
@@ -344,7 +342,6 @@ pybossa.taskLoaded(function(task, deferred) {
         img2.addClass('img-thumbnail');
         task.info.image1 = img1;
         task.info.image2 = img2;
-        console.log(task.info);
     }
     else {
         deferred.resolve(task);
@@ -362,8 +359,6 @@ pybossa.presentTask(function(task, deferred) {
         $('#photo-link1').html('').append(task.info.image1);
         var image1 = $('#pic1');
         image1.one('load', function(){
-            console.log("13213123");
-            console.log(image1);
             var img1_padding = ((whole_width - image1.width()) / 2).toString() + "px";
             image1.css("background", "#000000");
             image1.css("padding-left", img1_padding);
@@ -375,8 +370,6 @@ pybossa.presentTask(function(task, deferred) {
         $('#photo-link2').html('').append(task.info.image2);
         var image2 = $('#pic2');
         image2.one('load', function(){
-            console.log(image2.height());
-            console.log(image2.width())
             var img2_padding = ((whole_width - image2.width()) / 2).toString() + "px";
             image2.css("background", "#000000");
             image2.css("padding-left", img2_padding);
@@ -411,10 +404,16 @@ pybossa.presentTask(function(task, deferred) {
         pre_id = task.id;
     }
     else {
-            var processing = false;
-            new_url = url.substring(0, index) + (pre_id + 1).toString();
-            query_url = url.split('/')[0] + "//" + url.split('/')[2]+ "/api/task/" + (pre_id + 1).toString();
-            console.log(query_url);
+            url = window.location.href;
+            var url_list = url.split('/');
+            if (url_list[url_list.length - 1] == 'newtask') {
+                $(".skeleton").hide();
+                pybossaNotify("Loading picture...", false, "loading");
+                pybossaNotify("Thanks! You have participated in all available tasks. Enjoy some of your time!", true, "info");
+                return;
+            }
+            var new_url = url.substring(0, index) + (pre_id + 1).toString();
+            var query_url = url_list[0] + "//" + url_list[2]+ "/api/task/" + (pre_id + 1).toString();
             var i = 0;
             sleep(10000).then(() => {
                 $.get(query_url, function() {

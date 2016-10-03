@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset='utf-8'>
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <link href='https://fonts.googleapis.com/css?family=Chivo:900' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen">
+    <link rel="stylesheet" type="text/css" href="stylesheets/github-dark.css" media="screen">
+    <link rel="stylesheet" type="text/css" href="stylesheets/print.css" media="print">
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <title>CrowdContext API</title>
+  </head>
+
+<body>
+  <div id="container">
+  <div class="inner">
+
+    <header>
+      <h1>Reprowd</h1>
+      <h2>Crowdsourced Data Processing Made Reproducible</h2>
+    </header>
+
+    <section id="downloads" class="clearfix">
+      <a href="https://github.com/sfu-db/reprowd/zipball/master" id="download-zip" class="button"><span>Download .zip</span></a>
+      <a href="https://github.com/sfu-db/reprowd/tarball/master" id="download-tar-gz" class="button"><span>Download .tar.gz</span></a>
+      <a href="https://github.com/sfu-db/reprowd" id="view-on-github" class="button"><span>View on GitHub</span></a>
+    </section>
+
+
+  <section class = "main-content">
+    <h1 id="crowdcontext-api">CrowdContext API</h1>
+
+<h3 id="class-reprowdcrowdcontextcrowdcontextendpointnone-apikeynone-localdbreprowddb">class reprowd.crowdcontext.CrowdContext(endpoint=None, api_key=None, local_db=’reprowd.db’)</h3>
+
+<ul>
+  <li>
+    <p>Main entry point for Reprowd functionality. Intuitively, a CrowdContext can be thought of as a fault-tolerant and reproducible environment for doing crowdsourced data processing tasks. Once a CrowdContext is created, it will connect to a pybossa server and a local database, providing APIs for creating crowd operators(e.g., CrowdJoin), and manipulating cached crowddata.</p>
+  </li>
+  <li><strong>__init__</strong>(endpoint=None, api_key=None, local_db=’reprowd.db’)
+    <ul>
+      <li>Create a new CrowdContext. The endpoint and api_key should be set, either through the named parameters here or through environment variables ( REPROWD_ENDPOINT, REPROWD_API_KEY)</li>
+      <li><strong>Parameters:</strong>
+        <ul>
+          <li><strong>endpoint</strong> – Pybossa server URL (e.g. http://localhost:7000).</li>
+          <li><strong>api_key</strong> – An api_key to access the pybossa server. You can get an api_key by creating an account in the pybossa server, and check the api_key of the account by clicking the “account name” –&gt; “My Profile” on the top right of the page.</li>
+          <li><strong>local_db</strong> – The local database name</li>
+        </ul>
+      </li>
+      <li><strong>Returns :</strong> A CrowdContext object</li>
+      <li>
+        <p><strong>Example:</strong></p>
+
+        <div class="highlighter-rouge"><pre class="highlight"><code>  &gt;&gt;&gt; from reprowd.crowdcontext import CrowdContext
+  &gt;&gt;&gt; CrowdContext("http://localhost:7000", api_key = "test", local_db = "reprowd.test.db")
+  &lt;reprowd.crowdcontext.CrowdContext instance at 0x...&gt;
+</code></pre>
+        </div>
+      </li>
+    </ul>
+  </li>
+  <li><strong>CrowdData</strong>(object_list, table_name)
+    <ul>
+      <li>Return CrowdData object</li>
+      <li><strong>Parameters:</strong>
+        <ul>
+          <li><strong>object_list</strong> – A list of objects where an object can be anything (e.g., int, string, dict)</li>
+          <li><strong>table_name</strong> – The table used for caching the crowd tasks/results related to the CrowdData object</li>
+        </ul>
+      </li>
+      <li>
+        <p><strong>Example:</strong></p>
+
+        <div class="highlighter-rouge"><pre class="highlight"><code>  &gt;&gt;&gt; # Create a CrowdData object for image labeling
+  &gt;&gt;&gt; cc.CrowdData(["image1.jpg", "image2.jpg"], "tmp")   
+  &lt;reprowd.operators.crowddata.CrowdData instance at 0x...&gt;
+</code></pre>
+        </div>
+      </li>
+    </ul>
+  </li>
+  <li><strong>CrowdJoin</strong>(object_list, table_name)[source]
+    <ul>
+      <li>Return CrowdJoin object</li>
+      <li><strong>Parameters:</strong>
+        <ul>
+          <li><strong>object_list</strong> – A list of objects where an object can be anything (e.g., int, string, dict)</li>
+          <li><strong>table_name</strong> – The table used for caching the crowd tasks/results related to the CrowdJoin object</li>
+        </ul>
+      </li>
+      <li>
+        <p><strong>Example:</strong></p>
+
+        <div class="highlighter-rouge"><pre class="highlight"><code>  &gt;&gt;&gt; # Create a CrowdJoin object for deduplication
+  &gt;&gt;&gt; cc.CrowdJoin(["iphone 4", "ipad 2", "ipad two"], "tmp")
+  &lt;reprowd.operators.crowdjoin.CrowdJoin instance at 0x...&gt;
+</code></pre>
+        </div>
+      </li>
+    </ul>
+  </li>
+  <li><strong>show_tables()</strong>
+    <ul>
+      <li>Return the list of the tables cached in the local database</li>
+      <li>
+        <p><strong>Example:</strong></p>
+
+        <div class="highlighter-rouge"><pre class="highlight"><code>  &gt;&gt;&gt; cc.CrowdData(["image1.jpg", "image2.jpg"], "tmp1")
+  &lt;reprowd.operators.crowddata.CrowdData instance at 0x...&gt;
+  &gt;&gt;&gt; cc.CrowdJoin(["iphone 4", "ipad 2", "ipad two"], "tmp2")
+  &lt;reprowd.operators.crowdjoin.CrowdJoin instance at 0x...&gt;
+  &gt;&gt;&gt; tables = cc.show_tables()
+  &gt;&gt;&gt; print ", ".join(tables)
+  tmp1, tmp2
+  &gt;&gt;&gt; cc.delete_tmp_tables()
+  2
+</code></pre>
+        </div>
+      </li>
+    </ul>
+  </li>
+  <li><strong>print_tables()</strong>
+    <ul>
+      <li>Print a sorted list of the tables cached in the local database (alphabetical order)</li>
+      <li>
+        <p><strong>Example:</strong></p>
+
+        <div class="highlighter-rouge"><pre class="highlight"><code>  &gt;&gt;&gt; cc.CrowdData(["image1.jpg", "image2.jpg"], "tmp2")
+  &lt;reprowd.operators.crowddata.CrowdData instance at 0x...&gt;
+  &gt;&gt;&gt; cc.CrowdJoin(["iphone 4", "ipad 2", "ipad two"], "tmp1")
+  &lt;reprowd.operators.crowdjoin.CrowdJoin instance at 0x...&gt;
+  &gt;&gt;&gt; cc.print_tables()
+  1 tmp1
+  2 tmp2
+  &gt;&gt;&gt; cc.delete_tmp_tables()
+  2
+</code></pre>
+        </div>
+      </li>
+    </ul>
+  </li>
+  <li><strong>rename_table</strong>(oldname, newname)
+    <ul>
+      <li>Rename a cached table</li>
+      <li>
+        <p><strong>Example:</strong></p>
+
+        <div class="highlighter-rouge"><pre class="highlight"><code>  &gt;&gt;&gt; cc.CrowdData(["image1.jpg", "image2.jpg"], "tmp1")
+  &lt;reprowd.operators.crowddata.CrowdData instance at 0x...&gt;
+  &gt;&gt;&gt; cc.rename_table("tmp1", "tmp2")
+  True
+  &gt;&gt;&gt; cc.print_tables()
+  1 tmp2
+  &gt;&gt;&gt; cc.delete_tmp_tables()
+  1
+</code></pre>
+        </div>
+      </li>
+    </ul>
+  </li>
+  <li><strong>delete_table</strong>(table_name)
+    <ul>
+      <li>Delete a cached table</li>
+      <li>
+        <p><strong>Example:</strong></p>
+
+        <div class="highlighter-rouge"><pre class="highlight"><code>  &gt;&gt;&gt; cc.CrowdData(["image1.jpg", "image2.jpg"], "tmp1")
+  &lt;reprowd.operators.crowddata.CrowdData instance at 0x...&gt;
+  &gt;&gt;&gt; cc.CrowdJoin(["iphone 4", "ipad 2", "ipad two"], "tmp2")
+  &lt;reprowd.operators.crowdjoin.CrowdJoin instance at 0x...&gt;
+  &gt;&gt;&gt; cc.print_tables()
+  1 tmp1
+  2 tmp2
+  &gt;&gt;&gt; cc.delete_table("tmp1")
+  True
+  &gt;&gt;&gt; cc.print_tables()
+  1 tmp2
+  &gt;&gt;&gt; cc.delete_tmp_tables()
+  1
+</code></pre>
+        </div>
+      </li>
+    </ul>
+  </li>
+  <li><strong>delete_tmp_tables()</strong>
+    <ul>
+      <li>The function deletes all the tables whose names start with “tmp”, and returns the number of deleted tables</li>
+      <li>
+        <p><strong>Example:</strong></p>
+
+        <div class="highlighter-rouge"><pre class="highlight"><code>  &gt;&gt;&gt; cc.CrowdData(["image1.jpg", "image2.jpg"], "tmp1")
+  &lt;reprowd.operators.crowddata.CrowdData instance at 0x...&gt;
+  &gt;&gt;&gt; cc.CrowdJoin(["iphone 4", "ipad 2", "ipad two"], "not_tmp")
+  &lt;reprowd.operators.crowdjoin.CrowdJoin instance at 0x...&gt;
+  &gt;&gt;&gt; cc.delete_tmp_tables()
+  1
+  &gt;&gt;&gt; cc.delete_table("not_tmp")
+  True
+</code></pre>
+        </div>
+      </li>
+    </ul>
+  </li>
+  <li><strong>static remove_db_file(filename)</strong>
+    <ul>
+      <li>Remove a database file. Note that it is dangerous to remove a database. Please make sure you understand the meaning of the function and only use it if you have to.</li>
+    </ul>
+  </li>
+</ul>
+
+    <footer>
+  Reprowd is maintained by <a href="https://github.com/sfu-db">sfu-db</a><br>
+  This page was generated by <a href="https://pages.github.com">GitHub Pages</a>. Tactile theme by <a href="https://twitter.com/jasonlong">Jason Long</a>.
+</footer>
+</div>
+</div>
+
+  </section>
+</body>
+</html>

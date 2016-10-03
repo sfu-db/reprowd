@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset='utf-8'>
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <link href='https://fonts.googleapis.com/css?family=Chivo:900' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen">
+    <link rel="stylesheet" type="text/css" href="stylesheets/github-dark.css" media="screen">
+    <link rel="stylesheet" type="text/css" href="stylesheets/print.css" media="print">
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <title>Operators API</title>
+  </head>
+
+<body>
+  <div id="container">
+  <div class="inner">
+
+    <header>
+      <h1>Reprowd</h1>
+      <h2>Crowdsourced Data Processing Made Reproducible</h2>
+    </header>
+
+    <section id="downloads" class="clearfix">
+      <a href="https://github.com/sfu-db/reprowd/zipball/master" id="download-zip" class="button"><span>Download .zip</span></a>
+      <a href="https://github.com/sfu-db/reprowd/tarball/master" id="download-tar-gz" class="button"><span>Download .tar.gz</span></a>
+      <a href="https://github.com/sfu-db/reprowd" id="view-on-github" class="button"><span>View on GitHub</span></a>
+    </section>
+
+
+  <section class = "main-content">
+    <h1 id="operators-api">Operators API</h1>
+<p><strong>On this page:</strong></p>
+
+<ul id="markdown-toc">
+  <li><a href="#operators-api" id="markdown-toc-operators-api">Operators API</a>    <ul>
+      <li><a href="#reprowdoperatorscrowddata-module" id="markdown-toc-reprowdoperatorscrowddata-module">reprowd.operators.crowddata module</a></li>
+      <li><a href="#reprowdoperatorscrowdjoin-module" id="markdown-toc-reprowdoperatorscrowdjoin-module">reprowd.operators.crowdjoin module</a></li>
+    </ul>
+  </li>
+</ul>
+
+<h2 id="reprowdoperatorscrowddata-module">reprowd.operators.crowddata module</h2>
+<ul>
+  <li>
+    <p>class reprowd.operators.crowddata.CrowdData(object_list, table_name, crowdcontext)</p>
+  </li>
+  <li>
+    <p>A CrowdData is the basic abstraction in Reprowd. It treats crowdsourcing as a process of manipulating a tabular dataset. For example, collecting results from the crowd is considered as adding a new column result to the data.
+Furthermore, it provides fault recovery through the data manipulating process. That is, when the program crashes, the user can simply rerun the program as if it has never crashed.</p>
+  </li>
+  <li><strong>__init__</strong>(object_list, table_name, crowdcontext)
+    <ul>
+      <li>Initialize a tabular dataset and return a CrowdData object. The initial dataset has two columns: (id, object), where id is an auto-incremental key (starting from 0), and object is populated by the input object_list.
+Note: It is not recommended to call the constructor directly. Please call it through reprowd.crowdcontext.CrowdContext.CrowdData().</li>
+      <li>
+        <p><strong>Example:</strong></p>
+
+        <div class="highlighter-rouge"><pre class="highlight"><code>  &gt;&gt;&gt; object_list = ["image1.jpg", "image2.jpg"]
+  &gt;&gt;&gt; crowddata = cc.CrowdData(object_list, table_name = "test")  
+  &gt;&gt;&gt; crowddata  
+  &lt;reprowd.operators.crowddata.CrowdData instance at 0x...&gt;
+  &gt;&gt;&gt; crowddata.cols  
+  ['id', 'object']
+  &gt;&gt;&gt; crowddata.data  
+  {'id': [0, 1], 'object': ['image1.jpg', 'image2.jpg']}
+</code></pre>
+        </div>
+      </li>
+    </ul>
+  </li>
+  <li><strong>set_presenter</strong>(presenter, map_func=None)
+    <ul>
+      <li>Specify a presenter</li>
+      <li><strong>Parameters:</strong>
+        <ul>
+          <li><strong>presenter</strong> – A Presenter object (e.g., reprowd.presenter.test.TextCmp).</li>
+          <li><strong>map_func</strong> – map_func() maps an object into the data format the presenter requires. If map_func() is not specified, it will use the default map_func = lambda obj: obj</li>
+        </ul>
+      </li>
+      <li><strong>Returns:</strong>	The updated CrowdData object</li>
+      <li>
+        <p><strong>Example:</strong></p>
+
+        <div class="highlighter-rouge"><pre class="highlight"><code>  &gt;&gt;&gt; from reprowd.presenter.image import ImageLabel
+  &gt;&gt;&gt; object_list = ["image1.jpg", "image2.jpg"]
+  &gt;&gt;&gt; map_func = lambda obj: {'url_b':obj}
+  &gt;&gt;&gt; crowddata = cc.CrowdData(object_list, table_name = "test") \  
+  ...               .set_presenter(ImageLabel(), map_func)   
+  &gt;&gt;&gt; crowddata.cols   
+  ['id', 'object']
+  &gt;&gt;&gt; crowddata.data  
+  {'id': [0, 1], 'object': ['image1.jpg', 'image2.jpg']}
+  &gt;&gt;&gt; crowddata.presenter    
+  &lt;reprowd.presenter.image.ImageLabel object at 0x...&gt;
+</code></pre>
+        </div>
+      </li>
+    </ul>
+  </li>
+  <li><strong>publish_task</strong>(n_assignments=1, priority=0)
+    <ul>
+      <li>Publish tasks to the pybossa server</li>
+      <li><strong>Parameters:</strong>
+        <ul>
+          <li><strong>n_assignments</strong> – The number of assignments. For example, n_assignments = 3 means that each task needs to be done by three different workers</li>
+          <li><strong>priority</strong> – A float number in [0, 1] that indicates the priority of the published tasks. The larger the value, the higher the priority.</li>
+        </ul>
+      </li>
+      <li><strong>Returns:</strong>	The updated CrowdData object
+The function adds a new column task to the tabular dataset. Each item in the task column is a dict with the following attributes:</li>
+      <li>
+        <p><strong>Example:</strong></p>
+
+        <div class="highlighter-rouge"><pre class="highlight"><code>  id: task id (e.g., 400)
+  task_link: the URL linked to a task (e.g., “http://localhost:7000/project/textcmp/task/400”)
+  task_data: the data added to a task (e.g., {“url_b”: “image1.jpg”})
+  n_assignments: the number of assignments (e.g., 3)
+  priority: the priority of a task (e.g., 0)
+  project_id: the project id (e.g., 155)
+  create_time: the time created a task (e.g., “2016-07-12T03:46:04.622127”)
+
+  &gt;&gt;&gt; from reprowd.presenter.image import ImageLabel
+  &gt;&gt;&gt; object_list = ["image1.jpg", "image2.jpg"]
+  &gt;&gt;&gt; crowddata = cc.CrowdData(object_list, table_name = "test") \  
+  ...               .set_presenter(ImageLabel(), lambda obj: {'url_b':obj}) \  
+  ...               .publish_task()  
+  &gt;&gt;&gt; crowddata.cols  
+  ['id', 'object', 'task']
+  &gt;&gt;&gt; print crowddata.data['task']  # print the task col
+  [
+      {
+          'id': 91,
+          'task_link': 'http://localhost:7000/project/imglabel/task/91',
+          'task_data': {u'url_b': u'image1.jpg'},
+          'n_assignments': 1,
+          'priority': 0.0,
+          'project_id': 78,
+          'create_time': u'2016-07-23T23:52:50.551407',
+      },
+      {
+          'id': 92,
+          'task_link': 'http://localhost:7000/project/imglabel/task/92',
+          'task_data': {u'url_b': u'image2.jpg'},
+          'n_assignments': 1,
+          'priority': 0.0,
+          'project_id': 78,
+          'create_time': u'2016-07-23T23:52:50.570035'
+      }
+  ]
+  &gt;&gt;&gt; first_task = crowddata.data['task'][0]  
+  &gt;&gt;&gt; sorted(first_task.keys())  
+  ['create_time', 'id', 'n_assignments', 'priority', 'project_id', 'task_data', 'task_link']
+</code></pre>
+        </div>
+      </li>
+    </ul>
+  </li>
+  <li><strong>get_result</strong>(blocking=True)
+    <ul>
+      <li>
+        <p>Get results from the pybossa server</p>
+      </li>
+      <li><strong>Parameters:</strong>
+        <ul>
+          <li><strong>blocking</strong> – A boolean value that denotes whether the function will be blocked or not.
+blocking = True means that the function will continuously collect results from the server until all the tasks are finished by the crowd.
+blocking = False means that the function will get the current results of the tasks immediately even if they have not been finished yet.</li>
+        </ul>
+      </li>
+      <li><strong>Returns:</strong>	The updated CrowdData object
+The function adds a new column result to the tabular dataset. Each item in the result column is a dict with the following attributes:</li>
+      <li>
+        <p><strong>Example:</strong></p>
+
+        <div class="highlighter-rouge"><pre class="highlight"><code>  assigments: a list of assignments
+
+  id: assignment id (e.g., 100)
+  worker_id: an identifier of a worker (e.g., 2)
+  worker_response: the answer of the task given by the worker (e.g., “YES”)
+  start_time: the time when the assignment is created (e.g., “2016-07-12T03:46:04.622127”)
+  finish_time: the time when the assignment is finished (e.g., “2016-07-12T03:50:04.622127”)
+  task_id: task id (e.g., 400)
+
+  task_link: the URL linked to a task (e.g., “http://localhost:7000/project/textcmp/task/400”)
+
+  project_id: the project id (e.g., 155)
+
+  &gt;&gt;&gt; from reprowd.presenter.image import ImageLabel
+  &gt;&gt;&gt; object_list = ["image1.jpg"]
+  &gt;&gt;&gt; crowddata = cc.CrowdData(object_list, table_name = "test") \
+  ...               .set_presenter(ImageLabel(), lambda obj: {'url_b':obj}) \  
+  ...               .publish_task().get_result(blocking=False)  
+  &gt;&gt;&gt; crowddata.cols  
+  ['id', 'object', 'task', 'result']
+  &gt;&gt;&gt; d = crowddata.get_result(blocking=True).data  
+  &gt;&gt;&gt; print d['result'] # print the result col
+  {
+      'assignments': [
+          {
+              'id': 236,
+              'worker_id': '1',
+              'worker_response': u'YES',
+              'start_time': u'2016-07-24T22:53:26.173976',
+              'finish_time': u'2016-07-24T22:53:26.173976'
+          },
+          {
+              id': 240,
+              'worker_id': u'10.0.2.2',
+               'worker_response': u'Yes',
+               'start_time': u'2016-07-24T22:53:33.943804',
+               'finish_time': u'2016-07-24T22:53:37.175170'
+          }
+      ]
+      'task_id': 407,
+      'task_link': "http://localhost:7000/project/imglabel/task/407"
+      'project_id': 190
+  }
+</code></pre>
+        </div>
+      </li>
+    </ul>
+  </li>
+  <li><strong>quality_control</strong>(method=’mv’, **kwargs)
+    <ul>
+      <li>Infer the final results using a quality-control method</li>
+      <li>**Parameters:	**
+        <ul>
+          <li><strong>method</strong> – The name of the quality-control method</li>
+          <li><strong>**kwargs</strong> – Parameters for he quality-control method</li>
+        </ul>
+      </li>
+      <li><strong>Returns:</strong>	The updated CrowdData object</li>
+      <li><strong>Quality-control methods:</strong>
+        <ul>
+          <li><strong>mv</strong> is short for Majority Vote. It does not have any input parameter</li>
+          <li><strong>em</strong> is short for Expectation-Maximization [Dawid &amp; Skene 1979]. It has one input parameter: iteration (default: 20).
+The function adds a new column (e.g., mv, em) to the tabular dataset, which consists of the inferred result of each task.</li>
+        </ul>
+      </li>
+      <li>
+        <p><strong>Example:</strong></p>
+
+        <div class="highlighter-rouge"><pre class="highlight"><code>  &gt;&gt;&gt; from reprowd.presenter.image import ImageLabel
+  &gt;&gt;&gt; object_list = ["image1.jpg", "image2.jpg"]
+  &gt;&gt;&gt; crowddata = cc.CrowdData(object_list, table_name = "test") \  
+  ...               .set_presenter(ImageLabel(), lambda obj: {'url_b':obj}) \  
+  ...               .publish_task(n_assignments=3).get_result() \  
+  ...               .quality_control("em", iteration = 10)
+  &gt;&gt;&gt; crowddata.cols
+  ['id', 'object', 'task', 'result', 'em']
+  &gt;&gt;&gt; crowddata.data["em"]
+  ['YES', 'NO']
+  append(object)[source]
+  Add an object to the end of the object column
+
+  Param:	An object that can be anything (e.g., int, string, dict)
+  Returns:	The updated CrowdData object
+  &gt;&gt;&gt; from reprowd.presenter.image import ImageLabel
+  &gt;&gt;&gt; object_list = ["image1.jpg", "image2.jpg"]
+  &gt;&gt;&gt; crowddata = cc.CrowdData(object_list, table_name = "test") \  
+  ...               .set_presenter(ImageLabel(), lambda obj: {'url_b':obj}) \  
+  ...               .publish_task().get_result().quality_control("mv")  
+  &gt;&gt;&gt; crowddata.data["object"]
+  ['image1.jpg', 'image2.jpg']
+  &gt;&gt;&gt; crowddata.append( 'image3.jpg')  
+  &gt;&gt;&gt; crowddata.data["object"]
+  ['image1.jpg', 'image2.jpg', 'image3.jpg']
+  &gt;&gt;&gt; crowddata.publish_task().get_result().quality_control("mv")
+  &gt;&gt;&gt; crowddata.data["mv"]
+  ['YES', 'YES', "NO"]
+</code></pre>
+        </div>
+      </li>
+    </ul>
+  </li>
+  <li><strong>extend</strong>(object_list)
+    <ul>
+      <li>Extend the list by appending all the objects in the given list</li>
+      <li><strong>Parameter:</strong>	A list of objects where an object can be anything (e.g., int, string, dict)</li>
+      <li><strong>Returns:</strong>	The updated CrowdData object</li>
+      <li>
+        <p><strong>Example:</strong></p>
+
+        <div class="highlighter-rouge"><pre class="highlight"><code>  &gt;&gt;&gt; from reprowd.presenter.image import ImageLabel
+  &gt;&gt;&gt; object_list = ["image1.jpg", "image2.jpg"]
+  &gt;&gt;&gt; crowddata = cc.CrowdData(object_list, table_name = "test") \   
+  ...  .set_presenter(ImageLabel(), lambda obj: {'url_b':obj}) \  
+  ...  .publish_task().get_result().quality_control("mv")  
+  &gt;&gt;&gt; crowddata.data["object"]
+  ['image1.jpg', 'image2.jpg']
+  &gt;&gt;&gt; crowddata.extend(['image3.jpg', 'image3.jpg'])  
+  &gt;&gt;&gt; crowddata.data["object"]
+  ['image1.jpg', 'image2.jpg', 'image3.jpg', 'image4.jpg']
+  &gt;&gt;&gt; crowddata.publish_task().get_result().quality_control("mv")
+  &gt;&gt;&gt; crowddata.data["mv"]
+  ['YES', 'YES', "NO", 'NO']
+</code></pre>
+        </div>
+      </li>
+    </ul>
+  </li>
+  <li><strong>filter</strong>(func)
+    <ul>
+      <li>Return the updated crowddata by selecting the rows, for which func returns True</li>
+      <li><strong>Parameter:</strong>	A function that returns True for the selected rows</li>
+      <li><strong>Returns:</strong>	The updated CrowdData object</li>
+      <li>
+        <p><strong>Example:</strong></p>
+
+        <div class="highlighter-rouge"><pre class="highlight"><code>  &gt;&gt;&gt; from reprowd.presenter.image import ImageLabel
+  &gt;&gt;&gt; object_list = ["image1.jpg", "image2.jpg"]
+  &gt;&gt;&gt; crowddata = cc.CrowdData(object_list, table_name = "test")  \  
+  ...               .set_presenter(ImageLabel(), lambda obj: {'url_b':obj}) \  
+  ...               .publish_task().get_result().quality_control("mv")  
+  &gt;&gt;&gt; crowddata.data["mv"]
+  ['YES', 'NO']
+  &gt;&gt;&gt; crowddata.filter(lambda r: r["mv"] == 'YES' ) # Only keeps the images labled by 'YES'
+  &gt;&gt;&gt; crowddata.data["object"]
+  ['image1.jpg']
+</code></pre>
+        </div>
+      </li>
+    </ul>
+  </li>
+  <li><strong>clear()</strong>
+    <ul>
+      <li>Remove all the rows in the crowddata</li>
+      <li><strong>Returns:</strong>	The updated CrowdData object</li>
+      <li>
+        <p><strong>Example:</strong></p>
+
+        <div class="highlighter-rouge"><pre class="highlight"><code>  &gt;&gt;&gt; from reprowd.presenter.image import ImageLabel
+  &gt;&gt;&gt; object_list = ["image1.jpg", "image2.jpg"]
+  &gt;&gt;&gt; crowddata = cc.CrowdData(object_list, table_name = "test")  \
+  ...               .set_presenter(ImageLabel(), lambda obj: {'url_b':obj}) \  
+  ...               .publish_task().get_result().quality_control("mv")  
+  &gt;&gt;&gt; crowddata.data["mv"]
+  ['YES', 'NO']
+  &gt;&gt;&gt; crowddata.clear()  
+  &lt;reprowd.operators.crowddata.CrowdData instance at 0x...&gt;
+  &gt;&gt;&gt; crowddata.data["object"]
+  []
+</code></pre>
+        </div>
+      </li>
+    </ul>
+  </li>
+</ul>
+
+<h2 id="reprowdoperatorscrowdjoin-module">reprowd.operators.crowdjoin module</h2>
+<ul>
+  <li>class reprowd.operators.crowdjoin.CrowdJoin(object_list, table_name, crowdcontext)</li>
+  <li>Given a list of objects (or two lists of objects), the CrowdJoin operator finds matching objects in the list (or between the two lists).</li>
+  <li><strong>__init__</strong>(object_list, table_name, crowdcontext)
+    <ul>
+      <li>Initialize a CrowdJoin object.
+  Note: It is not recommended to call the constructor directly. Please call it through reprowd.crowdcontext.CrowdContext.CrowdJoin().</li>
+      <li>
+        <p><strong>Example:</strong></p>
+
+        <div class="highlighter-rouge"><pre class="highlight"><code>  &gt;&gt;&gt; object_list = ["iPad 2", "iPad Two", "iPhone 2", "iPad2"]
+  &gt;&gt;&gt; cc.CrowdJoin(object_list, table_name = "jointest")  
+  &lt;reprowd.operators.crowdjoin.CrowdJoin instance at 0x...&gt;
+</code></pre>
+        </div>
+      </li>
+    </ul>
+  </li>
+  <li><strong>set_presenter</strong>(presenter, map_func=&lt;function <lambda>&gt;)
+</lambda>    <ul>
+      <li>Specify a presenter</li>
+      <li><strong>Parameters:</strong>
+        <ul>
+          <li><strong>presenter</strong> – A Presenter object (e.g., reprowd.presenter.test.TextCmp).</li>
+          <li><strong>map_func</strong> – map_func() maps a pair of objects into the data format the presenter requires. If map_func is not specified, it will use the default map_func = lambda op: {‘obj1’:op[0], ‘obj2’:op[1]}</li>
+        </ul>
+      </li>
+      <li><strong>Returns:</strong>	The updated CrowdJoin object</li>
+      <li>
+        <p><strong>Example:</strong></p>
+
+        <div class="highlighter-rouge"><pre class="highlight"><code>  &gt;&gt;&gt; from reprowd.presenter.text import TextCmp
+  &gt;&gt;&gt; object_list = ["iPad 2", "iPad Two", "iPhone 2", "iPad2"]
+  &gt;&gt;&gt; def map_func(obj_pair):
+  ...     o1, o2 = obj_pair
+  ...     return {'obj1':o1, 'obj2':o2}
+  &gt;&gt;&gt; cc.CrowdJoin(object_list, table_name = "jointest") \
+  ...   .set_presenter(TextCmp(), map_func)
+  &lt;reprowd.operators.crowdjoin.CrowdJoin instance at 0x...&gt;
+</code></pre>
+        </div>
+      </li>
+    </ul>
+  </li>
+  <li><strong>set_simjoin</strong>(joinkey_func, threshold=0.4, weight_on=False)
+    <ul>
+      <li>Set a simjoin operator</li>
+      <li><strong>Parameters:</strong>
+        <ul>
+          <li><strong>joinkey_func</strong> – A function that takes an object as input and outputs a join key on which simjoin will perform. The join key has to be a set of elements (e.g., bag of words, n-grams)</li>
+          <li><strong>threshold</strong> – A float number in [0, 1]. The higher the value, the more the number of object pairs that are removed.</li>
+          <li><strong>weight_on</strong> – A boolean value that indicates which similarity function, non-weighted Jaccard (weight_on = False) or weighted Jaccard (weight_on = True), will be used to compute similarity.</li>
+        </ul>
+      </li>
+      <li><strong>Returns:</strong>	The updated CrowdJoin object</li>
+      <li><strong>Note:</strong>  Why do we need this? Consider a list of n objects. A naive implementation of CrowdJoin is to ask workers to label all n^2 object pairs. In fact, among these pairs, most of them look quite dissimilar and can be easily identified as non-matching pairs. Setting a simjoin operator will help us to remove these obviously non-matching pairs. Specifically, when it is set, all the object pairs whose Jaccard similarity values are below the threshold will be removed.</li>
+      <li>
+        <p><strong>Example:</strong></p>
+
+        <div class="highlighter-rouge"><pre class="highlight"><code>     &gt;&gt;&gt; from reprowd.presenter.text import TextCmp
+     &gt;&gt;&gt; from reprowd.utils.simjoin import gramset
+     &gt;&gt;&gt; object_list = ["iPad 2", "iPad Two", "iPhone 2", "iPad2"]
+     &gt;&gt;&gt; def joinkey_func(obj):
+     ...     # Use a 2-gram set as a joinkey
+     ...     return gramset(obj, 2)
+     &gt;&gt;&gt; crowdjoin = cc.CrowdJoin(object_list, table_name = "jointest") \
+     ...               .set_presenter(TextCmp()) \
+     ...               .set_simjoin(joinkey_func, 0.2)
+</code></pre>
+        </div>
+      </li>
+    </ul>
+  </li>
+  <li><strong>set_matcher</strong>(matcher_func)
+    <ul>
+      <li>Specify a function for determining which object pairs are matching</li>
+      <li><strong>Parameters:</strong>
+        <ul>
+          <li><strong>matcher_func</strong> – A function that takes a pair of objects as input and outputs True for matching pairs</li>
+        </ul>
+      </li>
+      <li><strong>Returns:</strong>	The updated CrowdJoin object</li>
+      <li>
+        <p><strong>Example:</strong></p>
+
+        <div class="highlighter-rouge"><pre class="highlight"><code>  &gt;&gt;&gt; from reprowd.presenter.text import TextCmp
+  &gt;&gt;&gt; from reprowd.utils.simjoin import gramset, jaccard
+  &gt;&gt;&gt; object_list = ["iPad 2", "iPad Two", "iPhone 2", "iPad2"]
+  &gt;&gt;&gt; # Identify the pairs whose Jaccard similarity is above 0.9 as matching.
+  &gt;&gt;&gt; def matcher_func(obj_pair):
+  ...     o1, o2 = obj_pair
+  ...     return jaccard(gramset(o1, 2), gramset(o2, 2)) &gt;= 0.9
+  &gt;&gt;&gt; crowdjoin = cc.CrowdJoin(object_list, table_name = "jointest") \
+  ...               .set_presenter(TextCmp(), map_func) \
+  ...               .set_matcher(matcher_func)
+</code></pre>
+        </div>
+      </li>
+    </ul>
+  </li>
+  <li><strong>set_nonmatcher</strong>(nonmatcher_func)
+    <ul>
+      <li>Specify a function for determining which object pairs are not matching</li>
+      <li><strong>Parameters:</strong>
+        <ul>
+          <li><strong>nonmatcher_func</strong> – A function that takes a pair of objects as input and outputs True for non-matching pairs</li>
+        </ul>
+      </li>
+      <li><strong>Returns:</strong>	The updated CrowdJoin object</li>
+      <li>
+        <p><strong>Example:</strong></p>
+
+        <div class="highlighter-rouge"><pre class="highlight"><code>  &gt;&gt;&gt; from reprowd.presenter.text import TextCmp
+  &gt;&gt;&gt; from reprowd.utils.simjoin import gramset
+  &gt;&gt;&gt; object_list = [("iPad 2", 300), ("iPad Two", 305), ("iPhone 2", 400), ("iPad2", 298)] # (name, price)
+  &gt;&gt;&gt; def map_func(obj_pair):
+  ...     o1, o2 = obj_pair
+  ...     return {'obj1':o1[0] + " | " + str(o1[1]), 'obj2':o2[0] + " | " + str(o2[1])}
+  &gt;&gt;&gt; # If the prices of two product differ by more than 80, they will be identified as a non-matching pair
+  &gt;&gt;&gt; def nonmatcher_func(obj_pair):
+  ...     o1, o2 = obj_pair
+  ...     return abs(o1[1]-o2[1]) &gt; 80
+  &gt;&gt;&gt;
+  &gt;&gt;&gt; crowdjoin = cc.CrowdJoin(object_list, table_name = "jointest") \
+  ...               .set_presenter(TextCmp(), map_func) \
+  ...               .set_nonmatcher(nonmatcher_func)
+</code></pre>
+        </div>
+      </li>
+    </ul>
+  </li>
+  <li><strong>set_transitivity</strong>(score_func=None)
+    <ul>
+      <li>Use transitivity to reduce the number of the pairs that need to be labeled by workers. Two types of transitivity will be considered:
+  If A and B are matching, B and C are matching, then A and C will be deduced as matching
+  If A and B are matching, B and C are non-matching, then A and C will be deduced as non-matching.</li>
+      <li><strong>Parameters:</strong>
+        <ul>
+          <li><strong>score_func</strong> – A score function that tends to return a high score for matching pairs and a low score for non-matching pairs. Having this function will increase the effectiveness of transitivity (See [Wang et al. SIGMOD 2013] for more detail).</li>
+        </ul>
+      </li>
+      <li><strong>Returns:</strong>	The updated CrowdJoin object</li>
+      <li>
+        <p><strong>Example:</strong></p>
+
+        <div class="highlighter-rouge"><pre class="highlight"><code>  &gt;&gt;&gt; from reprowd.presenter.text import TextCmp
+  &gt;&gt;&gt; from reprowd.utils.simjoin import gramset, jaccard
+  &gt;&gt;&gt; object_list = ["iPhone 2", "iPad 2", "iPad Two", "iPad2"]
+  &gt;&gt;&gt; def score_func(obj_pair):
+  ...     o1, o2 = obj_pair
+  ...     return jaccard(gramset(o1, 2), gramset(o2, 2))
+  &gt;&gt;&gt; crowdjoin = cc.CrowdJoin(object_list, table_name = "jointest") \
+  ...               .set_presenter(TextCmp()) \
+  ...               .set_transitivity(score_func)
+</code></pre>
+        </div>
+      </li>
+    </ul>
+  </li>
+  <li><strong>set_task_parameters</strong>(n_assignments=1, priority=0)
+    <ul>
+      <li>Set the values of the parameters for published tasks</li>
+      <li><strong>Parameters:</strong>
+        <ul>
+          <li><strong>n_assignments</strong> – The number of assignments. For example, n_assignments = 3 means that each task needs to be done by three different workers</li>
+          <li><strong>priority</strong> – A float number in [0, 1] that indicates the priority of the published tasks. The larger the value, the higher the priority.</li>
+        </ul>
+      </li>
+      <li><strong>Returns:</strong>	The updated CrowdJoin object</li>
+    </ul>
+  </li>
+  <li><strong>join</strong>(other_object_list=None)
+    <ul>
+      <li>If other_object_list is not specified, perform a self-join on self.object_list; otherwise, perform a join between self.object_list and other_object_list</li>
+      <li><strong>Parameters:</strong>
+        <ul>
+          <li><strong>other_object_list</strong> – A list of objects that will be joined with self.object_list</li>
+        </ul>
+      </li>
+      <li><strong>Returns:</strong>	A dict with the following attributes:
+        <ul>
+          <li><strong>“all”</strong>: All the matching pairs</li>
+          <li><strong>“human”</strong>: A subset of matching pairs identified by humans</li>
+          <li><strong>“machine”</strong>: A subset of matching pairs identified by matcher_func() in set_matcher()</li>
+          <li><strong>“transitivity”</strong>: A subset of matching pairs deduced based on transitivity</li>
+        </ul>
+      </li>
+      <li>
+        <p>**Note: ** No matter in which order set_simjoin(), set_matcher(), and set_nonmatcher() are being called, they will be applied in the join() function in the following order:</p>
+
+        <div class="highlighter-rouge"><pre class="highlight"><code>  set_simjoin()
+  set_nonmatcher()
+  set_matcher()
+
+  &gt;&gt;&gt; from reprowd.presenter.text import TextCmp
+  &gt;&gt;&gt; object_list = ["iPad 2", "iPad Two", "iPhone 2"]
+  &gt;&gt;&gt; crowdjoin = cc.CrowdJoin(object_list, table_name = "jointest") \  
+  ...               .set_presenter(TextCmp()) \
+  ...               .join() # Ask workers to check all pairs
+  &gt;&gt;&gt; matches['all']
+  [('iPad 2', 'iPad Two')]
+  &gt;&gt;&gt; matches['human']
+  [('iPad 2', 'iPad Two')]
+  &gt;&gt;&gt; matches['machine']
+  []
+  &gt;&gt;&gt; matches['transitivity']
+  []
+</code></pre>
+        </div>
+      </li>
+    </ul>
+  </li>
+</ul>
+
+    <footer>
+  Reprowd is maintained by <a href="https://github.com/sfu-db">sfu-db</a><br>
+  This page was generated by <a href="https://pages.github.com">GitHub Pages</a>. Tactile theme by <a href="https://twitter.com/jasonlong">Jason Long</a>.
+</footer>
+</div>
+</div>
+
+  </section>
+</body>
+</html>

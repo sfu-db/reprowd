@@ -10,7 +10,7 @@
     <!--[if lt IE 9]>
     <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
     <![endif]-->
-    <title>Installation</title>
+    <title>Downloading and Installation</title>
   </head>
 
 <body>
@@ -30,13 +30,13 @@
 
 
   <section class = "main-content">
-    <h1 id="installation-and-setting-instructions">Installation and Setting Instructions</h1>
+    <h1 id="downloading-and-installation">Downloading and Installation</h1>
 
-<h2 id="install-pybossa">Install Pybossa</h2>
+<h2 id="pybossa">Pybossa</h2>
 <ol>
-  <li><a href="http://docs.pybossa.com/en/latest/juju_pybossa.html">Install your own pybossa server with Juju</a></li>
+  <li><a href="http://docs.pybossa.com/en/latest/juju_pybossa.html">Install your own pybossa server with Juju</a> (Please ignore this step if you are using a public pybossa server)</li>
   <li>
-    <p>Install pybossa-client</p>
+    <p>Install <a href="https://github.com/PyBossa/pybossa-client">pybossa-client</a></p>
 
     <div class="highlighter-rouge"><pre class="highlight"><code> $pip install pybossa-client
 </code></pre>
@@ -44,14 +44,14 @@
   </li>
 </ol>
 
-<h2 id="install-reprowd">Install Reprowd</h2>
+<h2 id="reprowd">Reprowd</h2>
 <ol>
   <li>
     <p>Install reprowd package</p>
 
     <div class="highlighter-rouge"><pre class="highlight"><code>  $git clone https://github.com/sfu-db/reprowd.git
   $cd reprowd
-  $python setup.py
+  $python setup.py install
 </code></pre>
     </div>
   </li>
@@ -61,7 +61,7 @@
 <ol>
   <li>Get endpoint (e.g., http://localhost:7000/) and api_key by registering on pybossa server</li>
   <li>
-    <p>Set the following user environment variables</p>
+    <p>Set the following user environment variables. (You can also set them in your code using the <a href="http://sfu-db.github.io/reprowd/docs/_build/html/crowdcontext.html#reprowd.crowdcontext.CrowdContext.__init__">reprowd API</a>, but the drawback is that when you share the code to the public, everyone else will see your api-key.)</p>
 
     <div class="highlighter-rouge"><pre class="highlight"><code> REPROWD_ENDPOINT="your-endpoint"
  REPROWD_API_KEY="your-api-key"

@@ -6,7 +6,7 @@
     * git commit -am "update docs"
     * git push
 
-### Case 2. Update project page
+### Case 2. Update project homepage
     * cd _source 
     * jekyll build
     * cd ..

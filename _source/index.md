@@ -10,7 +10,7 @@ Reprowd is a system aiming to make it easy to reproduce crowdsourced data proces
 
 
 ## User Guide
-* [Installation and Setting Instructions](install.html)
+* [Downloading and Installation](install.html)
 * [Reprowd Documentation](docs/_build/html)
 
 ## Want to be a contributor?

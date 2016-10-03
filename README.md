@@ -10,6 +10,6 @@
     * cd _source 
     * jekyll build
     * cd ..
-    * cp -R _source/* .
+    * cp -R _source/_site/* .
     * git commit -am "update homepage"
     * git push

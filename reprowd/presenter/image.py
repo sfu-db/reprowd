@@ -201,7 +201,7 @@ pybossa.presentTask(function(task, deferred) {
 
 class ImageCmp(BasePresenter):
     def __init__(self):
-        self.question = "Which one is bigger"
+        self.question = "Which one is bigger?"
         self.name = "Image Compare"
         self.short_name = "imgcmp"
         self.description = "Help us to compare images"

@@ -6,13 +6,14 @@ from reprowd.presenter.base import *
 
 class TextCmp (BasePresenter):
     def __init__(self):
+        self.question = "Do these two things match?"
         self.name = "Text Compare"
         self.short_name = "textcmp"
         self.description = "Help us to compare texts"
         self.template = """
         <div class="row skeleton"> <!-- Start Skeleton Row-->
     <div class="col-md-6 "><!-- Start of Question and Submission DIV (column) -->
-        <h1 id="question"><span id="i18n_question">Do these two things match?</span></h1> <!-- The question will be loaded here -->
+        <h1 id="question"><span id="i18n_question">${question}</span></h1> <!-- The question will be loaded here -->
         <div id="answer"> <!-- Start DIV for the submission buttons -->
             <!-- If the user clicks this button, the saved answer will be value="yes"-->
             <button class="btn btn-success btn-answer" value='Yes'><i class="icon icon-white icon-thumbs-up"></i>Match</button>

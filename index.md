@@ -12,6 +12,4 @@ Reprowd is a system making crowdsourced data process reproducible
 
 * [Installation and setting Instructions](install.html)
 * [Developer Guide](dev_guide.html)
-* [Reprowd Documentation](./docs/_build/html/index.html)
-* [CrowdContext Module API](crowdcontext.html)
-* [Operators Module API](operator.html)
+* [Reprowd Documentation](http://reprowd.readthedocs.io/en/latest/)

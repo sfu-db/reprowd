@@ -5,10 +5,9 @@ title: Reprowd
 
 # Welcome
 
-Reprowd is a system making crowdsourced data process reproducible
+Reprowd is a system aiming to make it easy to reproduce crowdsourced data processing research.
 
 
-# Documents:
 
 ## User Guide
 * [Installation and Setting Instructions](install.html)

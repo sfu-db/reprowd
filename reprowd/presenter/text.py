@@ -6,8 +6,8 @@ from reprowd.presenter.base import *
 
 class TextCmp (BasePresenter):
     def __init__(self):
-        self.question = "Do these two things match?"
-        self.name = "Text Compare"
+        self.question = ""
+        self.name = "Text Comparison"
         self.short_name = "textcmp"
         self.description = "Help us to compare texts"
         self.template = """

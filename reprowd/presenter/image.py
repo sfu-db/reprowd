@@ -3,8 +3,8 @@ from reprowd.presenter.base import *
 
 class ImageLabel (BasePresenter):
     def __init__(self):
-        self.question = "Do you see a human face in this photo?"
-        self.name = "Image Label"
+        self.question = ""
+        self.name = "Image Labeling"
         self.short_name = "imglabel"
         self.description = "Help us to label an image"
         self.template = """
@@ -201,8 +201,8 @@ pybossa.presentTask(function(task, deferred) {
 
 class ImageCmp(BasePresenter):
     def __init__(self):
-        self.question = "Which one is bigger?"
-        self.name = "Image Compare"
+        self.question = ""
+        self.name = "Image Comparison"
         self.short_name = "imgcmp"
         self.description = "Help us to compare images"
         self.template = """

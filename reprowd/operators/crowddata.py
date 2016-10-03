@@ -382,7 +382,7 @@ class CrowdData:
                     continue
 
                 if (cache_result == None or len(cache_result["assignments"]) < len(new_result["assignments"])):
-                    exe_str = "INSERT OR REPLACE INTO " + self.table_name + " (id, col_name, value) VALUES(?,?,?)"
+                    exe_str = "INSERT OR REPLACE INTO '%s' (id, col_name, value) VALUES(?,?,?)" %(self.table_name)
                     self.cc.cursor.execute(exe_str, (i, output_col, str(new_result), ))
                     self.cc.db.commit()
                     result_col[k] = new_result

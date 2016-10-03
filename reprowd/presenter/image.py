@@ -95,7 +95,6 @@ var messages = {"en": {
                         "i18n_tasks_from": "tasks from",
                         "i18n_show_comments": "Show comments:",
                         "i18n_hide_comments": "Hide comments:",
-                        "i18n_question": "Do you see a human face in this photo?",
                       },
                 "es": {
                         "i18n_welldone": "Bien hecho!",
@@ -113,7 +112,6 @@ var messages = {"en": {
                         "i18n_tasks_from": "tareas de",
                         "i18n_show_comments": "Mostrar comentarios",
                         "i18n_hide_comments": "Ocultar comentarios",
-                        "i18n_question": "¿Ves una cara humana en esta foto?",
                       },
                };
 // Update userLocale with server side information
@@ -270,7 +268,6 @@ var messages = {"en": {
                         "i18n_tasks_from": "tasks from",
                         "i18n_show_comments": "Show comments:",
                         "i18n_hide_comments": "Hide comments:",
-                        "i18n_question": "Do you see a human face in this photo?",
                       },
                 "es": {
                         "i18n_welldone": "Bien hecho!",
@@ -288,7 +285,6 @@ var messages = {"en": {
                         "i18n_tasks_from": "tareas de",
                         "i18n_show_comments": "Mostrar comentarios",
                         "i18n_hide_comments": "Ocultar comentarios",
-                        "i18n_question": "¿Ves una cara humana en esta foto?",
                       },
                };
 // Update userLocale with server side information

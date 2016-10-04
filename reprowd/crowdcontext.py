@@ -19,6 +19,7 @@ class CrowdContext:
 
     # Note that __current_cd may not contain all the cached data in the database,
     # but only contains those created by the current CrowdContext
+    # Map local_db to <tablename, CrowdData object>
     __current_cd = {}
 
     def __init__(self, endpoint=None, api_key=None, local_db = "reprowd.db"):
@@ -69,13 +70,13 @@ class CrowdContext:
         <reprowd.operators.crowddata.CrowdData instance at 0x...>
         """
         # Check if table_name has been used before
-        if table_name in CrowdContext.__current_cd[self.local_db]:
-            raise Exception("'%s' has been used before. "
-                "Please choose a different name that is not in the list:"
-                "[%s]" %(table_name, ",".join(CrowdContext.__current_cd[self.local_db])))
+        for _table_name, _crowddata in CrowdContext.__current_cd[self.local_db]:
+            if table_name == _table_name:
+                return _crowddata
         else:
-            CrowdContext.__current_cd[self.local_db].append(table_name)
-        return CrowdData(object_list, table_name, self)
+            _crowddata = CrowdData(object_list, table_name, self)
+            CrowdContext.__current_cd[self.local_db].append((table_name, _crowddata))
+            return _crowddata
 
 
     def CrowdJoin(self, object_list, table_name):
@@ -89,14 +90,6 @@ class CrowdContext:
         >>> cc.CrowdJoin(["iphone 4", "ipad 2", "ipad two"], "tmp") #doctest: +SKIP
         <reprowd.operators.crowdjoin.CrowdJoin instance at 0x...>
         """
-        # Check if the table_name has been used before
-        if table_name in CrowdContext.__current_cd[self.local_db]:
-            raise Exception("'%s' has been used before. "
-                "Please choose a different name that is not in the list: "
-                "[%s]" %(table_name, ",".join(CrowdContext.__current_cd[self.local_db])))
-        else:
-            CrowdContext.__current_cd[self.local_db].append(table_name)
-
         return CrowdJoin(object_list, table_name, self)
 
 
@@ -168,9 +161,9 @@ class CrowdContext:
             self.cursor.execute(exe_str)
             self.db.commit()
             # rename the table name in __current_cd
-            for i, x in enumerate(CrowdContext.__current_cd[self.local_db]):
+            for i, (x, y) in enumerate(CrowdContext.__current_cd[self.local_db]):
                 if x == oldname:
-                    CrowdContext.__current_cd[self.local_db][i] = newname
+                    CrowdContext.__current_cd[self.local_db][i] = (newname, y)
             return True
 
 
@@ -200,8 +193,10 @@ class CrowdContext:
             self.cursor.execute(exe_str)
             self.db.commit()
             # delete the table from __current_cd if exists
-            if table_name in CrowdContext.__current_cd[self.local_db]:
-                CrowdContext.__current_cd[self.local_db].remove(table_name)
+            for i, (x, y) in enumerate(CrowdContext.__current_cd[self.local_db]):
+                if x == table_name:
+                    del CrowdContext.__current_cd[self.local_db][i]
+                    break
             return True
 
 
@@ -228,7 +223,7 @@ class CrowdContext:
                 n += 1
         # Remove the tmp tables from __current_cd
         old_list = CrowdContext.__current_cd[self.local_db]
-        new_list = [x for x in  old_list if not x.startswith("tmp")]
+        new_list = [(x, y) for (x, y) in  old_list if not x.startswith("tmp")]
         CrowdContext.__current_cd[self.local_db]  = new_list
         return n
 

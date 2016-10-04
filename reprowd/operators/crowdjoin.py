@@ -48,7 +48,7 @@ class CrowdJoin:
         self.n_assignments = 1
         self.priority = 0
 
-        self.crowddata =  CrowdData([], table_name, crowdcontext)
+        self.crowddata =  self.cc.CrowdData([], table_name)
 
 
     def set_presenter(self, presenter, map_func = lambda op: {'obj1':op[0], 'obj2':op[1]}):

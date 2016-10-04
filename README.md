@@ -3,6 +3,7 @@
     * cd docs
     * make html
     * git checkout gh-pages
+    * cp -R docs/_build/html .
     * git commit -am "update docs"
     * git push
 

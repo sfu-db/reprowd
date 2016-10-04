@@ -68,6 +68,7 @@
 
     <span class="c"># Note that __current_cd may not contain all the cached data in the database,</span>
     <span class="c"># but only contains those created by the current CrowdContext</span>
+    <span class="c"># Map local_db to &lt;tablename, CrowdData object&gt;</span>
     <span class="n">__current_cd</span> <span class="o">=</span> <span class="p">{}</span>
 
 <div class="viewcode-block" id="CrowdContext.__init__"><a class="viewcode-back" href="../../crowdcontext.html#reprowd.crowdcontext.CrowdContext.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">endpoint</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">api_key</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">local_db</span> <span class="o">=</span> <span class="s">&quot;reprowd.db&quot;</span><span class="p">):</span>
@@ -118,13 +119,13 @@
 <span class="sd">        &lt;reprowd.operators.crowddata.CrowdData instance at 0x...&gt;</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c"># Check if table_name has been used before</span>
-        <span class="k">if</span> <span class="n">table_name</span> <span class="ow">in</span> <span class="n">CrowdContext</span><span class="o">.</span><span class="n">__current_cd</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">local_db</span><span class="p">]:</span>
-            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s">&quot;&#39;</span><span class="si">%s</span><span class="s">&#39; has been used before. &quot;</span>
-                <span class="s">&quot;Please choose a different name that is not in the list:&quot;</span>
-                <span class="s">&quot;[</span><span class="si">%s</span><span class="s">]&quot;</span> <span class="o">%</span><span class="p">(</span><span class="n">table_name</span><span class="p">,</span> <span class="s">&quot;,&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">CrowdContext</span><span class="o">.</span><span class="n">__current_cd</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">local_db</span><span class="p">])))</span>
+        <span class="k">for</span> <span class="n">_table_name</span><span class="p">,</span> <span class="n">_crowddata</span> <span class="ow">in</span> <span class="n">CrowdContext</span><span class="o">.</span><span class="n">__current_cd</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">local_db</span><span class="p">]:</span>
+            <span class="k">if</span> <span class="n">table_name</span> <span class="o">==</span> <span class="n">_table_name</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">_crowddata</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">CrowdContext</span><span class="o">.</span><span class="n">__current_cd</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">local_db</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">table_name</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">CrowdData</span><span class="p">(</span><span class="n">object_list</span><span class="p">,</span> <span class="n">table_name</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span>
+            <span class="n">_crowddata</span> <span class="o">=</span> <span class="n">CrowdData</span><span class="p">(</span><span class="n">object_list</span><span class="p">,</span> <span class="n">table_name</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span>
+            <span class="n">CrowdContext</span><span class="o">.</span><span class="n">__current_cd</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">local_db</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">table_name</span><span class="p">,</span> <span class="n">_crowddata</span><span class="p">))</span>
+            <span class="k">return</span> <span class="n">_crowddata</span>
 
 </div>
 <div class="viewcode-block" id="CrowdContext.CrowdJoin"><a class="viewcode-back" href="../../crowdcontext.html#reprowd.crowdcontext.CrowdContext.CrowdJoin">[docs]</a>    <span class="k">def</span> <span class="nf">CrowdJoin</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">object_list</span><span class="p">,</span> <span class="n">table_name</span><span class="p">):</span>
@@ -138,14 +139,6 @@
 <span class="sd">        &gt;&gt;&gt; cc.CrowdJoin([&quot;iphone 4&quot;, &quot;ipad 2&quot;, &quot;ipad two&quot;], &quot;tmp&quot;) #doctest: +SKIP</span>
 <span class="sd">        &lt;reprowd.operators.crowdjoin.CrowdJoin instance at 0x...&gt;</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c"># Check if the table_name has been used before</span>
-        <span class="k">if</span> <span class="n">table_name</span> <span class="ow">in</span> <span class="n">CrowdContext</span><span class="o">.</span><span class="n">__current_cd</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">local_db</span><span class="p">]:</span>
-            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s">&quot;&#39;</span><span class="si">%s</span><span class="s">&#39; has been used before. &quot;</span>
-                <span class="s">&quot;Please choose a different name that is not in the list: &quot;</span>
-                <span class="s">&quot;[</span><span class="si">%s</span><span class="s">]&quot;</span> <span class="o">%</span><span class="p">(</span><span class="n">table_name</span><span class="p">,</span> <span class="s">&quot;,&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">CrowdContext</span><span class="o">.</span><span class="n">__current_cd</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">local_db</span><span class="p">])))</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">CrowdContext</span><span class="o">.</span><span class="n">__current_cd</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">local_db</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">table_name</span><span class="p">)</span>
-
         <span class="k">return</span> <span class="n">CrowdJoin</span><span class="p">(</span><span class="n">object_list</span><span class="p">,</span> <span class="n">table_name</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span>
 
 </div>
@@ -217,9 +210,9 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">exe_str</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
             <span class="c"># rename the table name in __current_cd</span>
-            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">CrowdContext</span><span class="o">.</span><span class="n">__current_cd</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">local_db</span><span class="p">]):</span>
+            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">CrowdContext</span><span class="o">.</span><span class="n">__current_cd</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">local_db</span><span class="p">]):</span>
                 <span class="k">if</span> <span class="n">x</span> <span class="o">==</span> <span class="n">oldname</span><span class="p">:</span>
-                    <span class="n">CrowdContext</span><span class="o">.</span><span class="n">__current_cd</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">local_db</span><span class="p">][</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">newname</span>
+                    <span class="n">CrowdContext</span><span class="o">.</span><span class="n">__current_cd</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">local_db</span><span class="p">][</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">newname</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
             <span class="k">return</span> <span class="bp">True</span>
 
 </div>
@@ -249,8 +242,10 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">exe_str</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
             <span class="c"># delete the table from __current_cd if exists</span>
-            <span class="k">if</span> <span class="n">table_name</span> <span class="ow">in</span> <span class="n">CrowdContext</span><span class="o">.</span><span class="n">__current_cd</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">local_db</span><span class="p">]:</span>
-                <span class="n">CrowdContext</span><span class="o">.</span><span class="n">__current_cd</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">local_db</span><span class="p">]</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">table_name</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">CrowdContext</span><span class="o">.</span><span class="n">__current_cd</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">local_db</span><span class="p">]):</span>
+                <span class="k">if</span> <span class="n">x</span> <span class="o">==</span> <span class="n">table_name</span><span class="p">:</span>
+                    <span class="k">del</span> <span class="n">CrowdContext</span><span class="o">.</span><span class="n">__current_cd</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">local_db</span><span class="p">][</span><span class="n">i</span><span class="p">]</span>
+                    <span class="k">break</span>
             <span class="k">return</span> <span class="bp">True</span>
 
 </div>
@@ -277,7 +272,7 @@
                 <span class="n">n</span> <span class="o">+=</span> <span class="mi">1</span>
         <span class="c"># Remove the tmp tables from __current_cd</span>
         <span class="n">old_list</span> <span class="o">=</span> <span class="n">CrowdContext</span><span class="o">.</span><span class="n">__current_cd</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">local_db</span><span class="p">]</span>
-        <span class="n">new_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span>  <span class="n">old_list</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">x</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&quot;tmp&quot;</span><span class="p">)]</span>
+        <span class="n">new_list</span> <span class="o">=</span> <span class="p">[(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span> <span class="k">for</span> <span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span> <span class="ow">in</span>  <span class="n">old_list</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">x</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&quot;tmp&quot;</span><span class="p">)]</span>
         <span class="n">CrowdContext</span><span class="o">.</span><span class="n">__current_cd</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">local_db</span><span class="p">]</span>  <span class="o">=</span> <span class="n">new_list</span>
         <span class="k">return</span> <span class="n">n</span>
 

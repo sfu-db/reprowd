@@ -64,7 +64,7 @@ class CrowdData:
         Specify a presenter
 
 
-        :param presenter: A Presenter object (e.g., :class:`reprowd.presenter.test.TextCmp`).
+        :param presenter: A Presenter object (e.g., :class:`reprowd.presenter.TextCmp`).
         :param map_func:  map_func() maps an object into the data format the presenter requires.
                                         If map_func() is not specified, it will use the default ``map_func = lambda obj: obj``
         :return: The updated CrowdData object

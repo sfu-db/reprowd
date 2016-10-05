@@ -6,11 +6,11 @@ title: DevGuide
 
 ## Welcome
 
-Reprowd is a python package which offers a fault-tolerant and reproducible environment for doing crowdsourced data processing tasks based on [Pybossa Server](http://pybossa.com/)
+Reprowd is a python package which aims to make it easy to reproduce crowdsourced data processing research.
 
 ## Bug Reports
 
-If you have encounter a problem with Reprowd or have an idea for new features, please submit it to the [issue tracker](https://github.com/sfu-db/reprowd/issues) on Github,
+If you encounter a problem with Reprowd or have an idea for new features, please submit it to the [issue tracker](https://github.com/sfu-db/reprowd/issues) on Github,
 
 ## Contributing
 
@@ -20,14 +20,14 @@ The pull request will then need to be approved by one of the core developers bef
 
 ## Getting Started
 
-There are the basic steps needed to start developing on Reprowd.
+These are the basic steps needed to start developing on Reprowd.
 
-1. [Installation and setting](install.html)
+1. [Downloading and Installation](install.html)
 2. Create an account on Github.
 3. Fork the Reprowd repository
 4. Clone the forked repository to your machine.
 
-		$git clone https://github.com/sfu-db/reprowd.git
+		$git clone https://github.com/[your_user_id]/reprowd.git
 		$cd reprowd
 5. Check out the appropriate branch.
 6. Creating a new working branch.

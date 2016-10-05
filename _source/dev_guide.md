@@ -27,7 +27,7 @@ These are the basic steps needed to start developing on Reprowd.
 3. Fork the Reprowd repository
 4. Clone the forked repository to your machine.
 
-		$git clone https://github.com/[your_user_id]/reprowd.git
+		$git clone https://github.com/[your_github_user_id]/reprowd.git
 		$cd reprowd
 5. Check out the appropriate branch.
 6. Creating a new working branch.

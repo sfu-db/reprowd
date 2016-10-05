@@ -59,6 +59,12 @@ body {
 a {
   color: #d5000d;
 }
+#title a {
+  color: #303030
+}
+#title a:hover {
+  color: #898989
+}
 a:hover {
   color: #c5000c;
 }

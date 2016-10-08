@@ -24,6 +24,7 @@
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
     <link rel="top" title="Reprowd 0.1 documentation" href="index.html" />
+    <link rel="next" title="reprowd.presenter package" href="presenter.html" />
     <link rel="prev" title="reprowd.crowdcontext module" href="crowdcontext.html" /> 
   </head>
   <body role="document">
@@ -36,6 +37,9 @@
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
+        <li class="right" >
+          <a href="presenter.html" title="reprowd.presenter package"
+             accesskey="N">next</a> |</li>
         <li class="right" >
           <a href="crowdcontext.html" title="reprowd.crowdcontext module"
              accesskey="P">previous</a> |</li>
@@ -69,8 +73,8 @@ The initial dataset has two columns: (<strong>id</strong>, <strong>object</stron
 and <em>object</em> is populated by the input <code class="docutils literal"><span class="pre">object_list</span></code>.</p>
 <p>Note: It is not recommended to call the constructor directly.
 Please call it through <a class="reference internal" href="crowdcontext.html#reprowd.crowdcontext.CrowdContext.CrowdData" title="reprowd.crowdcontext.CrowdContext.CrowdData"><code class="xref py py-func docutils literal"><span class="pre">reprowd.crowdcontext.CrowdContext.CrowdData()</span></code></a>.</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">object_list</span> <span class="o">=</span> <span class="p">[</span><span class="s">&quot;image1.jpg&quot;</span><span class="p">,</span> <span class="s">&quot;image2.jpg&quot;</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">crowddata</span> <span class="o">=</span> <span class="n">cc</span><span class="o">.</span><span class="n">CrowdData</span><span class="p">(</span><span class="n">object_list</span><span class="p">,</span> <span class="n">table_name</span> <span class="o">=</span> <span class="s">&quot;test&quot;</span><span class="p">)</span>  
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">object_list</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;image1.jpg&quot;</span><span class="p">,</span> <span class="s2">&quot;image2.jpg&quot;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">crowddata</span> <span class="o">=</span> <span class="n">cc</span><span class="o">.</span><span class="n">CrowdData</span><span class="p">(</span><span class="n">object_list</span><span class="p">,</span> <span class="n">table_name</span> <span class="o">=</span> <span class="s2">&quot;test&quot;</span><span class="p">)</span>  
 <span class="gp">&gt;&gt;&gt; </span><span class="n">crowddata</span>  
 <span class="go">&lt;reprowd.operators.crowddata.CrowdData instance at 0x...&gt;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">crowddata</span><span class="o">.</span><span class="n">cols</span>  
@@ -90,7 +94,7 @@ Please call it through <a class="reference internal" href="crowdcontext.html#rep
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>presenter</strong> &#8211; A Presenter object (e.g., <code class="xref py py-class docutils literal"><span class="pre">reprowd.presenter.test.TextCmp</span></code>).</li>
+<li><strong>presenter</strong> &#8211; A Presenter object (e.g., <code class="xref py py-class docutils literal"><span class="pre">reprowd.presenter.TextCmp</span></code>).</li>
 <li><strong>map_func</strong> &#8211; map_func() maps an object into the data format the presenter requires.
 If map_func() is not specified, it will use the default <code class="docutils literal"><span class="pre">map_func</span> <span class="pre">=</span> <span class="pre">lambda</span> <span class="pre">obj:</span> <span class="pre">obj</span></code></li>
 </ul>
@@ -101,10 +105,10 @@ If map_func() is not specified, it will use the default <code class="docutils li
 </tr>
 </tbody>
 </table>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">reprowd.presenter.image</span> <span class="kn">import</span> <span class="n">ImageLabel</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">object_list</span> <span class="o">=</span> <span class="p">[</span><span class="s">&quot;image1.jpg&quot;</span><span class="p">,</span> <span class="s">&quot;image2.jpg&quot;</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">map_func</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">obj</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;url_b&#39;</span><span class="p">:</span><span class="n">obj</span><span class="p">}</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">crowddata</span> <span class="o">=</span> <span class="n">cc</span><span class="o">.</span><span class="n">CrowdData</span><span class="p">(</span><span class="n">object_list</span><span class="p">,</span> <span class="n">table_name</span> <span class="o">=</span> <span class="s">&quot;test&quot;</span><span class="p">)</span> \  
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">reprowd.presenter.image</span> <span class="k">import</span> <span class="n">ImageLabel</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">object_list</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;image1.jpg&quot;</span><span class="p">,</span> <span class="s2">&quot;image2.jpg&quot;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">map_func</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">obj</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;url_b&#39;</span><span class="p">:</span><span class="n">obj</span><span class="p">}</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">crowddata</span> <span class="o">=</span> <span class="n">cc</span><span class="o">.</span><span class="n">CrowdData</span><span class="p">(</span><span class="n">object_list</span><span class="p">,</span> <span class="n">table_name</span> <span class="o">=</span> <span class="s2">&quot;test&quot;</span><span class="p">)</span> \  
 <span class="gp">... </span>              <span class="o">.</span><span class="n">set_presenter</span><span class="p">(</span><span class="n">ImageLabel</span><span class="p">(),</span> <span class="n">map_func</span><span class="p">)</span>   
 <span class="gp">&gt;&gt;&gt; </span><span class="n">crowddata</span><span class="o">.</span><span class="n">cols</span>   
 <span class="go">[&#39;id&#39;, &#39;object&#39;]</span>
@@ -147,14 +151,14 @@ If map_func() is not specified, it will use the default <code class="docutils li
 <li><em>create_time</em>: the time created a task (e.g., &#8220;2016-07-12T03:46:04.622127&#8221;)</li>
 </ul>
 </div></blockquote>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">reprowd.presenter.image</span> <span class="kn">import</span> <span class="n">ImageLabel</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">object_list</span> <span class="o">=</span> <span class="p">[</span><span class="s">&quot;image1.jpg&quot;</span><span class="p">,</span> <span class="s">&quot;image2.jpg&quot;</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">crowddata</span> <span class="o">=</span> <span class="n">cc</span><span class="o">.</span><span class="n">CrowdData</span><span class="p">(</span><span class="n">object_list</span><span class="p">,</span> <span class="n">table_name</span> <span class="o">=</span> <span class="s">&quot;test&quot;</span><span class="p">)</span> \  
-<span class="gp">... </span>              <span class="o">.</span><span class="n">set_presenter</span><span class="p">(</span><span class="n">ImageLabel</span><span class="p">(),</span> <span class="k">lambda</span> <span class="n">obj</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;url_b&#39;</span><span class="p">:</span><span class="n">obj</span><span class="p">})</span> \  
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">reprowd.presenter.image</span> <span class="k">import</span> <span class="n">ImageLabel</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">object_list</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;image1.jpg&quot;</span><span class="p">,</span> <span class="s2">&quot;image2.jpg&quot;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">crowddata</span> <span class="o">=</span> <span class="n">cc</span><span class="o">.</span><span class="n">CrowdData</span><span class="p">(</span><span class="n">object_list</span><span class="p">,</span> <span class="n">table_name</span> <span class="o">=</span> <span class="s2">&quot;test&quot;</span><span class="p">)</span> \  
+<span class="gp">... </span>              <span class="o">.</span><span class="n">set_presenter</span><span class="p">(</span><span class="n">ImageLabel</span><span class="p">(),</span> <span class="k">lambda</span> <span class="n">obj</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;url_b&#39;</span><span class="p">:</span><span class="n">obj</span><span class="p">})</span> \  
 <span class="gp">... </span>              <span class="o">.</span><span class="n">publish_task</span><span class="p">()</span>  
 <span class="gp">&gt;&gt;&gt; </span><span class="n">crowddata</span><span class="o">.</span><span class="n">cols</span>  
 <span class="go">[&#39;id&#39;, &#39;object&#39;, &#39;task&#39;]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">crowddata</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s">&#39;task&#39;</span><span class="p">]</span>  <span class="c"># print the task col </span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span> <span class="n">crowddata</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;task&#39;</span><span class="p">]</span>  <span class="c1"># print the task col </span>
 <span class="go">[</span>
 <span class="go">    {</span>
 <span class="go">        &#39;id&#39;: 91,</span>
@@ -175,7 +179,7 @@ If map_func() is not specified, it will use the default <code class="docutils li
 <span class="go">        &#39;create_time&#39;: u&#39;2016-07-23T23:52:50.570035&#39;</span>
 <span class="go">    }</span>
 <span class="go">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">first_task</span> <span class="o">=</span> <span class="n">crowddata</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s">&#39;task&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>  
+<span class="gp">&gt;&gt;&gt; </span><span class="n">first_task</span> <span class="o">=</span> <span class="n">crowddata</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;task&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>  
 <span class="gp">&gt;&gt;&gt; </span><span class="nb">sorted</span><span class="p">(</span><span class="n">first_task</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>  
 <span class="go">[&#39;create_time&#39;, &#39;id&#39;, &#39;n_assignments&#39;, &#39;priority&#39;, &#39;project_id&#39;, &#39;task_data&#39;, &#39;task_link&#39;]</span>
 </pre></div>
@@ -228,15 +232,15 @@ If map_func() is not specified, it will use the default <code class="docutils li
 </li>
 </ul>
 </div></blockquote>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">reprowd.presenter.image</span> <span class="kn">import</span> <span class="n">ImageLabel</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">object_list</span> <span class="o">=</span> <span class="p">[</span><span class="s">&quot;image1.jpg&quot;</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">crowddata</span> <span class="o">=</span> <span class="n">cc</span><span class="o">.</span><span class="n">CrowdData</span><span class="p">(</span><span class="n">object_list</span><span class="p">,</span> <span class="n">table_name</span> <span class="o">=</span> <span class="s">&quot;test&quot;</span><span class="p">)</span> \ 
-<span class="gp">... </span>              <span class="o">.</span><span class="n">set_presenter</span><span class="p">(</span><span class="n">ImageLabel</span><span class="p">(),</span> <span class="k">lambda</span> <span class="n">obj</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;url_b&#39;</span><span class="p">:</span><span class="n">obj</span><span class="p">})</span> \  
-<span class="gp">... </span>              <span class="o">.</span><span class="n">publish_task</span><span class="p">()</span><span class="o">.</span><span class="n">get_result</span><span class="p">(</span><span class="n">blocking</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>  
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">reprowd.presenter.image</span> <span class="k">import</span> <span class="n">ImageLabel</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">object_list</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;image1.jpg&quot;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">crowddata</span> <span class="o">=</span> <span class="n">cc</span><span class="o">.</span><span class="n">CrowdData</span><span class="p">(</span><span class="n">object_list</span><span class="p">,</span> <span class="n">table_name</span> <span class="o">=</span> <span class="s2">&quot;test&quot;</span><span class="p">)</span> \ 
+<span class="gp">... </span>              <span class="o">.</span><span class="n">set_presenter</span><span class="p">(</span><span class="n">ImageLabel</span><span class="p">(),</span> <span class="k">lambda</span> <span class="n">obj</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;url_b&#39;</span><span class="p">:</span><span class="n">obj</span><span class="p">})</span> \  
+<span class="gp">... </span>              <span class="o">.</span><span class="n">publish_task</span><span class="p">()</span><span class="o">.</span><span class="n">get_result</span><span class="p">(</span><span class="n">blocking</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>  
 <span class="gp">&gt;&gt;&gt; </span><span class="n">crowddata</span><span class="o">.</span><span class="n">cols</span>  
 <span class="go">[&#39;id&#39;, &#39;object&#39;, &#39;task&#39;, &#39;result&#39;]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">d</span> <span class="o">=</span> <span class="n">crowddata</span><span class="o">.</span><span class="n">get_result</span><span class="p">(</span><span class="n">blocking</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span><span class="o">.</span><span class="n">data</span>  
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">d</span><span class="p">[</span><span class="s">&#39;result&#39;</span><span class="p">]</span> <span class="c"># print the result col </span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">d</span> <span class="o">=</span> <span class="n">crowddata</span><span class="o">.</span><span class="n">get_result</span><span class="p">(</span><span class="n">blocking</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">data</span>  
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span> <span class="n">d</span><span class="p">[</span><span class="s1">&#39;result&#39;</span><span class="p">]</span> <span class="c1"># print the result col </span>
 <span class="go">{</span>
 <span class="go">    &#39;assignments&#39;: [</span>
 <span class="go">        {</span>
@@ -290,15 +294,15 @@ If map_func() is not specified, it will use the default <code class="docutils li
 </dd>
 </dl>
 <p>The function adds a new column (e.g., <strong>mv</strong>, <strong>em</strong>) to the tabular dataset, which consists of the inferred result of each task.</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">reprowd.presenter.image</span> <span class="kn">import</span> <span class="n">ImageLabel</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">object_list</span> <span class="o">=</span> <span class="p">[</span><span class="s">&quot;image1.jpg&quot;</span><span class="p">,</span> <span class="s">&quot;image2.jpg&quot;</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">crowddata</span> <span class="o">=</span> <span class="n">cc</span><span class="o">.</span><span class="n">CrowdData</span><span class="p">(</span><span class="n">object_list</span><span class="p">,</span> <span class="n">table_name</span> <span class="o">=</span> <span class="s">&quot;test&quot;</span><span class="p">)</span> \  
-<span class="gp">... </span>              <span class="o">.</span><span class="n">set_presenter</span><span class="p">(</span><span class="n">ImageLabel</span><span class="p">(),</span> <span class="k">lambda</span> <span class="n">obj</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;url_b&#39;</span><span class="p">:</span><span class="n">obj</span><span class="p">})</span> \  
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">reprowd.presenter.image</span> <span class="k">import</span> <span class="n">ImageLabel</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">object_list</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;image1.jpg&quot;</span><span class="p">,</span> <span class="s2">&quot;image2.jpg&quot;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">crowddata</span> <span class="o">=</span> <span class="n">cc</span><span class="o">.</span><span class="n">CrowdData</span><span class="p">(</span><span class="n">object_list</span><span class="p">,</span> <span class="n">table_name</span> <span class="o">=</span> <span class="s2">&quot;test&quot;</span><span class="p">)</span> \  
+<span class="gp">... </span>              <span class="o">.</span><span class="n">set_presenter</span><span class="p">(</span><span class="n">ImageLabel</span><span class="p">(),</span> <span class="k">lambda</span> <span class="n">obj</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;url_b&#39;</span><span class="p">:</span><span class="n">obj</span><span class="p">})</span> \  
 <span class="gp">... </span>              <span class="o">.</span><span class="n">publish_task</span><span class="p">(</span><span class="n">n_assignments</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span><span class="o">.</span><span class="n">get_result</span><span class="p">()</span> \  
-<span class="gp">... </span>              <span class="o">.</span><span class="n">quality_control</span><span class="p">(</span><span class="s">&quot;em&quot;</span><span class="p">,</span> <span class="n">iteration</span> <span class="o">=</span> <span class="mi">10</span><span class="p">)</span> 
+<span class="gp">... </span>              <span class="o">.</span><span class="n">quality_control</span><span class="p">(</span><span class="s2">&quot;em&quot;</span><span class="p">,</span> <span class="n">iteration</span> <span class="o">=</span> <span class="mi">10</span><span class="p">)</span> 
 <span class="gp">&gt;&gt;&gt; </span><span class="n">crowddata</span><span class="o">.</span><span class="n">cols</span> 
 <span class="go">[&#39;id&#39;, &#39;object&#39;, &#39;task&#39;, &#39;result&#39;, &#39;em&#39;]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">crowddata</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s">&quot;em&quot;</span><span class="p">]</span> 
+<span class="gp">&gt;&gt;&gt; </span><span class="n">crowddata</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;em&quot;</span><span class="p">]</span> 
 <span class="go">[&#39;YES&#39;, &#39;NO&#39;]</span>
 </pre></div>
 </div>
@@ -318,18 +322,18 @@ If map_func() is not specified, it will use the default <code class="docutils li
 </tr>
 </tbody>
 </table>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">reprowd.presenter.image</span> <span class="kn">import</span> <span class="n">ImageLabel</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">object_list</span> <span class="o">=</span> <span class="p">[</span><span class="s">&quot;image1.jpg&quot;</span><span class="p">,</span> <span class="s">&quot;image2.jpg&quot;</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">crowddata</span> <span class="o">=</span> <span class="n">cc</span><span class="o">.</span><span class="n">CrowdData</span><span class="p">(</span><span class="n">object_list</span><span class="p">,</span> <span class="n">table_name</span> <span class="o">=</span> <span class="s">&quot;test&quot;</span><span class="p">)</span> \  
-<span class="gp">... </span>              <span class="o">.</span><span class="n">set_presenter</span><span class="p">(</span><span class="n">ImageLabel</span><span class="p">(),</span> <span class="k">lambda</span> <span class="n">obj</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;url_b&#39;</span><span class="p">:</span><span class="n">obj</span><span class="p">})</span> \  
-<span class="gp">... </span>              <span class="o">.</span><span class="n">publish_task</span><span class="p">()</span><span class="o">.</span><span class="n">get_result</span><span class="p">()</span><span class="o">.</span><span class="n">quality_control</span><span class="p">(</span><span class="s">&quot;mv&quot;</span><span class="p">)</span>  
-<span class="gp">&gt;&gt;&gt; </span><span class="n">crowddata</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s">&quot;object&quot;</span><span class="p">]</span> 
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">reprowd.presenter.image</span> <span class="k">import</span> <span class="n">ImageLabel</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">object_list</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;image1.jpg&quot;</span><span class="p">,</span> <span class="s2">&quot;image2.jpg&quot;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">crowddata</span> <span class="o">=</span> <span class="n">cc</span><span class="o">.</span><span class="n">CrowdData</span><span class="p">(</span><span class="n">object_list</span><span class="p">,</span> <span class="n">table_name</span> <span class="o">=</span> <span class="s2">&quot;test&quot;</span><span class="p">)</span> \  
+<span class="gp">... </span>              <span class="o">.</span><span class="n">set_presenter</span><span class="p">(</span><span class="n">ImageLabel</span><span class="p">(),</span> <span class="k">lambda</span> <span class="n">obj</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;url_b&#39;</span><span class="p">:</span><span class="n">obj</span><span class="p">})</span> \  
+<span class="gp">... </span>              <span class="o">.</span><span class="n">publish_task</span><span class="p">()</span><span class="o">.</span><span class="n">get_result</span><span class="p">()</span><span class="o">.</span><span class="n">quality_control</span><span class="p">(</span><span class="s2">&quot;mv&quot;</span><span class="p">)</span>  
+<span class="gp">&gt;&gt;&gt; </span><span class="n">crowddata</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;object&quot;</span><span class="p">]</span> 
 <span class="go">[&#39;image1.jpg&#39;, &#39;image2.jpg&#39;]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">crowddata</span><span class="o">.</span><span class="n">append</span><span class="p">(</span> <span class="s">&#39;image3.jpg&#39;</span><span class="p">)</span>  
-<span class="gp">&gt;&gt;&gt; </span><span class="n">crowddata</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s">&quot;object&quot;</span><span class="p">]</span> 
+<span class="gp">&gt;&gt;&gt; </span><span class="n">crowddata</span><span class="o">.</span><span class="n">append</span><span class="p">(</span> <span class="s1">&#39;image3.jpg&#39;</span><span class="p">)</span>  
+<span class="gp">&gt;&gt;&gt; </span><span class="n">crowddata</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;object&quot;</span><span class="p">]</span> 
 <span class="go">[&#39;image1.jpg&#39;, &#39;image2.jpg&#39;, &#39;image3.jpg&#39;]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">crowddata</span><span class="o">.</span><span class="n">publish_task</span><span class="p">()</span><span class="o">.</span><span class="n">get_result</span><span class="p">()</span><span class="o">.</span><span class="n">quality_control</span><span class="p">(</span><span class="s">&quot;mv&quot;</span><span class="p">)</span> 
-<span class="gp">&gt;&gt;&gt; </span><span class="n">crowddata</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s">&quot;mv&quot;</span><span class="p">]</span> 
+<span class="gp">&gt;&gt;&gt; </span><span class="n">crowddata</span><span class="o">.</span><span class="n">publish_task</span><span class="p">()</span><span class="o">.</span><span class="n">get_result</span><span class="p">()</span><span class="o">.</span><span class="n">quality_control</span><span class="p">(</span><span class="s2">&quot;mv&quot;</span><span class="p">)</span> 
+<span class="gp">&gt;&gt;&gt; </span><span class="n">crowddata</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;mv&quot;</span><span class="p">]</span> 
 <span class="go">[&#39;YES&#39;, &#39;YES&#39;, &quot;NO&quot;]</span>
 </pre></div>
 </div>
@@ -349,18 +353,18 @@ If map_func() is not specified, it will use the default <code class="docutils li
 </tr>
 </tbody>
 </table>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">reprowd.presenter.image</span> <span class="kn">import</span> <span class="n">ImageLabel</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">object_list</span> <span class="o">=</span> <span class="p">[</span><span class="s">&quot;image1.jpg&quot;</span><span class="p">,</span> <span class="s">&quot;image2.jpg&quot;</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">crowddata</span> <span class="o">=</span> <span class="n">cc</span><span class="o">.</span><span class="n">CrowdData</span><span class="p">(</span><span class="n">object_list</span><span class="p">,</span> <span class="n">table_name</span> <span class="o">=</span> <span class="s">&quot;test&quot;</span><span class="p">)</span> \   
-<span class="gp">... </span> <span class="o">.</span><span class="n">set_presenter</span><span class="p">(</span><span class="n">ImageLabel</span><span class="p">(),</span> <span class="k">lambda</span> <span class="n">obj</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;url_b&#39;</span><span class="p">:</span><span class="n">obj</span><span class="p">})</span> \  
-<span class="gp">... </span> <span class="o">.</span><span class="n">publish_task</span><span class="p">()</span><span class="o">.</span><span class="n">get_result</span><span class="p">()</span><span class="o">.</span><span class="n">quality_control</span><span class="p">(</span><span class="s">&quot;mv&quot;</span><span class="p">)</span>  
-<span class="gp">&gt;&gt;&gt; </span><span class="n">crowddata</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s">&quot;object&quot;</span><span class="p">]</span> 
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">reprowd.presenter.image</span> <span class="k">import</span> <span class="n">ImageLabel</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">object_list</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;image1.jpg&quot;</span><span class="p">,</span> <span class="s2">&quot;image2.jpg&quot;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">crowddata</span> <span class="o">=</span> <span class="n">cc</span><span class="o">.</span><span class="n">CrowdData</span><span class="p">(</span><span class="n">object_list</span><span class="p">,</span> <span class="n">table_name</span> <span class="o">=</span> <span class="s2">&quot;test&quot;</span><span class="p">)</span> \   
+<span class="gp">... </span> <span class="o">.</span><span class="n">set_presenter</span><span class="p">(</span><span class="n">ImageLabel</span><span class="p">(),</span> <span class="k">lambda</span> <span class="n">obj</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;url_b&#39;</span><span class="p">:</span><span class="n">obj</span><span class="p">})</span> \  
+<span class="gp">... </span> <span class="o">.</span><span class="n">publish_task</span><span class="p">()</span><span class="o">.</span><span class="n">get_result</span><span class="p">()</span><span class="o">.</span><span class="n">quality_control</span><span class="p">(</span><span class="s2">&quot;mv&quot;</span><span class="p">)</span>  
+<span class="gp">&gt;&gt;&gt; </span><span class="n">crowddata</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;object&quot;</span><span class="p">]</span> 
 <span class="go">[&#39;image1.jpg&#39;, &#39;image2.jpg&#39;]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">crowddata</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="s">&#39;image3.jpg&#39;</span><span class="p">,</span> <span class="s">&#39;image3.jpg&#39;</span><span class="p">])</span>  
-<span class="gp">&gt;&gt;&gt; </span><span class="n">crowddata</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s">&quot;object&quot;</span><span class="p">]</span> 
+<span class="gp">&gt;&gt;&gt; </span><span class="n">crowddata</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="s1">&#39;image3.jpg&#39;</span><span class="p">,</span> <span class="s1">&#39;image3.jpg&#39;</span><span class="p">])</span>  
+<span class="gp">&gt;&gt;&gt; </span><span class="n">crowddata</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;object&quot;</span><span class="p">]</span> 
 <span class="go">[&#39;image1.jpg&#39;, &#39;image2.jpg&#39;, &#39;image3.jpg&#39;, &#39;image4.jpg&#39;]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">crowddata</span><span class="o">.</span><span class="n">publish_task</span><span class="p">()</span><span class="o">.</span><span class="n">get_result</span><span class="p">()</span><span class="o">.</span><span class="n">quality_control</span><span class="p">(</span><span class="s">&quot;mv&quot;</span><span class="p">)</span> 
-<span class="gp">&gt;&gt;&gt; </span><span class="n">crowddata</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s">&quot;mv&quot;</span><span class="p">]</span> 
+<span class="gp">&gt;&gt;&gt; </span><span class="n">crowddata</span><span class="o">.</span><span class="n">publish_task</span><span class="p">()</span><span class="o">.</span><span class="n">get_result</span><span class="p">()</span><span class="o">.</span><span class="n">quality_control</span><span class="p">(</span><span class="s2">&quot;mv&quot;</span><span class="p">)</span> 
+<span class="gp">&gt;&gt;&gt; </span><span class="n">crowddata</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;mv&quot;</span><span class="p">]</span> 
 <span class="go">[&#39;YES&#39;, &#39;YES&#39;, &quot;NO&quot;, &#39;NO&#39;]</span>
 </pre></div>
 </div>
@@ -380,15 +384,15 @@ If map_func() is not specified, it will use the default <code class="docutils li
 </tr>
 </tbody>
 </table>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">reprowd.presenter.image</span> <span class="kn">import</span> <span class="n">ImageLabel</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">object_list</span> <span class="o">=</span> <span class="p">[</span><span class="s">&quot;image1.jpg&quot;</span><span class="p">,</span> <span class="s">&quot;image2.jpg&quot;</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">crowddata</span> <span class="o">=</span> <span class="n">cc</span><span class="o">.</span><span class="n">CrowdData</span><span class="p">(</span><span class="n">object_list</span><span class="p">,</span> <span class="n">table_name</span> <span class="o">=</span> <span class="s">&quot;test&quot;</span><span class="p">)</span>  \  
-<span class="gp">... </span>              <span class="o">.</span><span class="n">set_presenter</span><span class="p">(</span><span class="n">ImageLabel</span><span class="p">(),</span> <span class="k">lambda</span> <span class="n">obj</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;url_b&#39;</span><span class="p">:</span><span class="n">obj</span><span class="p">})</span> \  
-<span class="gp">... </span>              <span class="o">.</span><span class="n">publish_task</span><span class="p">()</span><span class="o">.</span><span class="n">get_result</span><span class="p">()</span><span class="o">.</span><span class="n">quality_control</span><span class="p">(</span><span class="s">&quot;mv&quot;</span><span class="p">)</span>  
-<span class="gp">&gt;&gt;&gt; </span><span class="n">crowddata</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s">&quot;mv&quot;</span><span class="p">]</span> 
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">reprowd.presenter.image</span> <span class="k">import</span> <span class="n">ImageLabel</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">object_list</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;image1.jpg&quot;</span><span class="p">,</span> <span class="s2">&quot;image2.jpg&quot;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">crowddata</span> <span class="o">=</span> <span class="n">cc</span><span class="o">.</span><span class="n">CrowdData</span><span class="p">(</span><span class="n">object_list</span><span class="p">,</span> <span class="n">table_name</span> <span class="o">=</span> <span class="s2">&quot;test&quot;</span><span class="p">)</span>  \  
+<span class="gp">... </span>              <span class="o">.</span><span class="n">set_presenter</span><span class="p">(</span><span class="n">ImageLabel</span><span class="p">(),</span> <span class="k">lambda</span> <span class="n">obj</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;url_b&#39;</span><span class="p">:</span><span class="n">obj</span><span class="p">})</span> \  
+<span class="gp">... </span>              <span class="o">.</span><span class="n">publish_task</span><span class="p">()</span><span class="o">.</span><span class="n">get_result</span><span class="p">()</span><span class="o">.</span><span class="n">quality_control</span><span class="p">(</span><span class="s2">&quot;mv&quot;</span><span class="p">)</span>  
+<span class="gp">&gt;&gt;&gt; </span><span class="n">crowddata</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;mv&quot;</span><span class="p">]</span> 
 <span class="go">[&#39;YES&#39;, &#39;NO&#39;]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">crowddata</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="k">lambda</span> <span class="n">r</span><span class="p">:</span> <span class="n">r</span><span class="p">[</span><span class="s">&quot;mv&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s">&#39;YES&#39;</span> <span class="p">)</span> <span class="c"># Only keeps the images labled by &#39;YES&#39; </span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">crowddata</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s">&quot;object&quot;</span><span class="p">]</span> 
+<span class="gp">&gt;&gt;&gt; </span><span class="n">crowddata</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="k">lambda</span> <span class="n">r</span><span class="p">:</span> <span class="n">r</span><span class="p">[</span><span class="s2">&quot;mv&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;YES&#39;</span> <span class="p">)</span> <span class="c1"># Only keeps the images labled by &#39;YES&#39; </span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">crowddata</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;object&quot;</span><span class="p">]</span> 
 <span class="go">[&#39;image1.jpg&#39;]</span>
 </pre></div>
 </div>
@@ -406,16 +410,16 @@ If map_func() is not specified, it will use the default <code class="docutils li
 </tr>
 </tbody>
 </table>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">reprowd.presenter.image</span> <span class="kn">import</span> <span class="n">ImageLabel</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">object_list</span> <span class="o">=</span> <span class="p">[</span><span class="s">&quot;image1.jpg&quot;</span><span class="p">,</span> <span class="s">&quot;image2.jpg&quot;</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">crowddata</span> <span class="o">=</span> <span class="n">cc</span><span class="o">.</span><span class="n">CrowdData</span><span class="p">(</span><span class="n">object_list</span><span class="p">,</span> <span class="n">table_name</span> <span class="o">=</span> <span class="s">&quot;test&quot;</span><span class="p">)</span>  \ 
-<span class="gp">... </span>              <span class="o">.</span><span class="n">set_presenter</span><span class="p">(</span><span class="n">ImageLabel</span><span class="p">(),</span> <span class="k">lambda</span> <span class="n">obj</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;url_b&#39;</span><span class="p">:</span><span class="n">obj</span><span class="p">})</span> \  
-<span class="gp">... </span>              <span class="o">.</span><span class="n">publish_task</span><span class="p">()</span><span class="o">.</span><span class="n">get_result</span><span class="p">()</span><span class="o">.</span><span class="n">quality_control</span><span class="p">(</span><span class="s">&quot;mv&quot;</span><span class="p">)</span>  
-<span class="gp">&gt;&gt;&gt; </span><span class="n">crowddata</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s">&quot;mv&quot;</span><span class="p">]</span> 
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">reprowd.presenter.image</span> <span class="k">import</span> <span class="n">ImageLabel</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">object_list</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;image1.jpg&quot;</span><span class="p">,</span> <span class="s2">&quot;image2.jpg&quot;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">crowddata</span> <span class="o">=</span> <span class="n">cc</span><span class="o">.</span><span class="n">CrowdData</span><span class="p">(</span><span class="n">object_list</span><span class="p">,</span> <span class="n">table_name</span> <span class="o">=</span> <span class="s2">&quot;test&quot;</span><span class="p">)</span>  \ 
+<span class="gp">... </span>              <span class="o">.</span><span class="n">set_presenter</span><span class="p">(</span><span class="n">ImageLabel</span><span class="p">(),</span> <span class="k">lambda</span> <span class="n">obj</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;url_b&#39;</span><span class="p">:</span><span class="n">obj</span><span class="p">})</span> \  
+<span class="gp">... </span>              <span class="o">.</span><span class="n">publish_task</span><span class="p">()</span><span class="o">.</span><span class="n">get_result</span><span class="p">()</span><span class="o">.</span><span class="n">quality_control</span><span class="p">(</span><span class="s2">&quot;mv&quot;</span><span class="p">)</span>  
+<span class="gp">&gt;&gt;&gt; </span><span class="n">crowddata</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;mv&quot;</span><span class="p">]</span> 
 <span class="go">[&#39;YES&#39;, &#39;NO&#39;]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">crowddata</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>  
 <span class="go">&lt;reprowd.operators.crowddata.CrowdData instance at 0x...&gt;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">crowddata</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s">&quot;object&quot;</span><span class="p">]</span> 
+<span class="gp">&gt;&gt;&gt; </span><span class="n">crowddata</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;object&quot;</span><span class="p">]</span> 
 <span class="go">[]</span>
 </pre></div>
 </div>
@@ -437,8 +441,8 @@ finds matching objects in the list (or between the two lists).</p>
 <dd><p>Initialize a CrowdJoin object.</p>
 <p>Note: It is not recommended to call the constructor directly.
 Please call it through <a class="reference internal" href="crowdcontext.html#reprowd.crowdcontext.CrowdContext.CrowdJoin" title="reprowd.crowdcontext.CrowdContext.CrowdJoin"><code class="xref py py-func docutils literal"><span class="pre">reprowd.crowdcontext.CrowdContext.CrowdJoin()</span></code></a>.</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">object_list</span> <span class="o">=</span> <span class="p">[</span><span class="s">&quot;iPad 2&quot;</span><span class="p">,</span> <span class="s">&quot;iPad Two&quot;</span><span class="p">,</span> <span class="s">&quot;iPhone 2&quot;</span><span class="p">,</span> <span class="s">&quot;iPad2&quot;</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">cc</span><span class="o">.</span><span class="n">CrowdJoin</span><span class="p">(</span><span class="n">object_list</span><span class="p">,</span> <span class="n">table_name</span> <span class="o">=</span> <span class="s">&quot;jointest&quot;</span><span class="p">)</span>  
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">object_list</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;iPad 2&quot;</span><span class="p">,</span> <span class="s2">&quot;iPad Two&quot;</span><span class="p">,</span> <span class="s2">&quot;iPhone 2&quot;</span><span class="p">,</span> <span class="s2">&quot;iPad2&quot;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cc</span><span class="o">.</span><span class="n">CrowdJoin</span><span class="p">(</span><span class="n">object_list</span><span class="p">,</span> <span class="n">table_name</span> <span class="o">=</span> <span class="s2">&quot;jointest&quot;</span><span class="p">)</span>  
 <span class="go">&lt;reprowd.operators.crowdjoin.CrowdJoin instance at 0x...&gt;</span>
 </pre></div>
 </div>
@@ -464,12 +468,12 @@ If <code class="docutils literal"><span class="pre">map_func</span></code> is no
 </tr>
 </tbody>
 </table>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">reprowd.presenter.text</span> <span class="kn">import</span> <span class="n">TextCmp</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">object_list</span> <span class="o">=</span> <span class="p">[</span><span class="s">&quot;iPad 2&quot;</span><span class="p">,</span> <span class="s">&quot;iPad Two&quot;</span><span class="p">,</span> <span class="s">&quot;iPhone 2&quot;</span><span class="p">,</span> <span class="s">&quot;iPad2&quot;</span><span class="p">]</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">reprowd.presenter.text</span> <span class="k">import</span> <span class="n">TextCmp</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">object_list</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;iPad 2&quot;</span><span class="p">,</span> <span class="s2">&quot;iPad Two&quot;</span><span class="p">,</span> <span class="s2">&quot;iPhone 2&quot;</span><span class="p">,</span> <span class="s2">&quot;iPad2&quot;</span><span class="p">]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">def</span> <span class="nf">map_func</span><span class="p">(</span><span class="n">obj_pair</span><span class="p">):</span>
 <span class="gp">... </span>    <span class="n">o1</span><span class="p">,</span> <span class="n">o2</span> <span class="o">=</span> <span class="n">obj_pair</span>
-<span class="gp">... </span>    <span class="k">return</span> <span class="p">{</span><span class="s">&#39;obj1&#39;</span><span class="p">:</span><span class="n">o1</span><span class="p">,</span> <span class="s">&#39;obj2&#39;</span><span class="p">:</span><span class="n">o2</span><span class="p">}</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">cc</span><span class="o">.</span><span class="n">CrowdJoin</span><span class="p">(</span><span class="n">object_list</span><span class="p">,</span> <span class="n">table_name</span> <span class="o">=</span> <span class="s">&quot;jointest&quot;</span><span class="p">)</span> \ 
+<span class="gp">... </span>    <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;obj1&#39;</span><span class="p">:</span><span class="n">o1</span><span class="p">,</span> <span class="s1">&#39;obj2&#39;</span><span class="p">:</span><span class="n">o2</span><span class="p">}</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cc</span><span class="o">.</span><span class="n">CrowdJoin</span><span class="p">(</span><span class="n">object_list</span><span class="p">,</span> <span class="n">table_name</span> <span class="o">=</span> <span class="s2">&quot;jointest&quot;</span><span class="p">)</span> \ 
 <span class="gp">... </span>  <span class="o">.</span><span class="n">set_presenter</span><span class="p">(</span><span class="n">TextCmp</span><span class="p">(),</span> <span class="n">map_func</span><span class="p">)</span> 
 <span class="go">&lt;reprowd.operators.crowdjoin.CrowdJoin instance at 0x...&gt;</span>
 </pre></div>
@@ -503,13 +507,13 @@ ask workers to label all n^2 object pairs. In fact, among these pairs, most of t
 and can be easily identified as non-matching pairs. Setting a simjoin operator will help us to remove
 these obviously non-matching pairs. Specifically, when it is set, all the object pairs whose Jaccard
 similarity values are below the threshold will be removed.</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">reprowd.presenter.text</span> <span class="kn">import</span> <span class="n">TextCmp</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">reprowd.utils.simjoin</span> <span class="kn">import</span> <span class="n">gramset</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">object_list</span> <span class="o">=</span> <span class="p">[</span><span class="s">&quot;iPad 2&quot;</span><span class="p">,</span> <span class="s">&quot;iPad Two&quot;</span><span class="p">,</span> <span class="s">&quot;iPhone 2&quot;</span><span class="p">,</span> <span class="s">&quot;iPad2&quot;</span><span class="p">]</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">reprowd.presenter.text</span> <span class="k">import</span> <span class="n">TextCmp</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">reprowd.utils.simjoin</span> <span class="k">import</span> <span class="n">gramset</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">object_list</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;iPad 2&quot;</span><span class="p">,</span> <span class="s2">&quot;iPad Two&quot;</span><span class="p">,</span> <span class="s2">&quot;iPhone 2&quot;</span><span class="p">,</span> <span class="s2">&quot;iPad2&quot;</span><span class="p">]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">def</span> <span class="nf">joinkey_func</span><span class="p">(</span><span class="n">obj</span><span class="p">):</span>
-<span class="gp">... </span>    <span class="c"># Use a 2-gram set as a joinkey</span>
+<span class="gp">... </span>    <span class="c1"># Use a 2-gram set as a joinkey</span>
 <span class="gp">... </span>    <span class="k">return</span> <span class="n">gramset</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">crowdjoin</span> <span class="o">=</span> <span class="n">cc</span><span class="o">.</span><span class="n">CrowdJoin</span><span class="p">(</span><span class="n">object_list</span><span class="p">,</span> <span class="n">table_name</span> <span class="o">=</span> <span class="s">&quot;jointest&quot;</span><span class="p">)</span> \ 
+<span class="gp">&gt;&gt;&gt; </span><span class="n">crowdjoin</span> <span class="o">=</span> <span class="n">cc</span><span class="o">.</span><span class="n">CrowdJoin</span><span class="p">(</span><span class="n">object_list</span><span class="p">,</span> <span class="n">table_name</span> <span class="o">=</span> <span class="s2">&quot;jointest&quot;</span><span class="p">)</span> \ 
 <span class="gp">... </span>              <span class="o">.</span><span class="n">set_presenter</span><span class="p">(</span><span class="n">TextCmp</span><span class="p">())</span> \ 
 <span class="gp">... </span>              <span class="o">.</span><span class="n">set_simjoin</span><span class="p">(</span><span class="n">joinkey_func</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">)</span> 
 </pre></div>
@@ -530,14 +534,14 @@ similarity values are below the threshold will be removed.</p>
 </tr>
 </tbody>
 </table>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">reprowd.presenter.text</span> <span class="kn">import</span> <span class="n">TextCmp</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">reprowd.utils.simjoin</span> <span class="kn">import</span> <span class="n">gramset</span><span class="p">,</span> <span class="n">jaccard</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">object_list</span> <span class="o">=</span> <span class="p">[</span><span class="s">&quot;iPad 2&quot;</span><span class="p">,</span> <span class="s">&quot;iPad Two&quot;</span><span class="p">,</span> <span class="s">&quot;iPhone 2&quot;</span><span class="p">,</span> <span class="s">&quot;iPad2&quot;</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c"># Identify the pairs whose Jaccard similarity is above 0.9 as matching.</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">reprowd.presenter.text</span> <span class="k">import</span> <span class="n">TextCmp</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">reprowd.utils.simjoin</span> <span class="k">import</span> <span class="n">gramset</span><span class="p">,</span> <span class="n">jaccard</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">object_list</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;iPad 2&quot;</span><span class="p">,</span> <span class="s2">&quot;iPad Two&quot;</span><span class="p">,</span> <span class="s2">&quot;iPhone 2&quot;</span><span class="p">,</span> <span class="s2">&quot;iPad2&quot;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Identify the pairs whose Jaccard similarity is above 0.9 as matching.</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">def</span> <span class="nf">matcher_func</span><span class="p">(</span><span class="n">obj_pair</span><span class="p">):</span>
 <span class="gp">... </span>    <span class="n">o1</span><span class="p">,</span> <span class="n">o2</span> <span class="o">=</span> <span class="n">obj_pair</span>
 <span class="gp">... </span>    <span class="k">return</span> <span class="n">jaccard</span><span class="p">(</span><span class="n">gramset</span><span class="p">(</span><span class="n">o1</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span> <span class="n">gramset</span><span class="p">(</span><span class="n">o2</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span> <span class="o">&gt;=</span> <span class="mf">0.9</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">crowdjoin</span> <span class="o">=</span> <span class="n">cc</span><span class="o">.</span><span class="n">CrowdJoin</span><span class="p">(</span><span class="n">object_list</span><span class="p">,</span> <span class="n">table_name</span> <span class="o">=</span> <span class="s">&quot;jointest&quot;</span><span class="p">)</span> \ 
+<span class="gp">&gt;&gt;&gt; </span><span class="n">crowdjoin</span> <span class="o">=</span> <span class="n">cc</span><span class="o">.</span><span class="n">CrowdJoin</span><span class="p">(</span><span class="n">object_list</span><span class="p">,</span> <span class="n">table_name</span> <span class="o">=</span> <span class="s2">&quot;jointest&quot;</span><span class="p">)</span> \ 
 <span class="gp">... </span>              <span class="o">.</span><span class="n">set_presenter</span><span class="p">(</span><span class="n">TextCmp</span><span class="p">(),</span> <span class="n">map_func</span><span class="p">)</span> \ 
 <span class="gp">... </span>              <span class="o">.</span><span class="n">set_matcher</span><span class="p">(</span><span class="n">matcher_func</span><span class="p">)</span> 
 </pre></div>
@@ -558,18 +562,18 @@ similarity values are below the threshold will be removed.</p>
 </tr>
 </tbody>
 </table>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">reprowd.presenter.text</span> <span class="kn">import</span> <span class="n">TextCmp</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">reprowd.utils.simjoin</span> <span class="kn">import</span> <span class="n">gramset</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">object_list</span> <span class="o">=</span> <span class="p">[(</span><span class="s">&quot;iPad 2&quot;</span><span class="p">,</span> <span class="mi">300</span><span class="p">),</span> <span class="p">(</span><span class="s">&quot;iPad Two&quot;</span><span class="p">,</span> <span class="mi">305</span><span class="p">),</span> <span class="p">(</span><span class="s">&quot;iPhone 2&quot;</span><span class="p">,</span> <span class="mi">400</span><span class="p">),</span> <span class="p">(</span><span class="s">&quot;iPad2&quot;</span><span class="p">,</span> <span class="mi">298</span><span class="p">)]</span> <span class="c"># (name, price)</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">reprowd.presenter.text</span> <span class="k">import</span> <span class="n">TextCmp</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">reprowd.utils.simjoin</span> <span class="k">import</span> <span class="n">gramset</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">object_list</span> <span class="o">=</span> <span class="p">[(</span><span class="s2">&quot;iPad 2&quot;</span><span class="p">,</span> <span class="mi">300</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;iPad Two&quot;</span><span class="p">,</span> <span class="mi">305</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;iPhone 2&quot;</span><span class="p">,</span> <span class="mi">400</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;iPad2&quot;</span><span class="p">,</span> <span class="mi">298</span><span class="p">)]</span> <span class="c1"># (name, price)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">def</span> <span class="nf">map_func</span><span class="p">(</span><span class="n">obj_pair</span><span class="p">):</span>
 <span class="gp">... </span>    <span class="n">o1</span><span class="p">,</span> <span class="n">o2</span> <span class="o">=</span> <span class="n">obj_pair</span>
-<span class="gp">... </span>    <span class="k">return</span> <span class="p">{</span><span class="s">&#39;obj1&#39;</span><span class="p">:</span><span class="n">o1</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="s">&quot; | &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">o1</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span> <span class="s">&#39;obj2&#39;</span><span class="p">:</span><span class="n">o2</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="s">&quot; | &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">o2</span><span class="p">[</span><span class="mi">1</span><span class="p">])}</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c"># If the prices of two product differ by more than 80, they will be identified as a non-matching pair</span>
+<span class="gp">... </span>    <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;obj1&#39;</span><span class="p">:</span><span class="n">o1</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="s2">&quot; | &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">o1</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span> <span class="s1">&#39;obj2&#39;</span><span class="p">:</span><span class="n">o2</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="s2">&quot; | &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">o2</span><span class="p">[</span><span class="mi">1</span><span class="p">])}</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># If the prices of two product differ by more than 80, they will be identified as a non-matching pair</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">def</span> <span class="nf">nonmatcher_func</span><span class="p">(</span><span class="n">obj_pair</span><span class="p">):</span>
 <span class="gp">... </span>    <span class="n">o1</span><span class="p">,</span> <span class="n">o2</span> <span class="o">=</span> <span class="n">obj_pair</span>
 <span class="gp">... </span>    <span class="k">return</span> <span class="nb">abs</span><span class="p">(</span><span class="n">o1</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">-</span><span class="n">o2</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">&gt;</span> <span class="mi">80</span>
 <span class="go">&gt;&gt;&gt;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">crowdjoin</span> <span class="o">=</span> <span class="n">cc</span><span class="o">.</span><span class="n">CrowdJoin</span><span class="p">(</span><span class="n">object_list</span><span class="p">,</span> <span class="n">table_name</span> <span class="o">=</span> <span class="s">&quot;jointest&quot;</span><span class="p">)</span> \ 
+<span class="gp">&gt;&gt;&gt; </span><span class="n">crowdjoin</span> <span class="o">=</span> <span class="n">cc</span><span class="o">.</span><span class="n">CrowdJoin</span><span class="p">(</span><span class="n">object_list</span><span class="p">,</span> <span class="n">table_name</span> <span class="o">=</span> <span class="s2">&quot;jointest&quot;</span><span class="p">)</span> \ 
 <span class="gp">... </span>              <span class="o">.</span><span class="n">set_presenter</span><span class="p">(</span><span class="n">TextCmp</span><span class="p">(),</span> <span class="n">map_func</span><span class="p">)</span> \
 <span class="gp">... </span>              <span class="o">.</span><span class="n">set_nonmatcher</span><span class="p">(</span><span class="n">nonmatcher_func</span><span class="p">)</span> 
 </pre></div>
@@ -596,13 +600,13 @@ Having this function will increase the effectiveness of transitivity (See [Wang 
 </tr>
 </tbody>
 </table>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">reprowd.presenter.text</span> <span class="kn">import</span> <span class="n">TextCmp</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">reprowd.utils.simjoin</span> <span class="kn">import</span> <span class="n">gramset</span><span class="p">,</span> <span class="n">jaccard</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">object_list</span> <span class="o">=</span> <span class="p">[</span><span class="s">&quot;iPhone 2&quot;</span><span class="p">,</span> <span class="s">&quot;iPad 2&quot;</span><span class="p">,</span> <span class="s">&quot;iPad Two&quot;</span><span class="p">,</span> <span class="s">&quot;iPad2&quot;</span><span class="p">]</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">reprowd.presenter.text</span> <span class="k">import</span> <span class="n">TextCmp</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">reprowd.utils.simjoin</span> <span class="k">import</span> <span class="n">gramset</span><span class="p">,</span> <span class="n">jaccard</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">object_list</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;iPhone 2&quot;</span><span class="p">,</span> <span class="s2">&quot;iPad 2&quot;</span><span class="p">,</span> <span class="s2">&quot;iPad Two&quot;</span><span class="p">,</span> <span class="s2">&quot;iPad2&quot;</span><span class="p">]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">def</span> <span class="nf">score_func</span><span class="p">(</span><span class="n">obj_pair</span><span class="p">):</span>
 <span class="gp">... </span>    <span class="n">o1</span><span class="p">,</span> <span class="n">o2</span> <span class="o">=</span> <span class="n">obj_pair</span>
 <span class="gp">... </span>    <span class="k">return</span> <span class="n">jaccard</span><span class="p">(</span><span class="n">gramset</span><span class="p">(</span><span class="n">o1</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span> <span class="n">gramset</span><span class="p">(</span><span class="n">o2</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">crowdjoin</span> <span class="o">=</span> <span class="n">cc</span><span class="o">.</span><span class="n">CrowdJoin</span><span class="p">(</span><span class="n">object_list</span><span class="p">,</span> <span class="n">table_name</span> <span class="o">=</span> <span class="s">&quot;jointest&quot;</span><span class="p">)</span> \ 
+<span class="gp">&gt;&gt;&gt; </span><span class="n">crowdjoin</span> <span class="o">=</span> <span class="n">cc</span><span class="o">.</span><span class="n">CrowdJoin</span><span class="p">(</span><span class="n">object_list</span><span class="p">,</span> <span class="n">table_name</span> <span class="o">=</span> <span class="s2">&quot;jointest&quot;</span><span class="p">)</span> \ 
 <span class="gp">... </span>              <span class="o">.</span><span class="n">set_presenter</span><span class="p">(</span><span class="n">TextCmp</span><span class="p">())</span> \ 
 <span class="gp">... </span>              <span class="o">.</span><span class="n">set_transitivity</span><span class="p">(</span><span class="n">score_func</span><span class="p">)</span> 
 </pre></div>
@@ -660,18 +664,18 @@ they will be applied in the <strong>join()</strong> function in the following or
 <li>set_matcher()</li>
 </ol>
 </div></blockquote>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">reprowd.presenter.text</span> <span class="kn">import</span> <span class="n">TextCmp</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">object_list</span> <span class="o">=</span> <span class="p">[</span><span class="s">&quot;iPad 2&quot;</span><span class="p">,</span> <span class="s">&quot;iPad Two&quot;</span><span class="p">,</span> <span class="s">&quot;iPhone 2&quot;</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">crowdjoin</span> <span class="o">=</span> <span class="n">cc</span><span class="o">.</span><span class="n">CrowdJoin</span><span class="p">(</span><span class="n">object_list</span><span class="p">,</span> <span class="n">table_name</span> <span class="o">=</span> <span class="s">&quot;jointest&quot;</span><span class="p">)</span> \  
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">reprowd.presenter.text</span> <span class="k">import</span> <span class="n">TextCmp</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">object_list</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;iPad 2&quot;</span><span class="p">,</span> <span class="s2">&quot;iPad Two&quot;</span><span class="p">,</span> <span class="s2">&quot;iPhone 2&quot;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">crowdjoin</span> <span class="o">=</span> <span class="n">cc</span><span class="o">.</span><span class="n">CrowdJoin</span><span class="p">(</span><span class="n">object_list</span><span class="p">,</span> <span class="n">table_name</span> <span class="o">=</span> <span class="s2">&quot;jointest&quot;</span><span class="p">)</span> \  
 <span class="gp">... </span>              <span class="o">.</span><span class="n">set_presenter</span><span class="p">(</span><span class="n">TextCmp</span><span class="p">())</span> \ 
-<span class="gp">... </span>              <span class="o">.</span><span class="n">join</span><span class="p">()</span> <span class="c"># Ask workers to check all pairs </span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">matches</span><span class="p">[</span><span class="s">&#39;all&#39;</span><span class="p">]</span> 
+<span class="gp">... </span>              <span class="o">.</span><span class="n">join</span><span class="p">()</span> <span class="c1"># Ask workers to check all pairs </span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">matches</span><span class="p">[</span><span class="s1">&#39;all&#39;</span><span class="p">]</span> 
 <span class="go">[(&#39;iPad 2&#39;, &#39;iPad Two&#39;)]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">matches</span><span class="p">[</span><span class="s">&#39;human&#39;</span><span class="p">]</span> 
+<span class="gp">&gt;&gt;&gt; </span><span class="n">matches</span><span class="p">[</span><span class="s1">&#39;human&#39;</span><span class="p">]</span> 
 <span class="go">[(&#39;iPad 2&#39;, &#39;iPad Two&#39;)]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">matches</span><span class="p">[</span><span class="s">&#39;machine&#39;</span><span class="p">]</span> 
+<span class="gp">&gt;&gt;&gt; </span><span class="n">matches</span><span class="p">[</span><span class="s1">&#39;machine&#39;</span><span class="p">]</span> 
 <span class="go">[]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">matches</span><span class="p">[</span><span class="s">&#39;transitivity&#39;</span><span class="p">]</span> 
+<span class="gp">&gt;&gt;&gt; </span><span class="n">matches</span><span class="p">[</span><span class="s1">&#39;transitivity&#39;</span><span class="p">]</span> 
 <span class="go">[]</span>
 </pre></div>
 </div>
@@ -700,6 +704,9 @@ they will be applied in the <strong>join()</strong> function in the following or
   <h4>Previous topic</h4>
   <p class="topless"><a href="crowdcontext.html"
                         title="previous chapter">reprowd.crowdcontext module</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="presenter.html"
+                        title="next chapter">reprowd.presenter package</a></p>
   <div role="note" aria-label="source link">
     <h3>This Page</h3>
     <ul class="this-page-menu">
@@ -710,14 +717,11 @@ they will be applied in the <strong>join()</strong> function in the following or
 <div id="searchbox" style="display: none" role="search">
   <h3>Quick search</h3>
     <form class="search" action="search.html" method="get">
-      <input type="text" name="q" />
-      <input type="submit" value="Go" />
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
       <input type="hidden" name="check_keywords" value="yes" />
       <input type="hidden" name="area" value="default" />
     </form>
-    <p class="searchtip" style="font-size: 90%">
-    Enter search terms or a module, class or function name.
-    </p>
 </div>
 <script type="text/javascript">$('#searchbox').show(0);</script>
         </div>
@@ -734,6 +738,9 @@ they will be applied in the <strong>join()</strong> function in the following or
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
         <li class="right" >
+          <a href="presenter.html" title="reprowd.presenter package"
+             >next</a> |</li>
+        <li class="right" >
           <a href="crowdcontext.html" title="reprowd.crowdcontext module"
              >previous</a> |</li>
         <li class="nav-item nav-item-0"><a href="index.html">Reprowd 0.1 documentation</a> &raquo;</li> 
@@ -741,7 +748,7 @@ they will be applied in the <strong>join()</strong> function in the following or
     </div>
     <div class="footer" role="contentinfo">
         &copy; Copyright 2016, SFU-DB.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.3.1.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.5.
     </div>
   </body>
 </html>

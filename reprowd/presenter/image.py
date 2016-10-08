@@ -2,8 +2,26 @@
 from reprowd.presenter.base import *
 
 class ImageLabel (BasePresenter):
+    """
+        ImageLabel is a presenter class direved from base presenter class. It is attacted with project.
+        ImageLabel basically is used for image label tasks.
+
+    """
     def __init__(self):
-        self.question = ""
+        """
+            Initialize a ImageLabel presenter for a project. Defaultly, question, project name, project shor_name and
+            project description are set as empty, "Image Labeling", "imglabel" and "Help us to label an image" respectively.
+            The template attribute is a string of HTML file, which is the content of presenter. For writing a new template,
+            check http://docs.pybossa.com/en/latest/user/tutorial.html#presenting-the-tasks-to-the-user.
+
+            >>> presenter = ImageLabel();
+            >>> presenter.set_name("Do you see a Human face in this picture?")
+            >>> crowddata = cc.CrowdData(object_list, table_name = "test") \
+            ...               .set_presenter(presenter, map_func)
+            >>> crowddata.presenter
+            <reprowd.presenter.image.ImageLabel object at 0x...>
+        """
+        self.question = "123"
         self.name = "Image Labeling"
         self.short_name = "imglabel"
         self.description = "Help us to label an image"
@@ -198,7 +216,28 @@ pybossa.presentTask(function(task, deferred) {
         """
 
 class ImageCmp(BasePresenter):
+    """
+        ImageCmp is a presenter class direved from base presenter class. It is attacted with project.
+        ImageCmp basically is used for a pair of images comparing tasks.
+
+    """
     def __init__(self):
+        """
+            Initialize a ImageCmp presenter for a project. Defaultly, question, project name, project shor_name and
+            project description are set as empty, "Image Comparison", "imgcmp" and "Help us to compare images" respectively.
+            The template attribute is a string of HTML file, which is the content of presenter. For writing a new template,
+            check http://docs.pybossa.com/en/latest/user/tutorial.html#presenting-the-tasks-to-the-user.
+
+            >>> presenter = ImageCmp();
+            >>> presenter.set_name("Which picture is more beautiful?")
+            >>> crowddata = cc.CrowdData(object_list, table_name = "test") \
+            ...               .set_presenter(presenter, map_func)
+            >>> crowddata.presenter
+            <reprowd.presenter.image.ImageCmp object at 0x...>
+        """
+
+
+
         self.question = ""
         self.name = "Image Comparison"
         self.short_name = "imgcmp"

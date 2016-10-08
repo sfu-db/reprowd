@@ -10,11 +10,11 @@ Contents:
 ---------
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 3
 
    crowdcontext
    operators
-
+   presenter
 Indices and tables
 ==================
 

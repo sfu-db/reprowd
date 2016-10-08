@@ -1,0 +1,719 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>reprowd.operators.crowddata &mdash; Reprowd 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="top" title="Reprowd 0.1 documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">Reprowd 0.1 documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for reprowd.operators.crowddata</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+
+<span class="kn">import</span> <span class="nn">pbclient</span>
+<span class="kn">import</span> <span class="nn">sqlite3</span>
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">import</span> <span class="nn">dateutil.parser</span>
+<span class="kn">from</span> <span class="nn">string</span> <span class="k">import</span> <span class="n">Template</span>
+<span class="kn">from</span> <span class="nn">reprowd.quality.mv</span> <span class="k">import</span> <span class="n">MV</span>
+<span class="kn">from</span> <span class="nn">reprowd.quality.em</span> <span class="k">import</span> <span class="n">EM</span>
+
+
+<div class="viewcode-block" id="CrowdData"><a class="viewcode-back" href="../../../operators.html#reprowd.operators.crowddata.CrowdData">[docs]</a><span class="k">class</span> <span class="nc">CrowdData</span><span class="p">:</span>
+
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        A CrowdData is the basic abstraction in Reprowd. It treats crowdsourcing</span>
+<span class="sd">        as a process of manipulating a tabular dataset. For example, collecting results</span>
+<span class="sd">        from the crowd is considered as adding a new column **result** to the data.</span>
+
+<span class="sd">        Furthermore, it provides fault recovery through the data manipulating process.</span>
+<span class="sd">        That is, when the program crashes, the user can simply rerun the program as if it</span>
+<span class="sd">        has never crashed.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="CrowdData.__init__"><a class="viewcode-back" href="../../../operators.html#reprowd.operators.crowddata.CrowdData.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">object_list</span><span class="p">,</span> <span class="n">table_name</span><span class="p">,</span> <span class="n">crowdcontext</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initialize a tabular dataset and return a CrowdData object.</span>
+<span class="sd">        The initial dataset has two columns: (**id**, **object**), where *id* is an auto-incremental key (starting from 0),</span>
+<span class="sd">        and *object* is populated by the input ``object_list``.</span>
+
+<span class="sd">        Note: It is not recommended to call the constructor directly.</span>
+<span class="sd">        Please call it through :func:`reprowd.crowdcontext.CrowdContext.CrowdData`.</span>
+
+<span class="sd">        &gt;&gt;&gt; object_list = [&quot;image1.jpg&quot;, &quot;image2.jpg&quot;]</span>
+<span class="sd">        &gt;&gt;&gt; crowddata = cc.CrowdData(object_list, table_name = &quot;test&quot;)  #doctest: +SKIP</span>
+<span class="sd">        &gt;&gt;&gt; crowddata  #doctest: +SKIP</span>
+<span class="sd">        &lt;reprowd.operators.crowddata.CrowdData instance at 0x...&gt;</span>
+<span class="sd">        &gt;&gt;&gt; crowddata.cols  #doctest: +SKIP</span>
+<span class="sd">        [&#39;id&#39;, &#39;object&#39;]</span>
+<span class="sd">        &gt;&gt;&gt; crowddata.data  #doctest: +SKIP</span>
+<span class="sd">        {&#39;id&#39;: [0, 1], &#39;object&#39;: [&#39;image1.jpg&#39;, &#39;image2.jpg&#39;]}</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cc</span> <span class="o">=</span> <span class="n">crowdcontext</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">object_list</span><span class="p">)),</span> <span class="s1">&#39;object&#39;</span><span class="p">:</span><span class="n">object_list</span><span class="p">}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">start_id</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">object_list</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cols</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">,</span> <span class="s2">&quot;object&quot;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">table_name</span> <span class="o">=</span> <span class="n">table_name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">presenter</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">project_id</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">project_short_name</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">project_name</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">object_list</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="nb">list</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;&#39;object_list&#39; should be a list&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">table_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">cc</span><span class="o">.</span><span class="n">show_tables</span><span class="p">():</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">exe_str</span> <span class="o">=</span> <span class="s2">&quot;CREATE TABLE &#39;</span><span class="si">%s</span><span class="s2">&#39; (id integer, col_name BLOB, value BLOB DEFAULT NULL, PRIMARY KEY(id, col_name))&quot;</span> <span class="o">%</span><span class="p">(</span><span class="n">table_name</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">cc</span><span class="o">.</span><span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">exe_str</span><span class="p">)</span>
+            <span class="k">except</span> <span class="n">sqlite3</span><span class="o">.</span><span class="n">OperationalError</span><span class="p">:</span>
+                <span class="k">raise</span></div>
+
+
+<div class="viewcode-block" id="CrowdData.set_presenter"><a class="viewcode-back" href="../../../operators.html#reprowd.operators.crowddata.CrowdData.set_presenter">[docs]</a>    <span class="k">def</span> <span class="nf">set_presenter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">presenter</span><span class="p">,</span> <span class="n">map_func</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Specify a presenter</span>
+
+
+<span class="sd">        :param presenter: A Presenter object (e.g., :class:`reprowd.presenter.TextCmp`).</span>
+<span class="sd">        :param map_func:  map_func() maps an object into the data format the presenter requires.</span>
+<span class="sd">                                        If map_func() is not specified, it will use the default ``map_func = lambda obj: obj``</span>
+<span class="sd">        :return: The updated CrowdData object</span>
+
+<span class="sd">        &gt;&gt;&gt; from reprowd.presenter.image import ImageLabel</span>
+<span class="sd">        &gt;&gt;&gt; object_list = [&quot;image1.jpg&quot;, &quot;image2.jpg&quot;]</span>
+<span class="sd">        &gt;&gt;&gt; map_func = lambda obj: {&#39;url_b&#39;:obj}</span>
+<span class="sd">        &gt;&gt;&gt; crowddata = cc.CrowdData(object_list, table_name = &quot;test&quot;) \\  #doctest: +SKIP</span>
+<span class="sd">        ...               .set_presenter(ImageLabel(), map_func)   #doctest: +SKIP</span>
+<span class="sd">        &gt;&gt;&gt; crowddata.cols   #doctest: +SKIP</span>
+<span class="sd">        [&#39;id&#39;, &#39;object&#39;]</span>
+<span class="sd">        &gt;&gt;&gt; crowddata.data  #doctest: +SKIP</span>
+<span class="sd">        {&#39;id&#39;: [0, 1], &#39;object&#39;: [&#39;image1.jpg&#39;, &#39;image2.jpg&#39;]}</span>
+<span class="sd">        &gt;&gt;&gt; crowddata.presenter    #doctest: +SKIP</span>
+<span class="sd">        &lt;reprowd.presenter.image.ImageLabel object at 0x...&gt;</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">map_func</span> <span class="o">=</span> <span class="n">map_func</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">map_func</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">map_func</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">obj</span><span class="p">:</span> <span class="n">obj</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">presenter</span> <span class="o">=</span> <span class="n">presenter</span>
+
+        <span class="k">return</span> <span class="bp">self</span></div>
+
+
+    <span class="k">def</span> <span class="nf">__task_link</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">endpoint</span><span class="p">,</span> <span class="n">task_id</span><span class="p">,</span> <span class="n">project_short_name</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">/project/</span><span class="si">%s</span><span class="s2">/task/</span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span><span class="p">(</span><span class="n">endpoint</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">),</span> <span class="n">task_id</span><span class="p">,</span> <span class="n">project_short_name</span><span class="p">)</span>
+
+
+    <span class="k">def</span> <span class="nf">__init_project</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">presenter</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Create a new project. If there exists a project corresponding to the presenter, use the existing project.&quot;&quot;&quot;</span>
+        <span class="c1"># Get the project id correponding to the input presenter</span>
+        <span class="c1"># (if it does not exists, create a new one)</span>
+        <span class="k">if</span> <span class="n">presenter</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Cannot publish tasks without specifying a presenter.&quot;</span>
+                                    <span class="s2">&quot;Please use set_presenter() to specify a presenter.&quot;</span><span class="p">)</span>
+        <span class="n">pbclient</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cc</span><span class="o">.</span><span class="n">pbclient</span>
+        <span class="n">p</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="c1">#try:</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">pbclient</span><span class="o">.</span><span class="n">find_project</span><span class="p">(</span><span class="n">short_name</span> <span class="o">=</span> <span class="n">presenter</span><span class="o">.</span><span class="n">short_name</span><span class="p">))</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="c1"># the presenter has been created</span>
+            <span class="n">p</span><span class="o">=</span> <span class="n">pbclient</span><span class="o">.</span><span class="n">find_project</span><span class="p">(</span><span class="n">short_name</span> <span class="o">=</span> <span class="n">presenter</span><span class="o">.</span><span class="n">short_name</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">elif</span>  <span class="nb">len</span><span class="p">(</span><span class="n">pbclient</span><span class="o">.</span><span class="n">find_project</span><span class="p">(</span><span class="n">name</span> <span class="o">=</span> <span class="n">presenter</span><span class="o">.</span><span class="n">name</span><span class="p">))</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="c1"># the presenter has been created</span>
+            <span class="n">p</span><span class="o">=</span> <span class="n">pbclient</span><span class="o">.</span><span class="n">find_project</span><span class="p">(</span><span class="n">name</span> <span class="o">=</span> <span class="n">presenter</span><span class="o">.</span><span class="n">name</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># create a new project with the presente</span>
+            <span class="n">p</span> <span class="o">=</span> <span class="n">pbclient</span><span class="o">.</span><span class="n">create_project</span><span class="p">(</span><span class="n">presenter</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">presenter</span><span class="o">.</span><span class="n">short_name</span><span class="p">,</span> <span class="n">presenter</span><span class="o">.</span><span class="n">description</span><span class="p">)</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">project_id</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">id</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">project_short_name</span> <span class="o">=</span> <span class="n">presenter</span><span class="o">.</span><span class="n">short_name</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">project_name</span> <span class="o">=</span> <span class="n">presenter</span><span class="o">.</span><span class="n">name</span>
+            <span class="n">p</span><span class="o">=</span> <span class="n">pbclient</span><span class="o">.</span><span class="n">find_project</span><span class="p">(</span><span class="n">short_name</span> <span class="o">=</span> <span class="n">presenter</span><span class="o">.</span><span class="n">short_name</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">p</span><span class="o">.</span><span class="n">info</span><span class="p">[</span><span class="s1">&#39;task_presenter&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">Template</span><span class="p">(</span><span class="n">presenter</span><span class="o">.</span><span class="n">template</span><span class="p">)</span><span class="o">.</span><span class="n">safe_substitute</span><span class="p">(</span><span class="n">short_name</span> <span class="o">=</span> <span class="n">presenter</span><span class="o">.</span><span class="n">short_name</span><span class="p">,</span> <span class="n">question</span> <span class="o">=</span> <span class="n">presenter</span><span class="o">.</span><span class="n">question</span><span class="p">)</span>
+            <span class="n">p</span><span class="o">.</span><span class="n">long_description</span> <span class="o">=</span> <span class="n">presenter</span><span class="o">.</span><span class="n">description</span>
+            <span class="n">p</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">presenter</span><span class="o">.</span><span class="n">name</span>
+            <span class="n">p</span><span class="o">.</span><span class="n">short_name</span> <span class="o">=</span> <span class="n">presenter</span><span class="o">.</span><span class="n">short_name</span>
+            <span class="n">pbclient</span><span class="o">.</span><span class="n">update_project</span><span class="p">(</span><span class="n">p</span><span class="p">)</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">p</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">dict</span> <span class="ow">and</span> <span class="s2">&quot;exception_msg&quot;</span> <span class="ow">in</span> <span class="n">p</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span><span class="p">(</span><span class="n">p</span><span class="p">[</span><span class="s2">&quot;exception_msg&quot;</span><span class="p">]))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="nb">print</span> <span class="n">p</span>
+                <span class="k">raise</span>
+
+<div class="viewcode-block" id="CrowdData.publish_task"><a class="viewcode-back" href="../../../operators.html#reprowd.operators.crowddata.CrowdData.publish_task">[docs]</a>    <span class="k">def</span> <span class="nf">publish_task</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n_assignments</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">priority</span> <span class="o">=</span> <span class="mi">0</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Publish tasks to the pybossa server</span>
+
+<span class="sd">        :param n_assignments: The number of assignments. For example, ``n_assignments`` = 3 means that each task needs to be done by three different workers</span>
+<span class="sd">        :param priority:  A float number in [0, 1] that indicates the priority of the published tasks. The larger the value, the higher the priority.</span>
+<span class="sd">        :return: The updated CrowdData object</span>
+
+<span class="sd">        The function adds a new column **task** to the tabular dataset. Each item in the **task** column is a dict with the following attributes:</span>
+
+<span class="sd">            - *id*: task id (e.g., 400)</span>
+<span class="sd">            - *task_link*: the URL linked to a task (e.g., &quot;http://localhost:7000/project/textcmp/task/400&quot;)</span>
+<span class="sd">            - *task_data*: the data added to a task (e.g., {&quot;url_b&quot;: &quot;image1.jpg&quot;})</span>
+<span class="sd">            - *n_assignments*: the number of assignments (e.g., 3)</span>
+<span class="sd">            - *priority*: the priority of a task (e.g., 0)</span>
+<span class="sd">            - *project_id*: the project id (e.g., 155)</span>
+<span class="sd">            - *create_time*: the time created a task (e.g., &quot;2016-07-12T03:46:04.622127&quot;)</span>
+
+<span class="sd">        &gt;&gt;&gt; from reprowd.presenter.image import ImageLabel</span>
+<span class="sd">        &gt;&gt;&gt; object_list = [&quot;image1.jpg&quot;, &quot;image2.jpg&quot;]</span>
+<span class="sd">        &gt;&gt;&gt; crowddata = cc.CrowdData(object_list, table_name = &quot;test&quot;) \\  #doctest: +SKIP</span>
+<span class="sd">        ...               .set_presenter(ImageLabel(), lambda obj: {&#39;url_b&#39;:obj}) \\  #doctest: +SKIP</span>
+<span class="sd">        ...               .publish_task()  #doctest: +SKIP</span>
+<span class="sd">        &gt;&gt;&gt; crowddata.cols  #doctest: +SKIP</span>
+<span class="sd">        [&#39;id&#39;, &#39;object&#39;, &#39;task&#39;]</span>
+<span class="sd">        &gt;&gt;&gt; print crowddata.data[&#39;task&#39;]  # print the task col #doctest: +SKIP</span>
+<span class="sd">        [</span>
+<span class="sd">            {</span>
+<span class="sd">                &#39;id&#39;: 91,</span>
+<span class="sd">                &#39;task_link&#39;: &#39;http://localhost:7000/project/imglabel/task/91&#39;,</span>
+<span class="sd">                &#39;task_data&#39;: {u&#39;url_b&#39;: u&#39;image1.jpg&#39;},</span>
+<span class="sd">                &#39;n_assignments&#39;: 1,</span>
+<span class="sd">                &#39;priority&#39;: 0.0,</span>
+<span class="sd">                &#39;project_id&#39;: 78,</span>
+<span class="sd">                &#39;create_time&#39;: u&#39;2016-07-23T23:52:50.551407&#39;,</span>
+<span class="sd">            },</span>
+<span class="sd">            {</span>
+<span class="sd">                &#39;id&#39;: 92,</span>
+<span class="sd">                &#39;task_link&#39;: &#39;http://localhost:7000/project/imglabel/task/92&#39;,</span>
+<span class="sd">                &#39;task_data&#39;: {u&#39;url_b&#39;: u&#39;image2.jpg&#39;},</span>
+<span class="sd">                &#39;n_assignments&#39;: 1,</span>
+<span class="sd">                &#39;priority&#39;: 0.0,</span>
+<span class="sd">                &#39;project_id&#39;: 78,</span>
+<span class="sd">                &#39;create_time&#39;: u&#39;2016-07-23T23:52:50.570035&#39;</span>
+<span class="sd">            }</span>
+<span class="sd">        ]</span>
+<span class="sd">        &gt;&gt;&gt; first_task = crowddata.data[&#39;task&#39;][0]  #doctest: +SKIP</span>
+<span class="sd">        &gt;&gt;&gt; sorted(first_task.keys())  #doctest: +SKIP</span>
+<span class="sd">        [&#39;create_time&#39;, &#39;id&#39;, &#39;n_assignments&#39;, &#39;priority&#39;, &#39;project_id&#39;, &#39;task_data&#39;, &#39;task_link&#39;]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">input_col</span> <span class="o">=</span> <span class="s2">&quot;object&quot;</span>
+        <span class="n">output_col</span> <span class="o">=</span> <span class="s2">&quot;task&quot;</span>
+
+        <span class="n">cursor</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cc</span><span class="o">.</span><span class="n">cursor</span>
+        <span class="n">db</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cc</span><span class="o">.</span><span class="n">db</span>
+        <span class="n">pbclient</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cc</span><span class="o">.</span><span class="n">pbclient</span>
+
+        <span class="n">init_project_flag</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="n">task_col</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">output_col</span><span class="p">,</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span><span class="o">*</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">]))</span>
+        <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">d</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">input_col</span><span class="p">])):</span>
+            <span class="n">exe_str</span> <span class="o">=</span> <span class="s2">&quot;SELECT * FROM &#39;</span><span class="si">%s</span><span class="s2">&#39; WHERE id=? AND col_name=?&quot;</span> <span class="o">%</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">table_name</span><span class="p">)</span>
+            <span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">exe_str</span><span class="p">,</span> <span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">output_col</span><span class="p">,</span> <span class="p">))</span>
+            <span class="n">records</span> <span class="o">=</span> <span class="n">cursor</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">records</span> <span class="o">!=</span> <span class="p">[]:</span>
+                <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">records</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span>
+                <span class="n">task_col</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="nb">eval</span><span class="p">(</span><span class="n">records</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">2</span><span class="p">])</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">project_id</span> <span class="o">=</span> <span class="n">task_col</span><span class="p">[</span><span class="n">k</span><span class="p">][</span><span class="s2">&quot;project_id&quot;</span><span class="p">]</span>
+                <span class="k">continue</span>
+
+            <span class="c1"># Only initialize a project if the database does not contain all the tasks.</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">init_project_flag</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">__init_project</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">presenter</span><span class="p">)</span>
+                <span class="n">init_project_flag</span> <span class="o">=</span> <span class="kc">True</span>
+
+            <span class="n">task</span> <span class="o">=</span> <span class="n">pbclient</span><span class="o">.</span><span class="n">create_task</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">project_id</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">map_func</span><span class="p">(</span><span class="n">d</span><span class="p">),</span> <span class="n">n_assignments</span><span class="p">,</span> <span class="n">priority</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">task</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">dict</span> <span class="ow">and</span> <span class="s2">&quot;exception_msg&quot;</span> <span class="ow">in</span> <span class="n">task</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span><span class="p">(</span><span class="n">task</span><span class="p">[</span><span class="s2">&quot;exception_msg&quot;</span><span class="p">]))</span>
+            <span class="n">format_task</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="n">task</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">],</span> \
+                            <span class="s2">&quot;task_link&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">__task_link</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cc</span><span class="o">.</span><span class="n">endpoint</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">project_short_name</span><span class="p">,</span> <span class="n">task</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">]),</span> \
+                            <span class="s2">&quot;task_data&quot;</span><span class="p">:</span> <span class="n">task</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;info&quot;</span><span class="p">],</span> \
+                            <span class="s2">&quot;n_assignments&quot;</span><span class="p">:</span> <span class="n">task</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;n_answers&quot;</span><span class="p">],</span> \
+                            <span class="s2">&quot;priority&quot;</span><span class="p">:</span> <span class="n">task</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;priority_0&quot;</span><span class="p">],</span> \
+                            <span class="s2">&quot;project_id&quot;</span><span class="p">:</span> <span class="n">task</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;project_id&quot;</span><span class="p">],</span> \
+                           <span class="s2">&quot;create_time&quot;</span><span class="p">:</span> <span class="n">task</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;created&quot;</span><span class="p">]</span>
+                           <span class="p">}</span>
+
+            <span class="c1"># BUG. need to test some special chateracters, e.g., single quote.</span>
+            <span class="n">exe_str</span> <span class="o">=</span> <span class="s2">&quot;INSERT INTO &#39;</span><span class="si">%s</span><span class="s2">&#39; VALUES(?,?,?)&quot;</span> <span class="o">%</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">table_name</span><span class="p">)</span>
+            <span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">exe_str</span><span class="p">,</span> <span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">output_col</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">format_task</span><span class="p">),</span> <span class="p">))</span>
+            <span class="n">db</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+            <span class="n">task_col</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">format_task</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">output_col</span><span class="p">]</span> <span class="o">=</span> <span class="n">task_col</span>
+        <span class="k">if</span> <span class="n">output_col</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">cols</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">cols</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">output_col</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span></div>
+
+
+    <span class="k">def</span> <span class="nf">__fetch_result</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">project_id</span><span class="p">):</span>
+        <span class="n">pbclient</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cc</span><span class="o">.</span><span class="n">pbclient</span>
+        <span class="n">limit</span> <span class="o">=</span> <span class="mi">100</span>
+        <span class="n">last_id</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">tid_to_result</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">results</span> <span class="o">=</span> <span class="n">pbclient</span><span class="o">.</span><span class="n">get_taskruns</span><span class="p">(</span><span class="n">project_id</span><span class="p">,</span> <span class="n">limit</span> <span class="o">=</span> <span class="n">limit</span><span class="p">,</span> <span class="n">last_id</span> <span class="o">=</span> <span class="n">last_id</span><span class="p">)</span>
+            <span class="k">except</span><span class="p">:</span>
+                <span class="nb">print</span> <span class="s2">&quot;Too many requests. Will try again in 10s...&quot;</span>
+                <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">results</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">break</span>
+
+            <span class="k">for</span> <span class="n">result</span> <span class="ow">in</span> <span class="n">results</span><span class="p">:</span>
+                <span class="n">tid</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;task_id&#39;</span><span class="p">]</span>
+                <span class="k">if</span> <span class="n">tid</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">tid_to_result</span><span class="p">:</span>
+                    <span class="n">tid_to_result</span><span class="p">[</span><span class="n">tid</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="n">tid_to_result</span><span class="p">[</span><span class="n">tid</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+
+            <span class="k">for</span> <span class="n">result</span> <span class="ow">in</span> <span class="n">results</span><span class="p">:</span>
+                <span class="n">trid</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;id&#39;</span><span class="p">]</span>
+                <span class="k">if</span> <span class="n">trid</span> <span class="o">&gt;</span> <span class="n">last_id</span><span class="p">:</span>
+                    <span class="n">last_id</span> <span class="o">=</span> <span class="n">trid</span>
+
+        <span class="k">return</span> <span class="n">tid_to_result</span>
+
+
+<div class="viewcode-block" id="CrowdData.get_result"><a class="viewcode-back" href="../../../operators.html#reprowd.operators.crowddata.CrowdData.get_result">[docs]</a>    <span class="k">def</span> <span class="nf">get_result</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">blocking</span> <span class="o">=</span> <span class="kc">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get results from the pybossa server</span>
+
+<span class="sd">        :param blocking: A boolean value that denotes whether the function will be blocked or not.</span>
+
+<span class="sd">        - ``blocking = True`` means that the function will continuously collect results from the server until all the tasks are finished by the crowd.</span>
+<span class="sd">        - ``blocking = False`` means that the function will get the current results of the tasks immediately even if they have not been finished yet.</span>
+
+<span class="sd">        :return: The updated CrowdData object</span>
+
+<span class="sd">        The function adds a new column **result** to the tabular dataset. Each item in the **result** column is a dict with the following attributes:</span>
+
+<span class="sd">            - *assigments*: a list of assignments</span>
+
+<span class="sd">                - *id*: assignment id (e.g., 100)</span>
+<span class="sd">                - *worker_id*: an identifier of a worker (e.g., 2)</span>
+<span class="sd">                - *worker_response*: the answer of the task given by the worker (e.g., &quot;YES&quot;)</span>
+<span class="sd">                - *start_time*: the time when the assignment is created (e.g., &quot;2016-07-12T03:46:04.622127&quot;)</span>
+<span class="sd">                - *finish_time*: the time when the assignment is finished (e.g., &quot;2016-07-12T03:50:04.622127&quot;)</span>
+
+<span class="sd">            - *task_id*: task id (e.g., 400)</span>
+<span class="sd">            - *task_link*: the URL linked to a task (e.g., &quot;http://localhost:7000/project/textcmp/task/400&quot;)</span>
+<span class="sd">            - *project_id*: the project id (e.g., 155)</span>
+
+
+<span class="sd">        &gt;&gt;&gt; from reprowd.presenter.image import ImageLabel</span>
+<span class="sd">        &gt;&gt;&gt; object_list = [&quot;image1.jpg&quot;]</span>
+<span class="sd">        &gt;&gt;&gt; crowddata = cc.CrowdData(object_list, table_name = &quot;test&quot;) \\ #doctest: +SKIP</span>
+<span class="sd">        ...               .set_presenter(ImageLabel(), lambda obj: {&#39;url_b&#39;:obj}) \\  #doctest: +SKIP</span>
+<span class="sd">        ...               .publish_task().get_result(blocking=False)  #doctest: +SKIP</span>
+<span class="sd">        &gt;&gt;&gt; crowddata.cols  #doctest: +SKIP</span>
+<span class="sd">        [&#39;id&#39;, &#39;object&#39;, &#39;task&#39;, &#39;result&#39;]</span>
+<span class="sd">        &gt;&gt;&gt; d = crowddata.get_result(blocking=True).data  #doctest: +SKIP</span>
+<span class="sd">        &gt;&gt;&gt; print d[&#39;result&#39;] # print the result col #doctest: +SKIP</span>
+<span class="sd">        {</span>
+<span class="sd">            &#39;assignments&#39;: [</span>
+<span class="sd">                {</span>
+<span class="sd">                    &#39;id&#39;: 236,</span>
+<span class="sd">                    &#39;worker_id&#39;: &#39;1&#39;,</span>
+<span class="sd">                    &#39;worker_response&#39;: u&#39;YES&#39;,</span>
+<span class="sd">                    &#39;start_time&#39;: u&#39;2016-07-24T22:53:26.173976&#39;,</span>
+<span class="sd">                    &#39;finish_time&#39;: u&#39;2016-07-24T22:53:26.173976&#39;</span>
+<span class="sd">                },</span>
+<span class="sd">                {</span>
+<span class="sd">                    id&#39;: 240,</span>
+<span class="sd">                    &#39;worker_id&#39;: u&#39;10.0.2.2&#39;,</span>
+<span class="sd">                     &#39;worker_response&#39;: u&#39;Yes&#39;,</span>
+<span class="sd">                     &#39;start_time&#39;: u&#39;2016-07-24T22:53:33.943804&#39;,</span>
+<span class="sd">                     &#39;finish_time&#39;: u&#39;2016-07-24T22:53:37.175170&#39;</span>
+<span class="sd">                }</span>
+<span class="sd">            ]</span>
+<span class="sd">            &#39;task_id&#39;: 407,</span>
+<span class="sd">            &#39;task_link&#39;: &#39;http://localhost:7000/project/imglabel/task/407&#39;,</span>
+<span class="sd">            &#39;project_id&#39;: 190</span>
+<span class="sd">        }</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">input_col</span> <span class="o">=</span> <span class="s2">&quot;task&quot;</span>
+        <span class="n">output_col</span> <span class="o">=</span> <span class="s2">&quot;result&quot;</span>
+
+        <span class="k">if</span> <span class="n">input_col</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">cols</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Tasks have not been published. &quot;</span>
+                                    <span class="s2">&quot;Please call publish_task() to publish tasks first.&quot;</span><span class="p">)</span>
+
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">])</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">input_col</span><span class="p">])</span>
+
+        <span class="n">wait_time</span> <span class="o">=</span> <span class="mi">1</span> <span class="c1"># Will be adaptively adjusted based on how fast workers are doing tasks</span>
+        <span class="n">result_col</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">output_col</span><span class="p">,</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span><span class="o">*</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">]))</span>
+        <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="c1"># load results from database</span>
+            <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">task</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">input_col</span><span class="p">])):</span>
+                <span class="k">if</span> <span class="n">result_col</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">exe_str</span> <span class="o">=</span> <span class="s2">&quot;SELECT * FROM &#39;</span><span class="si">%s</span><span class="s2">&#39; WHERE id=? AND col_name=?&quot;</span> <span class="o">%</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">table_name</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">cc</span><span class="o">.</span><span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">exe_str</span><span class="p">,</span> <span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">output_col</span><span class="p">,</span> <span class="p">))</span>
+                    <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cc</span><span class="o">.</span><span class="n">cursor</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span>
+                    <span class="k">if</span> <span class="n">data</span> <span class="o">!=</span> <span class="p">[]:</span>
+                        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span>
+                        <span class="n">result_col</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="nb">eval</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">2</span><span class="p">])</span>
+
+            <span class="c1"># check if it is still necessary to fetch results from the pybossa server</span>
+            <span class="n">complete</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="k">for</span> <span class="n">task</span><span class="p">,</span> <span class="n">result</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">input_col</span><span class="p">],</span> <span class="n">result_col</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">task</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span> <span class="c1"># The task has not been published</span>
+                    <span class="k">continue</span>
+                <span class="k">if</span> <span class="n">result</span> <span class="o">==</span> <span class="kc">None</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="s2">&quot;assignments&quot;</span><span class="p">])</span> <span class="o">&lt;</span> <span class="n">task</span><span class="p">[</span><span class="s1">&#39;n_assignments&#39;</span><span class="p">]:</span>
+                    <span class="n">complete</span> <span class="o">=</span> <span class="kc">False</span>
+                    <span class="k">break</span>
+            <span class="k">if</span> <span class="n">complete</span><span class="p">:</span>
+                <span class="k">break</span>
+
+            <span class="c1"># fetch new results</span>
+            <span class="n">tid_to_result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__fetch_result</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">project_id</span><span class="p">)</span>
+            <span class="n">tid_to_format_result</span> <span class="o">=</span> <span class="p">{}</span>
+
+            <span class="c1"># Update crowddata.data and database with new results</span>
+            <span class="k">for</span> <span class="n">tid</span><span class="p">,</span> <span class="n">results</span> <span class="ow">in</span> <span class="n">tid_to_result</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="k">for</span> <span class="n">result</span> <span class="ow">in</span> <span class="n">results</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">tid</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">tid_to_format_result</span><span class="p">:</span>
+                        <span class="n">tid_to_format_result</span><span class="p">[</span><span class="n">tid</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span> \
+                            <span class="s2">&quot;task_id&quot;</span><span class="p">:</span> <span class="n">result</span><span class="p">[</span><span class="s2">&quot;task_id&quot;</span><span class="p">],</span> \
+                             <span class="s2">&quot;project_id&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">project_id</span><span class="p">,</span> \
+                             <span class="s2">&quot;task_link&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">__task_link</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cc</span><span class="o">.</span><span class="n">endpoint</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">project_short_name</span><span class="p">,</span> <span class="n">result</span><span class="p">[</span><span class="s2">&quot;task_id&quot;</span><span class="p">]),</span> \
+                             <span class="s2">&quot;assignments&quot;</span><span class="p">:</span> <span class="p">[]</span>
+                        <span class="p">}</span>
+
+                    <span class="n">tid_to_format_result</span><span class="p">[</span><span class="n">tid</span><span class="p">][</span><span class="s2">&quot;assignments&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">({</span> \
+                        <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="n">result</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">],</span> \
+                        <span class="s2">&quot;worker_id&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="s2">&quot;user_id&quot;</span><span class="p">])</span> <span class="k">if</span> <span class="n">result</span><span class="p">[</span><span class="s2">&quot;user_id&quot;</span><span class="p">]</span> <span class="k">else</span> <span class="n">result</span><span class="p">[</span><span class="s2">&quot;user_ip&quot;</span><span class="p">],</span> \
+                        <span class="s2">&quot;worker_response&quot;</span><span class="p">:</span> <span class="n">result</span><span class="p">[</span><span class="s2">&quot;info&quot;</span><span class="p">],</span> \
+                        <span class="s2">&quot;start_time&quot;</span><span class="p">:</span> <span class="n">result</span><span class="p">[</span><span class="s2">&quot;created&quot;</span><span class="p">],</span> \
+                        <span class="s2">&quot;finish_time&quot;</span><span class="p">:</span> <span class="n">result</span><span class="p">[</span><span class="s2">&quot;finish_time&quot;</span><span class="p">]</span>
+                        <span class="p">})</span>
+
+            <span class="n">updated</span> <span class="o">=</span> <span class="kc">False</span> <span class="c1"># updated = True means that workers did some new tasks during the waiting time</span>
+            <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">task</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">input_col</span><span class="p">])):</span>
+                <span class="k">if</span> <span class="n">task</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span> <span class="c1"># task has not been published</span>
+                    <span class="k">continue</span>
+                <span class="n">cache_result</span> <span class="o">=</span> <span class="n">result_col</span><span class="p">[</span><span class="n">k</span><span class="p">]</span>
+                <span class="n">new_result</span> <span class="o">=</span> <span class="n">tid_to_format_result</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">task</span><span class="p">[</span><span class="s1">&#39;id&#39;</span><span class="p">],</span> <span class="kc">None</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">new_result</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span> <span class="c1"># the result of the task is not available</span>
+                    <span class="k">continue</span>
+
+                <span class="k">if</span> <span class="p">(</span><span class="n">cache_result</span> <span class="o">==</span> <span class="kc">None</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">cache_result</span><span class="p">[</span><span class="s2">&quot;assignments&quot;</span><span class="p">])</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">new_result</span><span class="p">[</span><span class="s2">&quot;assignments&quot;</span><span class="p">])):</span>
+                    <span class="n">exe_str</span> <span class="o">=</span> <span class="s2">&quot;INSERT OR REPLACE INTO &#39;</span><span class="si">%s</span><span class="s2">&#39; (id, col_name, value) VALUES(?,?,?)&quot;</span> <span class="o">%</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">table_name</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">cc</span><span class="o">.</span><span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">exe_str</span><span class="p">,</span> <span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">output_col</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">new_result</span><span class="p">),</span> <span class="p">))</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">cc</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+                    <span class="n">result_col</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">new_result</span>
+                    <span class="n">updated</span> <span class="o">=</span> <span class="kc">True</span>
+
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">updated</span><span class="p">:</span>
+                <span class="n">wait_time</span> <span class="o">=</span> <span class="n">wait_time</span> <span class="o">*</span> <span class="mi">2</span>
+                <span class="k">if</span> <span class="n">wait_time</span> <span class="o">&gt;</span> <span class="mi">16</span><span class="p">:</span>
+                    <span class="n">wait_time</span> <span class="o">=</span> <span class="mi">16</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">wait_time</span> <span class="o">=</span> <span class="mi">1</span>
+
+            <span class="k">if</span> <span class="n">blocking</span> <span class="o">==</span> <span class="kc">False</span><span class="p">:</span>
+                <span class="k">break</span>
+
+            <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="n">wait_time</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">output_col</span><span class="p">]</span> <span class="o">=</span> <span class="n">result_col</span>
+        <span class="k">if</span> <span class="n">output_col</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">cols</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">cols</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">output_col</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span></div>
+
+
+    <span class="k">def</span> <span class="nf">__em_col</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">result_col</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Using the [Dawid &amp; Skene 1979]&#39;s method&quot;&quot;&quot;</span>
+        <span class="n">task_to_worker_label</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">worker_to_task_label</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">label_set</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="c1"># Build up initial variables for em</span>
+        <span class="k">for</span> <span class="n">result</span> <span class="ow">in</span> <span class="n">result_col</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">result</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="n">tid</span> <span class="o">=</span> <span class="n">result</span><span class="p">[</span><span class="s2">&quot;task_id&quot;</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">result</span><span class="p">[</span><span class="s2">&quot;assignments&quot;</span><span class="p">]:</span>
+                <span class="n">wid</span> <span class="o">=</span> <span class="n">a</span><span class="p">[</span><span class="s2">&quot;worker_id&quot;</span><span class="p">]</span>
+                <span class="n">resp</span> <span class="o">=</span> <span class="n">a</span><span class="p">[</span><span class="s2">&quot;worker_response&quot;</span><span class="p">]</span>
+                <span class="n">task_to_worker_label</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">tid</span><span class="p">,</span> <span class="p">[])</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">wid</span><span class="p">,</span> <span class="n">resp</span><span class="p">))</span>
+                <span class="n">worker_to_task_label</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">wid</span><span class="p">,</span> <span class="p">[])</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">tid</span><span class="p">,</span> <span class="n">resp</span><span class="p">))</span>
+                <span class="k">if</span> <span class="n">resp</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">label_set</span><span class="p">:</span>
+                    <span class="n">label_set</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">resp</span><span class="p">)</span>
+
+        <span class="c1"># EM algorithm</span>
+        <span class="n">iteration</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;iterartion&quot;</span><span class="p">,</span> <span class="mi">20</span><span class="p">)</span>
+        <span class="n">em</span> <span class="o">=</span> <span class="n">EM</span><span class="p">(</span><span class="n">task_to_worker_label</span><span class="p">,</span> <span class="n">worker_to_task_label</span><span class="p">,</span> <span class="n">label_set</span><span class="p">)</span>
+        <span class="n">task_to_emlabel</span> <span class="o">=</span> <span class="n">em</span><span class="o">.</span><span class="n">quality_control</span><span class="p">(</span><span class="n">iteration</span><span class="p">)</span>
+
+        <span class="c1"># Gather answers</span>
+        <span class="n">em_col</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">result_col</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">r</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">result_col</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">r</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="n">tid</span> <span class="o">=</span> <span class="n">r</span><span class="p">[</span><span class="s2">&quot;task_id&quot;</span><span class="p">]</span>
+            <span class="n">em_col</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">task_to_emlabel</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">tid</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">em_col</span>
+
+
+    <span class="k">def</span> <span class="nf">__mv_col</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">result_col</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Using Majority Vote&quot;&quot;&quot;</span>
+        <span class="n">task_to_label</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="c1"># Build up initial variables for mv</span>
+        <span class="k">for</span> <span class="n">result</span> <span class="ow">in</span> <span class="n">result_col</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">result</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="n">tid</span> <span class="o">=</span> <span class="n">result</span><span class="p">[</span><span class="s2">&quot;task_id&quot;</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">result</span><span class="p">[</span><span class="s2">&quot;assignments&quot;</span><span class="p">]:</span>
+                <span class="n">wid</span> <span class="o">=</span> <span class="n">a</span><span class="p">[</span><span class="s2">&quot;worker_id&quot;</span><span class="p">]</span>
+                <span class="n">resp</span> <span class="o">=</span> <span class="n">a</span><span class="p">[</span><span class="s2">&quot;worker_response&quot;</span><span class="p">]</span>
+                <span class="n">task_to_label</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">tid</span><span class="p">,</span> <span class="p">[])</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">resp</span><span class="p">)</span>
+
+        <span class="n">mv</span> <span class="o">=</span> <span class="n">MV</span><span class="p">(</span><span class="n">task_to_label</span><span class="p">)</span>
+        <span class="n">task_to_mvlabel</span> <span class="o">=</span> <span class="n">mv</span><span class="o">.</span><span class="n">quality_control</span><span class="p">()</span>
+
+        <span class="c1"># Gather answers</span>
+        <span class="n">mv_col</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">result_col</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">r</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">result_col</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">r</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="n">tid</span> <span class="o">=</span> <span class="n">r</span><span class="p">[</span><span class="s2">&quot;task_id&quot;</span><span class="p">]</span>
+            <span class="n">mv_col</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">task_to_mvlabel</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">tid</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">mv_col</span>
+
+
+<div class="viewcode-block" id="CrowdData.quality_control"><a class="viewcode-back" href="../../../operators.html#reprowd.operators.crowddata.CrowdData.quality_control">[docs]</a>    <span class="k">def</span> <span class="nf">quality_control</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">method</span> <span class="o">=</span> <span class="s2">&quot;mv&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            Infer the final results using a quality-control method</span>
+
+<span class="sd">            :param method: The name of the quality-control method</span>
+<span class="sd">            :param \*\*kwargs: Parameters for he quality-control method</span>
+<span class="sd">            :return: The updated CrowdData object</span>
+
+<span class="sd">            Quality-control methods:</span>
+<span class="sd">                - ``mv`` is short for Majority Vote.  It does not have any input parameter</span>
+<span class="sd">                - ``em`` is short for Expectation-Maximization [Dawid &amp; Skene 1979]. It has one input parameter: iteration (default: 20).</span>
+
+<span class="sd">            The function adds a new column (e.g., **mv**, **em**) to the tabular dataset, which consists of the inferred result of each task.</span>
+
+<span class="sd">            &gt;&gt;&gt; from reprowd.presenter.image import ImageLabel</span>
+<span class="sd">            &gt;&gt;&gt; object_list = [&quot;image1.jpg&quot;, &quot;image2.jpg&quot;]</span>
+<span class="sd">            &gt;&gt;&gt; crowddata = cc.CrowdData(object_list, table_name = &quot;test&quot;) \\  #doctest: +SKIP</span>
+<span class="sd">            ...               .set_presenter(ImageLabel(), lambda obj: {&#39;url_b&#39;:obj}) \\  #doctest: +SKIP</span>
+<span class="sd">            ...               .publish_task(n_assignments=3).get_result() \\  #doctest: +SKIP</span>
+<span class="sd">            ...               .quality_control(&quot;em&quot;, iteration = 10) #doctest: +SKIP</span>
+<span class="sd">            &gt;&gt;&gt; crowddata.cols #doctest: +SKIP</span>
+<span class="sd">            [&#39;id&#39;, &#39;object&#39;, &#39;task&#39;, &#39;result&#39;, &#39;em&#39;]</span>
+<span class="sd">            &gt;&gt;&gt; crowddata.data[&quot;em&quot;] #doctest: +SKIP</span>
+<span class="sd">            [&#39;YES&#39;, &#39;NO&#39;]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">input_col</span> <span class="o">=</span> <span class="s2">&quot;result&quot;</span>
+        <span class="k">if</span> <span class="n">input_col</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">cols</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;There is no result for quality control. &quot;</span>
+                                    <span class="s2">&quot;Pease call get_result() to get results first.&quot;</span><span class="p">)</span>
+
+        <span class="n">output_col</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="n">method</span> <span class="o">==</span> <span class="s2">&quot;mv&quot;</span><span class="p">:</span>
+            <span class="n">output_col</span> <span class="o">=</span> <span class="s2">&quot;mv&quot;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">output_col</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__mv_col</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">input_col</span><span class="p">],</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">method</span> <span class="o">==</span> <span class="s2">&quot;em&quot;</span><span class="p">:</span>
+            <span class="n">output_col</span> <span class="o">=</span> <span class="s2">&quot;em&quot;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">output_col</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__em_col</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">input_col</span><span class="p">],</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">output_col</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">method</span><span class="p">)</span><span class="o">+</span><span class="s2">&quot; is not a valid input.&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">output_col</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">cols</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">cols</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">output_col</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="bp">self</span></div>
+
+
+<div class="viewcode-block" id="CrowdData.append"><a class="viewcode-back" href="../../../operators.html#reprowd.operators.crowddata.CrowdData.append">[docs]</a>    <span class="k">def</span> <span class="nf">append</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">object</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            Add an object to the end of the  **object** column</span>
+
+<span class="sd">            :param: An object that can be anything (e.g., int, string, dict)</span>
+<span class="sd">            :return: The updated CrowdData object</span>
+
+<span class="sd">            &gt;&gt;&gt; from reprowd.presenter.image import ImageLabel</span>
+<span class="sd">            &gt;&gt;&gt; object_list = [&quot;image1.jpg&quot;, &quot;image2.jpg&quot;]</span>
+<span class="sd">            &gt;&gt;&gt; crowddata = cc.CrowdData(object_list, table_name = &quot;test&quot;) \\  #doctest: +SKIP</span>
+<span class="sd">            ...               .set_presenter(ImageLabel(), lambda obj: {&#39;url_b&#39;:obj}) \\  #doctest: +SKIP</span>
+<span class="sd">            ...               .publish_task().get_result().quality_control(&quot;mv&quot;)  #doctest: +SKIP</span>
+<span class="sd">            &gt;&gt;&gt; crowddata.data[&quot;object&quot;] #doctest: +SKIP</span>
+<span class="sd">            [&#39;image1.jpg&#39;, &#39;image2.jpg&#39;]</span>
+<span class="sd">            &gt;&gt;&gt; crowddata.append( &#39;image3.jpg&#39;)  #doctest: +SKIP</span>
+<span class="sd">            &gt;&gt;&gt; crowddata.data[&quot;object&quot;] #doctest: +SKIP</span>
+<span class="sd">            [&#39;image1.jpg&#39;, &#39;image2.jpg&#39;, &#39;image3.jpg&#39;]</span>
+<span class="sd">            &gt;&gt;&gt; crowddata.publish_task().get_result().quality_control(&quot;mv&quot;) #doctest: +SKIP</span>
+<span class="sd">            &gt;&gt;&gt; crowddata.data[&quot;mv&quot;] #doctest: +SKIP</span>
+<span class="sd">            [&#39;YES&#39;, &#39;YES&#39;, &quot;NO&quot;]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;object&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">object</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;id&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">start_id</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">cols</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">col</span> <span class="o">!=</span> <span class="s1">&#39;object&#39;</span> <span class="ow">and</span> <span class="n">col</span> <span class="o">!=</span> <span class="s1">&#39;id&#39;</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">col</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">start_id</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">return</span> <span class="bp">self</span></div>
+
+
+<div class="viewcode-block" id="CrowdData.extend"><a class="viewcode-back" href="../../../operators.html#reprowd.operators.crowddata.CrowdData.extend">[docs]</a>    <span class="k">def</span> <span class="nf">extend</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">object_list</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            Extend the list by appending all the objects in the given list</span>
+
+<span class="sd">            :param: A list of objects where an object can be anything (e.g., int, string, dict)</span>
+<span class="sd">            :return: The updated CrowdData object</span>
+
+<span class="sd">            &gt;&gt;&gt; from reprowd.presenter.image import ImageLabel</span>
+<span class="sd">            &gt;&gt;&gt; object_list = [&quot;image1.jpg&quot;, &quot;image2.jpg&quot;]</span>
+<span class="sd">            &gt;&gt;&gt; crowddata = cc.CrowdData(object_list, table_name = &quot;test&quot;) \\   #doctest: +SKIP</span>
+<span class="sd">            ...  .set_presenter(ImageLabel(), lambda obj: {&#39;url_b&#39;:obj}) \\  #doctest: +SKIP</span>
+<span class="sd">            ...  .publish_task().get_result().quality_control(&quot;mv&quot;)  #doctest: +SKIP</span>
+<span class="sd">            &gt;&gt;&gt; crowddata.data[&quot;object&quot;] #doctest: +SKIP</span>
+<span class="sd">            [&#39;image1.jpg&#39;, &#39;image2.jpg&#39;]</span>
+<span class="sd">            &gt;&gt;&gt; crowddata.extend([&#39;image3.jpg&#39;, &#39;image3.jpg&#39;])  #doctest: +SKIP</span>
+<span class="sd">            &gt;&gt;&gt; crowddata.data[&quot;object&quot;] #doctest: +SKIP</span>
+<span class="sd">            [&#39;image1.jpg&#39;, &#39;image2.jpg&#39;, &#39;image3.jpg&#39;, &#39;image4.jpg&#39;]</span>
+<span class="sd">            &gt;&gt;&gt; crowddata.publish_task().get_result().quality_control(&quot;mv&quot;) #doctest: +SKIP</span>
+<span class="sd">            &gt;&gt;&gt; crowddata.data[&quot;mv&quot;] #doctest: +SKIP</span>
+<span class="sd">            [&#39;YES&#39;, &#39;YES&#39;, &quot;NO&quot;, &#39;NO&#39;]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;object&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">object_list</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;id&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">start_id</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">start_id</span><span class="o">+</span><span class="nb">len</span><span class="p">(</span><span class="n">object_list</span><span class="p">)))</span>
+        <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">cols</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">col</span> <span class="o">!=</span> <span class="s1">&#39;object&#39;</span> <span class="ow">and</span> <span class="n">col</span> <span class="o">!=</span> <span class="s1">&#39;id&#39;</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">col</span><span class="p">]</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="kc">None</span><span class="p">]</span><span class="o">*</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">]</span> <span class="p">)</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">col</span><span class="p">])))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">start_id</span> <span class="o">+=</span> <span class="nb">len</span><span class="p">(</span><span class="n">object_list</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span></div>
+
+
+<div class="viewcode-block" id="CrowdData.filter"><a class="viewcode-back" href="../../../operators.html#reprowd.operators.crowddata.CrowdData.filter">[docs]</a>    <span class="k">def</span> <span class="nf">filter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">func</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            Return the updated crowddata by selecting the rows, for which func returns True</span>
+
+<span class="sd">            :param: A function that returns True for the selected rows</span>
+<span class="sd">            :return: The updated CrowdData object</span>
+
+<span class="sd">            &gt;&gt;&gt; from reprowd.presenter.image import ImageLabel</span>
+<span class="sd">            &gt;&gt;&gt; object_list = [&quot;image1.jpg&quot;, &quot;image2.jpg&quot;]</span>
+<span class="sd">            &gt;&gt;&gt; crowddata = cc.CrowdData(object_list, table_name = &quot;test&quot;)  \\  #doctest: +SKIP</span>
+<span class="sd">            ...               .set_presenter(ImageLabel(), lambda obj: {&#39;url_b&#39;:obj}) \\  #doctest: +SKIP</span>
+<span class="sd">            ...               .publish_task().get_result().quality_control(&quot;mv&quot;)  #doctest: +SKIP</span>
+<span class="sd">            &gt;&gt;&gt; crowddata.data[&quot;mv&quot;] #doctest: +SKIP</span>
+<span class="sd">            [&#39;YES&#39;, &#39;NO&#39;]</span>
+<span class="sd">            &gt;&gt;&gt; crowddata.filter(lambda r: r[&quot;mv&quot;] == &#39;YES&#39; ) # Only keeps the images labled by &#39;YES&#39; #doctest: +SKIP</span>
+<span class="sd">            &gt;&gt;&gt; crowddata.data[&quot;object&quot;] #doctest: +SKIP</span>
+<span class="sd">            [&#39;image1.jpg&#39;]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;id&#39;</span><span class="p">])</span>
+        <span class="n">new_table</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+            <span class="n">row</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">([(</span><span class="n">col</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">col</span><span class="p">][</span><span class="n">i</span><span class="p">])</span> <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">cols</span><span class="p">])</span>
+            <span class="k">if</span> <span class="n">func</span><span class="p">(</span><span class="n">row</span><span class="p">):</span>
+                <span class="n">new_table</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">row</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">cols</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">col</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">new_table</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">col</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="n">col</span><span class="p">])</span>
+        <span class="k">return</span> <span class="bp">self</span></div>
+
+
+<div class="viewcode-block" id="CrowdData.clear"><a class="viewcode-back" href="../../../operators.html#reprowd.operators.crowddata.CrowdData.clear">[docs]</a>    <span class="k">def</span> <span class="nf">clear</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            Remove all the rows in the crowddata</span>
+
+<span class="sd">            :return: The updated CrowdData object</span>
+
+<span class="sd">            &gt;&gt;&gt; from reprowd.presenter.image import ImageLabel</span>
+<span class="sd">            &gt;&gt;&gt; object_list = [&quot;image1.jpg&quot;, &quot;image2.jpg&quot;]</span>
+<span class="sd">            &gt;&gt;&gt; crowddata = cc.CrowdData(object_list, table_name = &quot;test&quot;)  \\ #doctest: +SKIP</span>
+<span class="sd">            ...               .set_presenter(ImageLabel(), lambda obj: {&#39;url_b&#39;:obj}) \\  #doctest: +SKIP</span>
+<span class="sd">            ...               .publish_task().get_result().quality_control(&quot;mv&quot;)  #doctest: +SKIP</span>
+<span class="sd">            &gt;&gt;&gt; crowddata.data[&quot;mv&quot;] #doctest: +SKIP</span>
+<span class="sd">            [&#39;YES&#39;, &#39;NO&#39;]</span>
+<span class="sd">            &gt;&gt;&gt; crowddata.clear()  #doctest: +SKIP</span>
+<span class="sd">            &lt;reprowd.operators.crowddata.CrowdData instance at 0x...&gt;</span>
+<span class="sd">            &gt;&gt;&gt; crowddata.data[&quot;object&quot;] #doctest: +SKIP</span>
+<span class="sd">            []</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">cols</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">col</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">return</span> <span class="bp">self</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">Reprowd 0.1 documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &copy; Copyright 2016, SFU-DB.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.5.
+    </div>
+  </body>
+</html>

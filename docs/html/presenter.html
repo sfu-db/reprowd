@@ -1,0 +1,222 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>reprowd.presenter package &mdash; Reprowd 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="Reprowd 0.1 documentation" href="index.html" />
+    <link rel="prev" title="reprowd.operators package" href="operators.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="operators.html" title="reprowd.operators package"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Reprowd 0.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="reprowd-presenter-package">
+<h1>reprowd.presenter package<a class="headerlink" href="#reprowd-presenter-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="reprowd-presenter-image-module">
+<h2>reprowd.presenter.image module<a class="headerlink" href="#reprowd-presenter-image-module" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="reprowd.presenter.image.ImageLabel">
+<em class="property">class </em><code class="descclassname">reprowd.presenter.image.</code><code class="descname">ImageLabel</code><a class="reference internal" href="_modules/reprowd/presenter/image.html#ImageLabel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#reprowd.presenter.image.ImageLabel" title="Permalink to this definition">¶</a></dt>
+<dd><p>ImageLabel is a presenter class direved from base presenter class. It is attacted with project.
+ImageLabel basically is used for image label tasks.</p>
+<dl class="method">
+<dt id="reprowd.presenter.image.ImageLabel.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/reprowd/presenter/image.html#ImageLabel.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#reprowd.presenter.image.ImageLabel.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize a ImageLabel presenter for a project. Defaultly, question, project name, project shor_name and
+project description are set as empty, &#8220;Image Labeling&#8221;, &#8220;imglabel&#8221; and &#8220;Help us to label an image&#8221; respectively.
+The template attribute is a string of HTML file, which is the content of presenter. For writing a new template,
+check <a class="reference external" href="http://docs.pybossa.com/en/latest/user/tutorial.html#presenting-the-tasks-to-the-user">http://docs.pybossa.com/en/latest/user/tutorial.html#presenting-the-tasks-to-the-user</a>.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">presenter</span> <span class="o">=</span> <span class="n">ImageLabel</span><span class="p">();</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">presenter</span><span class="o">.</span><span class="n">set_name</span><span class="p">(</span><span class="s2">&quot;Do you see a Human face in this picture?&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">crowddata</span> <span class="o">=</span> <span class="n">cc</span><span class="o">.</span><span class="n">CrowdData</span><span class="p">(</span><span class="n">object_list</span><span class="p">,</span> <span class="n">table_name</span> <span class="o">=</span> <span class="s2">&quot;test&quot;</span><span class="p">)</span>             <span class="o">...</span>               <span class="o">.</span><span class="n">set_presenter</span><span class="p">(</span><span class="n">presenter</span><span class="p">,</span> <span class="n">map_func</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">crowddata</span><span class="o">.</span><span class="n">presenter</span>
+<span class="go">&lt;reprowd.presenter.image.ImageLabel object at 0x...&gt;</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="reprowd.presenter.image.ImageLabel.set_description">
+<code class="descname">set_description</code><span class="sig-paren">(</span><em>description</em><span class="sig-paren">)</span><a class="headerlink" href="#reprowd.presenter.image.ImageLabel.set_description" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the presenter a new description, which will be the description of attached project.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="reprowd.presenter.image.ImageLabel.set_name">
+<code class="descname">set_name</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="headerlink" href="#reprowd.presenter.image.ImageLabel.set_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the presenter a new name, which will be the name of attached project.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="reprowd.presenter.image.ImageLabel.set_question">
+<code class="descname">set_question</code><span class="sig-paren">(</span><em>question</em><span class="sig-paren">)</span><a class="headerlink" href="#reprowd.presenter.image.ImageLabel.set_question" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the presenter a question, which will be the question of attached task presented on the HTML file.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="reprowd.presenter.image.ImageLabel.set_short_name">
+<code class="descname">set_short_name</code><span class="sig-paren">(</span><em>short_name</em><span class="sig-paren">)</span><a class="headerlink" href="#reprowd.presenter.image.ImageLabel.set_short_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the presenter a new short_name, which will be the short_name of attached project.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="reprowd.presenter.image.ImageLabel.set_template">
+<code class="descname">set_template</code><span class="sig-paren">(</span><em>template</em><span class="sig-paren">)</span><a class="headerlink" href="#reprowd.presenter.image.ImageLabel.set_template" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the presenter a new HTML file.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="reprowd.presenter.image.ImageCmp">
+<em class="property">class </em><code class="descclassname">reprowd.presenter.image.</code><code class="descname">ImageCmp</code><a class="reference internal" href="_modules/reprowd/presenter/image.html#ImageCmp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#reprowd.presenter.image.ImageCmp" title="Permalink to this definition">¶</a></dt>
+<dd><p>ImageCmp is a presenter class direved from base presenter class. It is attacted with project.
+ImageCmp basically is used for a pair of images comparing tasks.</p>
+<dl class="method">
+<dt id="reprowd.presenter.image.ImageCmp.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/reprowd/presenter/image.html#ImageCmp.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#reprowd.presenter.image.ImageCmp.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize a ImageCmp presenter for a project. Defaultly, question, project name, project shor_name and
+project description are set as empty, &#8220;Image Comparison&#8221;, &#8220;imgcmp&#8221; and &#8220;Help us to compare images&#8221; respectively.
+The template attribute is a string of HTML file, which is the content of presenter. For writing a new template,
+check <a class="reference external" href="http://docs.pybossa.com/en/latest/user/tutorial.html#presenting-the-tasks-to-the-user">http://docs.pybossa.com/en/latest/user/tutorial.html#presenting-the-tasks-to-the-user</a>.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">presenter</span> <span class="o">=</span> <span class="n">ImageCmp</span><span class="p">();</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">presenter</span><span class="o">.</span><span class="n">set_name</span><span class="p">(</span><span class="s2">&quot;Which picture is more beautiful?&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">crowddata</span> <span class="o">=</span> <span class="n">cc</span><span class="o">.</span><span class="n">CrowdData</span><span class="p">(</span><span class="n">object_list</span><span class="p">,</span> <span class="n">table_name</span> <span class="o">=</span> <span class="s2">&quot;test&quot;</span><span class="p">)</span>             <span class="o">...</span>               <span class="o">.</span><span class="n">set_presenter</span><span class="p">(</span><span class="n">presenter</span><span class="p">,</span> <span class="n">map_func</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">crowddata</span><span class="o">.</span><span class="n">presenter</span>
+<span class="go">&lt;reprowd.presenter.image.ImageCmp object at 0x...&gt;</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="reprowd.presenter.image.ImageCmp.set_description">
+<code class="descname">set_description</code><span class="sig-paren">(</span><em>description</em><span class="sig-paren">)</span><a class="headerlink" href="#reprowd.presenter.image.ImageCmp.set_description" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the presenter a new description, which will be the description of attached project.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="reprowd.presenter.image.ImageCmp.set_name">
+<code class="descname">set_name</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="headerlink" href="#reprowd.presenter.image.ImageCmp.set_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the presenter a new name, which will be the name of attached project.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="reprowd.presenter.image.ImageCmp.set_question">
+<code class="descname">set_question</code><span class="sig-paren">(</span><em>question</em><span class="sig-paren">)</span><a class="headerlink" href="#reprowd.presenter.image.ImageCmp.set_question" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the presenter a question, which will be the question of attached task presented on the HTML file.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="reprowd.presenter.image.ImageCmp.set_short_name">
+<code class="descname">set_short_name</code><span class="sig-paren">(</span><em>short_name</em><span class="sig-paren">)</span><a class="headerlink" href="#reprowd.presenter.image.ImageCmp.set_short_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the presenter a new short_name, which will be the short_name of attached project.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="reprowd.presenter.image.ImageCmp.set_template">
+<code class="descname">set_template</code><span class="sig-paren">(</span><em>template</em><span class="sig-paren">)</span><a class="headerlink" href="#reprowd.presenter.image.ImageCmp.set_template" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the presenter a new HTML file.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">reprowd.presenter package</a><ul>
+<li><a class="reference internal" href="#reprowd-presenter-image-module">reprowd.presenter.image module</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="operators.html"
+                        title="previous chapter">reprowd.operators package</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/presenter.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="operators.html" title="reprowd.operators package"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Reprowd 0.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &copy; Copyright 2016, SFU-DB.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.5.
+    </div>
+  </body>
+</html>

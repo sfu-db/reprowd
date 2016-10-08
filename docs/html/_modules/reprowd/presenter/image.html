@@ -1,0 +1,556 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>reprowd.presenter.image &mdash; Reprowd 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="top" title="Reprowd 0.1 documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">Reprowd 0.1 documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for reprowd.presenter.image</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="kn">from</span> <span class="nn">reprowd.presenter.base</span> <span class="k">import</span> <span class="o">*</span>
+
+<div class="viewcode-block" id="ImageLabel"><a class="viewcode-back" href="../../../presenter.html#reprowd.presenter.image.ImageLabel">[docs]</a><span class="k">class</span> <span class="nc">ImageLabel</span> <span class="p">(</span><span class="n">BasePresenter</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        ImageLabel is a presenter class direved from base presenter class. It is attacted with project.</span>
+<span class="sd">        ImageLabel basically is used for image label tasks.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+<div class="viewcode-block" id="ImageLabel.__init__"><a class="viewcode-back" href="../../../presenter.html#reprowd.presenter.image.ImageLabel.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            Initialize a ImageLabel presenter for a project. Defaultly, question, project name, project shor_name and</span>
+<span class="sd">            project description are set as empty, &quot;Image Labeling&quot;, &quot;imglabel&quot; and &quot;Help us to label an image&quot; respectively.</span>
+<span class="sd">            The template attribute is a string of HTML file, which is the content of presenter. For writing a new template,</span>
+<span class="sd">            check http://docs.pybossa.com/en/latest/user/tutorial.html#presenting-the-tasks-to-the-user.</span>
+
+<span class="sd">            &gt;&gt;&gt; presenter = ImageLabel();</span>
+<span class="sd">            &gt;&gt;&gt; presenter.set_name(&quot;Do you see a Human face in this picture?&quot;)</span>
+<span class="sd">            &gt;&gt;&gt; crowddata = cc.CrowdData(object_list, table_name = &quot;test&quot;) \</span>
+<span class="sd">            ...               .set_presenter(presenter, map_func)</span>
+<span class="sd">            &gt;&gt;&gt; crowddata.presenter</span>
+<span class="sd">            &lt;reprowd.presenter.image.ImageLabel object at 0x...&gt;</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">question</span> <span class="o">=</span> <span class="s2">&quot;123&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;Image Labeling&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">short_name</span> <span class="o">=</span> <span class="s2">&quot;imglabel&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">description</span> <span class="o">=</span> <span class="s2">&quot;Help us to label an image&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">template</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">        &lt;!--</span>
+<span class="s2">    Task DOM for loading the Flickr Images</span>
+<span class="s2">    It uses the class=&quot;skeleton&quot; to identify the elements that belong to the</span>
+<span class="s2">    task.</span>
+<span class="s2">--&gt;</span>
+<span class="s2">&lt;div class=&quot;row skeleton&quot;&gt; &lt;!-- Start Skeleton Row--&gt;</span>
+<span class="s2">    &lt;div class=&quot;col-md-6 &quot;&gt;&lt;!-- Start of Question and Submission DIV (column) --&gt;</span>
+<span class="s2">        &lt;h1 id=&quot;question&quot;&gt;&lt;span id=&quot;i18n_question&quot;&gt;$</span><span class="si">{question}</span><span class="s2">&lt;/span&gt;&lt;/h1&gt; &lt;!-- The question will be loaded here --&gt;</span>
+<span class="s2">        &lt;div id=&quot;answer&quot;&gt; &lt;!-- Start DIV for the submission buttons --&gt;</span>
+<span class="s2">            &lt;!-- If the user clicks this button, the saved answer will be value=&quot;yes&quot;--&gt;</span>
+<span class="s2">            &lt;button class=&quot;btn btn-success btn-answer&quot; value=&#39;Yes&#39;&gt;&lt;i class=&quot;icon icon-white icon-thumbs-up&quot;&gt;&lt;/i&gt; &lt;span id=&quot;i18n_yes&quot;&gt;Yes&lt;/span&gt;&lt;/button&gt;</span>
+<span class="s2">            &lt;!-- If the user clicks this button, the saved answer will be value=&quot;no&quot;--&gt;</span>
+<span class="s2">            &lt;button class=&quot;btn btn-danger btn-answer&quot; value=&#39;No&#39;&gt;&lt;i class=&quot;icon icon-white icon-thumbs-down&quot;&gt;&lt;/i&gt; No&lt;/button&gt;</span>
+<span class="s2">            &lt;!-- If the user clicks this button, the saved answer will be value=&quot;NoPhoto&quot;--&gt;</span>
+<span class="s2">            &lt;button class=&quot;btn btn-answer&quot; value=&#39;NoPhoto&#39;&gt;&lt;i class=&quot;icon icon-exclamation&quot;&gt;&lt;/i&gt; &lt;span id=&quot;i18n_no_photo&quot;&gt;No photo&lt;/span&gt;&lt;/button&gt;</span>
+<span class="s2">            &lt;!-- If the user clicks this button, the saved answer will be value=&quot;NotKnown&quot;--&gt;</span>
+<span class="s2">            &lt;button class=&quot;btn btn-answer&quot; value=&#39;NotKnown&#39;&gt;&lt;i class=&quot;icon icon-white icon-question-sign&quot;&gt;&lt;/i&gt; &lt;span id=&quot;i18n_i_dont_know&quot;&gt;I don&#39;t know&lt;/span&gt;&lt;/button&gt;</span>
+<span class="s2">        &lt;/div&gt;&lt;!-- End of DIV for the submission buttons --&gt;</span>
+<span class="s2">        &lt;!-- Feedback items for the user --&gt;</span>
+<span class="s2">        &lt;p&gt;&lt;span id=&quot;i18n_working_task&quot;&gt;You are working now on task:&lt;/span&gt; &lt;span id=&quot;task-id&quot; class=&quot;label label-warning&quot;&gt;#&lt;/span&gt;&lt;/p&gt;</span>
+<span class="s2">        &lt;p&gt;&lt;span id=&quot;i18n_tasks_completed&quot;&gt;You have completed:&lt;/span&gt; &lt;span id=&quot;done&quot; class=&quot;label label-info&quot;&gt;&lt;/span&gt; &lt;span id=&quot;i18n_tasks_from&quot;&gt;tasks from&lt;/span&gt;</span>
+<span class="s2">        &lt;!-- Progress progress-bar for the user --&gt;</span>
+<span class="s2">        &lt;span id=&quot;total&quot; class=&quot;label label-inverse&quot;&gt;&lt;/span&gt;&lt;/p&gt;</span>
+<span class="s2">        &lt;div class=&quot;progress progress-striped&quot;&gt;</span>
+<span class="s2">            &lt;div id=&quot;progress&quot; rel=&quot;tooltip&quot; title=&quot;#&quot; class=&quot;progress-bar&quot; style=&quot;width: 0%;&quot;&gt;&lt;/div&gt;</span>
+<span class="s2">        &lt;/div&gt;</span>
+<span class="s2">        &lt;!--</span>
+<span class="s2">            This project uses Disqus to allow users to provide some feedback.</span>
+<span class="s2">            The next section includes a button that when a user clicks on it will</span>
+<span class="s2">            load the comments, if any, for the given task</span>
+<span class="s2">        --&gt;</span>
+<span class="s2">        &lt;div id=&quot;disqus_show_btn&quot; style=&quot;margin-top:5px;&quot;&gt;</span>
+<span class="s2">            &lt;button class=&quot;btn btn-primary btn-lg btn-disqus&quot; onclick=&quot;loadDisqus()&quot;&gt;&lt;i class=&quot;icon-comments&quot;&gt;&lt;/i&gt; &lt;span id=&quot;i18n_show_comments&quot;&gt;Show comments&lt;/span&gt;&lt;/button&gt;</span>
+<span class="s2">            &lt;button class=&quot;btn btn-lg btn-disqus&quot; onclick=&quot;loadDisqus()&quot; style=&quot;display:none&quot;&gt;&lt;i class=&quot;icon-comments&quot;&gt;&lt;/i&gt; &lt;span id=&quot;i18n_hide_comments&quot;&gt;Hide comments&lt;/span&gt;&lt;/button&gt;</span>
+<span class="s2">        &lt;/div&gt;&lt;!-- End of Disqus Button section --&gt;</span>
+<span class="s2">        &lt;!-- Disqus thread for the given task --&gt;</span>
+<span class="s2">        &lt;div id=&quot;disqus_thread&quot; style=&quot;margin-top:5px;display:none&quot;&gt;&lt;/div&gt;</span>
+<span class="s2">    &lt;/div&gt;&lt;!-- End of Question and Submission DIV (column) --&gt;</span>
+<span class="s2">    &lt;div class=&quot;col-md-6&quot;&gt;&lt;!-- Start of Photo DIV (column) --&gt;</span>
+<span class="s2">        &lt;a id=&quot;photo-link&quot; href=&quot;#&quot;&gt;</span>
+<span class="s2">            &lt;img id=&quot;photo&quot; src=&quot;http://i.imgur.com/GeHxzb7.png&quot; style=&quot;max-width=100%&quot;&gt;</span>
+<span class="s2">        &lt;/a&gt;</span>
+<span class="s2">    &lt;/div&gt;&lt;!-- End of Photo DIV (columnt) --&gt;</span>
+<span class="s2">&lt;/div&gt;&lt;!-- End of Skeleton Row --&gt;</span>
+
+<span class="s2">&lt;script type=&quot;text/javascript&quot;&gt;</span>
+<span class="s2">    /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */</span>
+
+<span class="s2">    /* * * DON&#39;T EDIT BELOW THIS LINE * * */</span>
+<span class="s2">    function loadDisqus() {</span>
+<span class="s2">    $(&quot;#disqus_thread&quot;).toggle();</span>
+<span class="s2">    $(&quot;.btn-disqus&quot;).toggle();</span>
+<span class="s2">    var disqus_shortname = &#39;pybossa&#39;; // required: replace example with your forum shortname</span>
+<span class="s2">    //var disqus_identifier = taskId;</span>
+<span class="s2">    var disqus_developer = 1;</span>
+
+<span class="s2">    (function() {</span>
+<span class="s2">        var dsq = document.createElement(&#39;script&#39;); dsq.type = &#39;text/javascript&#39;; dsq.async = true;</span>
+<span class="s2">        dsq.src = &#39;http://&#39; + disqus_shortname + &#39;.disqus.com/embed.js&#39;;</span>
+<span class="s2">        (document.getElementsByTagName(&#39;head&#39;)[0] || document.getElementsByTagName(&#39;body&#39;)[0]).appendChild(dsq);</span>
+<span class="s2">    })();</span>
+<span class="s2">    }</span>
+
+<span class="s2">&lt;/script&gt;</span>
+<span class="s2">&lt;noscript&gt;Please enable JavaScript to view the &lt;a href=&quot;http://disqus.com/?ref_noscript&quot;&gt;comments powered by Disqus.&lt;/a&gt;&lt;/noscript&gt;</span>
+
+<span class="s2">&lt;script type=&quot;text/javascript&quot;&gt;</span>
+<span class="s2">(function() {</span>
+<span class="s2">// Default language</span>
+<span class="s2">var userLocale = &quot;en&quot;;</span>
+<span class="s2">// Translations</span>
+<span class="s2">var messages = {&quot;en&quot;: {</span>
+<span class="s2">                        &quot;i18n_welldone&quot;: &quot;Well done!&quot;,</span>
+<span class="s2">                        &quot;i18n_welldone_text&quot;: &quot;Your answer has been saved&quot;,</span>
+<span class="s2">                        &quot;i18n_loading_next_task&quot;: &quot;Loading next task...&quot;,</span>
+<span class="s2">                        &quot;i18n_task_completed&quot;: &quot;The task has been completed!&quot;,</span>
+<span class="s2">                        &quot;i18n_thanks&quot;: &quot;Thanks a lot!&quot;,</span>
+<span class="s2">                        &quot;i18n_congratulations&quot;: &quot;Congratulations&quot;,</span>
+<span class="s2">                        &quot;i18n_congratulations_text&quot;: &quot;You have participated in all available tasks!&quot;,</span>
+<span class="s2">                        &quot;i18n_yes&quot;: &quot;Yes&quot;,</span>
+<span class="s2">                        &quot;i18n_no_photo&quot;: &quot;No photo&quot;,</span>
+<span class="s2">                        &quot;i18n_i_dont_know&quot;: &quot;I don&#39;t know&quot;,</span>
+<span class="s2">                        &quot;i18n_working_task&quot;: &quot;You are working now on task:&quot;,</span>
+<span class="s2">                        &quot;i18n_tasks_completed&quot;: &quot;You have completed:&quot;,</span>
+<span class="s2">                        &quot;i18n_tasks_from&quot;: &quot;tasks from&quot;,</span>
+<span class="s2">                        &quot;i18n_show_comments&quot;: &quot;Show comments:&quot;,</span>
+<span class="s2">                        &quot;i18n_hide_comments&quot;: &quot;Hide comments:&quot;,</span>
+<span class="s2">                      },</span>
+<span class="s2">                &quot;es&quot;: {</span>
+<span class="s2">                        &quot;i18n_welldone&quot;: &quot;Bien hecho!&quot;,</span>
+<span class="s2">                        &quot;i18n_welldone_text&quot;: &quot;Tu respuesta ha sido guardada&quot;,</span>
+<span class="s2">                        &quot;i18n_loading_next_task&quot;: &quot;Cargando la siguiente tarea...&quot;,</span>
+<span class="s2">                        &quot;i18n_task_completed&quot;: &quot;La tarea ha sido completadas!&quot;,</span>
+<span class="s2">                        &quot;i18n_thanks&quot;: &quot;Muchísimas gracias!&quot;,</span>
+<span class="s2">                        &quot;i18n_congratulations&quot;: &quot;Enhorabuena&quot;,</span>
+<span class="s2">                        &quot;i18n_congratulations_text&quot;: &quot;Has participado en todas las tareas disponibles!&quot;,</span>
+<span class="s2">                        &quot;i18n_yes&quot;: &quot;Sí&quot;,</span>
+<span class="s2">                        &quot;i18n_no_photo&quot;: &quot;No hay foto&quot;,</span>
+<span class="s2">                        &quot;i18n_i_dont_know&quot;: &quot;No lo sé&quot;,</span>
+<span class="s2">                        &quot;i18n_working_task&quot;: &quot;Estás trabajando en la tarea:&quot;,</span>
+<span class="s2">                        &quot;i18n_tasks_completed&quot;: &quot;Has completado:&quot;,</span>
+<span class="s2">                        &quot;i18n_tasks_from&quot;: &quot;tareas de&quot;,</span>
+<span class="s2">                        &quot;i18n_show_comments&quot;: &quot;Mostrar comentarios&quot;,</span>
+<span class="s2">                        &quot;i18n_hide_comments&quot;: &quot;Ocultar comentarios&quot;,</span>
+<span class="s2">                      },</span>
+<span class="s2">               };</span>
+<span class="s2">// Update userLocale with server side information</span>
+<span class="s2"> $(document).ready(function(){</span>
+<span class="s2">     userLocale = document.getElementById(&#39;PYBOSSA_USER_LOCALE&#39;).textContent.trim();</span>
+
+<span class="s2">});</span>
+
+<span class="s2">function i18n_translate() {</span>
+<span class="s2">    var ids = Object.keys(messages[userLocale])</span>
+<span class="s2">    for (i=0; i&lt;ids.length; i++) {</span>
+<span class="s2">        console.log(&quot;Translating: &quot; + ids[i]);</span>
+<span class="s2">        if (document.getElementById(ids[i])) {</span>
+<span class="s2">            document.getElementById(ids[i]).innerHTML = messages[userLocale][ids[i]];</span>
+<span class="s2">        }</span>
+<span class="s2">    }</span>
+<span class="s2">}</span>
+
+
+<span class="s2">function loadUserProgress() {</span>
+<span class="s2">    pybossa.userProgress(&#39;rm&#39;).done(function(data){</span>
+<span class="s2">        var pct = Math.round((data.done*100)/data.total);</span>
+<span class="s2">        $(&quot;#progress&quot;).css(&quot;width&quot;, pct.toString() +&quot;%&quot;);</span>
+<span class="s2">        $(&quot;#progress&quot;).attr(&quot;title&quot;, pct.toString() + &quot;</span><span class="si">% c</span><span class="s2">ompleted!&quot;);</span>
+<span class="s2">        $(&quot;#progress&quot;).tooltip({&#39;placement&#39;: &#39;left&#39;});</span>
+<span class="s2">        $(&quot;#total&quot;).text(data.total);</span>
+<span class="s2">        $(&quot;#done&quot;).text(data.done);</span>
+<span class="s2">    });</span>
+<span class="s2">}</span>
+
+<span class="s2">pybossa.taskLoaded(function(task, deferred) {</span>
+<span class="s2">    if ( !$.isEmptyObject(task) ) {</span>
+<span class="s2">        // load image from flickr</span>
+<span class="s2">        var img = $(&#39;&lt;img /&gt;&#39;);</span>
+<span class="s2">        img.load(function() {</span>
+<span class="s2">            // continue as soon as the image is loaded</span>
+<span class="s2">            deferred.resolve(task);</span>
+<span class="s2">            pybossaNotify(&quot;&quot;, false, &quot;loading&quot;);</span>
+<span class="s2">        });</span>
+<span class="s2">        img.attr(&#39;src&#39;, task.info.url_b).css(&#39;height&#39;, 460);</span>
+<span class="s2">        img.addClass(&#39;img-thumbnail&#39;);</span>
+<span class="s2">        task.info.image = img;</span>
+<span class="s2">    }</span>
+<span class="s2">    else {</span>
+<span class="s2">        deferred.resolve(task);</span>
+<span class="s2">    }</span>
+<span class="s2">});</span>
+
+<span class="s2">pybossa.presentTask(function(task, deferred) {</span>
+<span class="s2">    if ( !$.isEmptyObject(task) ) {</span>
+<span class="s2">        i18n_translate();</span>
+<span class="s2">        $(&#39;#photo-link&#39;).html(&#39;&#39;).append(task.info.image);</span>
+<span class="s2">        // $(&quot;#photo-link&quot;).attr(&quot;href&quot;, task.info.link);</span>
+<span class="s2">        $(&#39;#task-id&#39;).html(task.id);</span>
+<span class="s2">        $(&#39;.btn-answer&#39;).off(&#39;click&#39;).on(&#39;click&#39;, function(evt) {</span>
+<span class="s2">            var btn = $(this);</span>
+<span class="s2">            var answer = btn.attr(&quot;value&quot;);</span>
+<span class="s2">            if (typeof answer != &#39;undefined&#39;) {</span>
+<span class="s2">                pybossa.saveTask(task.id, answer).done(function() {</span>
+<span class="s2">                    pybossaNotify(&quot;Loading picture...&quot;, true, &quot;loading&quot;);</span>
+<span class="s2">                    deferred.resolve();</span>
+<span class="s2">                });</span>
+<span class="s2">                if ($(&quot;#disqus_thread&quot;).is(&quot;:visible&quot;)) {</span>
+<span class="s2">                    $(&#39;#disqus_thread&#39;).toggle();</span>
+<span class="s2">                    $(&#39;.btn-disqus&#39;).toggle();</span>
+<span class="s2">                }</span>
+<span class="s2">            }</span>
+<span class="s2">            else {</span>
+<span class="s2">                pybossaNotify(&quot;Oops... Something went wrong.&quot;, true, &quot;error&quot;);</span>
+<span class="s2">            }</span>
+<span class="s2">        });</span>
+<span class="s2">        pybossaNotify(&quot;Loading picture...&quot;, false, &quot;loading&quot;);</span>
+<span class="s2">    }</span>
+<span class="s2">    else {</span>
+<span class="s2">        $(&quot;.skeleton&quot;).hide();</span>
+<span class="s2">        pybossaNotify(&quot;Loading picture...&quot;, false, &quot;loading&quot;);</span>
+<span class="s2">        pybossaNotify(&quot;Thanks! You have participated in all available tasks. Enjoy some of your time!&quot;, true, &quot;info&quot;);</span>
+<span class="s2">    }</span>
+<span class="s2">});</span>
+
+<span class="s2"> pybossa.run(&#39;$</span><span class="si">{short_name}</span><span class="s2">&#39;);</span>
+<span class="s2"> })();</span>
+<span class="s2"> &lt;/script&gt;</span>
+<span class="s2">        &quot;&quot;&quot;</span></div></div>
+
+<div class="viewcode-block" id="ImageCmp"><a class="viewcode-back" href="../../../presenter.html#reprowd.presenter.image.ImageCmp">[docs]</a><span class="k">class</span> <span class="nc">ImageCmp</span><span class="p">(</span><span class="n">BasePresenter</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        ImageCmp is a presenter class direved from base presenter class. It is attacted with project.</span>
+<span class="sd">        ImageCmp basically is used for a pair of images comparing tasks.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+<div class="viewcode-block" id="ImageCmp.__init__"><a class="viewcode-back" href="../../../presenter.html#reprowd.presenter.image.ImageCmp.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            Initialize a ImageCmp presenter for a project. Defaultly, question, project name, project shor_name and</span>
+<span class="sd">            project description are set as empty, &quot;Image Comparison&quot;, &quot;imgcmp&quot; and &quot;Help us to compare images&quot; respectively.</span>
+<span class="sd">            The template attribute is a string of HTML file, which is the content of presenter. For writing a new template,</span>
+<span class="sd">            check http://docs.pybossa.com/en/latest/user/tutorial.html#presenting-the-tasks-to-the-user.</span>
+
+<span class="sd">            &gt;&gt;&gt; presenter = ImageCmp();</span>
+<span class="sd">            &gt;&gt;&gt; presenter.set_name(&quot;Which picture is more beautiful?&quot;)</span>
+<span class="sd">            &gt;&gt;&gt; crowddata = cc.CrowdData(object_list, table_name = &quot;test&quot;) \</span>
+<span class="sd">            ...               .set_presenter(presenter, map_func)</span>
+<span class="sd">            &gt;&gt;&gt; crowddata.presenter</span>
+<span class="sd">            &lt;reprowd.presenter.image.ImageCmp object at 0x...&gt;</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">question</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;Image Comparison&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">short_name</span> <span class="o">=</span> <span class="s2">&quot;imgcmp&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">description</span> <span class="o">=</span> <span class="s2">&quot;Help us to compare images&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">template</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">&lt;!--</span>
+<span class="s2">    Task DOM for loading the Flickr Images</span>
+<span class="s2">    It uses the class=&quot;skeleton&quot; to identify the elements that belong to the</span>
+<span class="s2">    task.</span>
+<span class="s2">--&gt;</span>
+<span class="s2">&lt;div class=&quot;row skeleton&quot;&gt; &lt;!-- Start Skeleton Row--&gt;</span>
+<span class="s2">    &lt;div class=&quot;col-md-6 &quot; style=&quot;width:100%;text-align:center;margin-left:auto;margin-right:auto&quot;&gt;&lt;!-- Start of Question and Submission DIV (column) --&gt;</span>
+<span class="s2">        &lt;h1 id=&quot;question&quot;&gt;&lt;span id=&quot;i18n_question&quot;&gt;$</span><span class="si">{question}</span><span class="s2">&lt;/span&gt;&lt;/h1&gt; &lt;!-- The question will be loaded here --&gt;</span>
+<span class="s2">        &lt;br&gt;</span>
+<span class="s2">        &lt;div class=&quot;col-md-6&quot; style=&quot;width:100%&quot;&gt;&lt;!-- Start of Photo DIV (column) --&gt;</span>
+
+<span class="s2">            &lt;a class=&quot;a-answer&quot; id=&quot;photo-link1&quot; href=&quot;#&quot; value=&quot;left&quot;&gt;</span>
+<span class="s2">              &lt;img id=&quot;photo&quot; style=&quot;float:left&quot;src=&quot;http://i.imgur.com/GeHxzb7.png&quot;&gt;</span>
+<span class="s2">            &lt;/a&gt;</span>
+<span class="s2">            &lt;a style=&quot;text-transform:none;text-decoration:none;font-size:50px&quot;&gt;&lt;b&gt;OR&lt;/a&gt;</span>
+<span class="s2">            &lt;a class=&quot;a-answer&quot; id=&quot;photo-link2&quot; href=&quot;#&quot; value=&quot;right&quot;&gt;</span>
+<span class="s2">              &lt;img id=&quot;photo&quot; style=&quot;float:right&quot; src=&quot;http://i.imgur.com/GeHxzb7.png&quot;&gt;</span>
+<span class="s2">            &lt;/a&gt;</span>
+<span class="s2">        &lt;/div&gt;&lt;!-- End of Photo DIV (columnt) --&gt;</span>
+<span class="s2">    &lt;/div&gt;</span>
+<span class="s2">&lt;/div&gt;&lt;!-- End of Skeleton Row --&gt;</span>
+
+<span class="s2">&lt;script type=&quot;text/javascript&quot;&gt;</span>
+<span class="s2">    /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */</span>
+
+<span class="s2">    /* * * DON&#39;T EDIT BELOW THIS LINE * * */</span>
+<span class="s2">    function loadDisqus() {</span>
+<span class="s2">    $(&quot;#disqus_thread&quot;).toggle();</span>
+<span class="s2">    $(&quot;.btn-disqus&quot;).toggle();</span>
+<span class="s2">    var disqus_shortname = &#39;pybossa&#39;; // required: replace example with your forum shortname</span>
+<span class="s2">    //var disqus_identifier = taskId;</span>
+<span class="s2">    var disqus_developer = 1;</span>
+
+<span class="s2">    (function() {</span>
+<span class="s2">        var dsq = document.createElement(&#39;script&#39;); dsq.type = &#39;text/javascript&#39;; dsq.async = true;</span>
+<span class="s2">        dsq.src = &#39;http://&#39; + disqus_shortname + &#39;.disqus.com/embed.js&#39;;</span>
+<span class="s2">        (document.getElementsByTagName(&#39;head&#39;)[0] || document.getElementsByTagName(&#39;body&#39;)[0]).appendChild(dsq);</span>
+<span class="s2">    })();</span>
+<span class="s2">    }</span>
+
+<span class="s2">&lt;/script&gt;</span>
+<span class="s2">&lt;noscript&gt;Please enable JavaScript to view the &lt;a href=&quot;http://disqus.com/?ref_noscript&quot;&gt;comments powered by Disqus.&lt;/a&gt;&lt;/noscript&gt;</span>
+
+<span class="s2">&lt;script type=&quot;text/javascript&quot;&gt;</span>
+<span class="s2">(function() {</span>
+<span class="s2">// Default language</span>
+<span class="s2">var userLocale = &quot;en&quot;;</span>
+<span class="s2">// Translations</span>
+<span class="s2">var messages = {&quot;en&quot;: {</span>
+<span class="s2">                        &quot;i18n_welldone&quot;: &quot;Well done!&quot;,</span>
+<span class="s2">                        &quot;i18n_welldone_text&quot;: &quot;Your answer has been saved&quot;,</span>
+<span class="s2">                        &quot;i18n_loading_next_task&quot;: &quot;Loading next task...&quot;,</span>
+<span class="s2">                        &quot;i18n_task_completed&quot;: &quot;The task has been completed!&quot;,</span>
+<span class="s2">                        &quot;i18n_thanks&quot;: &quot;Thanks a lot!&quot;,</span>
+<span class="s2">                        &quot;i18n_congratulations&quot;: &quot;Congratulations&quot;,</span>
+<span class="s2">                        &quot;i18n_congratulations_text&quot;: &quot;You have participated in all available tasks!&quot;,</span>
+<span class="s2">                        &quot;i18n_yes&quot;: &quot;Yes&quot;,</span>
+<span class="s2">                        &quot;i18n_no_photo&quot;: &quot;No photo&quot;,</span>
+<span class="s2">                        &quot;i18n_i_dont_know&quot;: &quot;I don&#39;t know&quot;,</span>
+<span class="s2">                        &quot;i18n_working_task&quot;: &quot;You are working now on task:&quot;,</span>
+<span class="s2">                        &quot;i18n_tasks_completed&quot;: &quot;You have completed:&quot;,</span>
+<span class="s2">                        &quot;i18n_tasks_from&quot;: &quot;tasks from&quot;,</span>
+<span class="s2">                        &quot;i18n_show_comments&quot;: &quot;Show comments:&quot;,</span>
+<span class="s2">                        &quot;i18n_hide_comments&quot;: &quot;Hide comments:&quot;,</span>
+<span class="s2">                      },</span>
+<span class="s2">                &quot;es&quot;: {</span>
+<span class="s2">                        &quot;i18n_welldone&quot;: &quot;Bien hecho!&quot;,</span>
+<span class="s2">                        &quot;i18n_welldone_text&quot;: &quot;Tu respuesta ha sido guardada&quot;,</span>
+<span class="s2">                        &quot;i18n_loading_next_task&quot;: &quot;Cargando la siguiente tarea...&quot;,</span>
+<span class="s2">                        &quot;i18n_task_completed&quot;: &quot;La tarea ha sido completadas!&quot;,</span>
+<span class="s2">                        &quot;i18n_thanks&quot;: &quot;Muchísimas gracias!&quot;,</span>
+<span class="s2">                        &quot;i18n_congratulations&quot;: &quot;Enhorabuena&quot;,</span>
+<span class="s2">                        &quot;i18n_congratulations_text&quot;: &quot;Has participado en todas las tareas disponibles!&quot;,</span>
+<span class="s2">                        &quot;i18n_yes&quot;: &quot;Sí&quot;,</span>
+<span class="s2">                        &quot;i18n_no_photo&quot;: &quot;No hay foto&quot;,</span>
+<span class="s2">                        &quot;i18n_i_dont_know&quot;: &quot;No lo sé&quot;,</span>
+<span class="s2">                        &quot;i18n_working_task&quot;: &quot;Estás trabajando en la tarea:&quot;,</span>
+<span class="s2">                        &quot;i18n_tasks_completed&quot;: &quot;Has completado:&quot;,</span>
+<span class="s2">                        &quot;i18n_tasks_from&quot;: &quot;tareas de&quot;,</span>
+<span class="s2">                        &quot;i18n_show_comments&quot;: &quot;Mostrar comentarios&quot;,</span>
+<span class="s2">                        &quot;i18n_hide_comments&quot;: &quot;Ocultar comentarios&quot;,</span>
+<span class="s2">                      },</span>
+<span class="s2">               };</span>
+<span class="s2">// Update userLocale with server side information</span>
+<span class="s2"> $(document).ready(function(){</span>
+<span class="s2">     userLocale = document.getElementById(&#39;PYBOSSA_USER_LOCALE&#39;).textContent.trim();</span>
+
+<span class="s2">});</span>
+
+<span class="s2">function i18n_translate() {</span>
+<span class="s2">    var ids = Object.keys(messages[userLocale])</span>
+<span class="s2">    for (i=0; i&lt;ids.length; i++) {</span>
+<span class="s2">        console.log(&quot;Translating: &quot; + ids[i]);</span>
+<span class="s2">        if (document.getElementById(ids[i])) {</span>
+<span class="s2">            document.getElementById(ids[i]).innerHTML = messages[userLocale][ids[i]];</span>
+<span class="s2">        }</span>
+<span class="s2">    }</span>
+<span class="s2">}</span>
+
+
+<span class="s2">function loadUserProgress() {</span>
+<span class="s2">    pybossa.userProgress(&#39;dd&#39;).done(function(data){</span>
+<span class="s2">        var pct = Math.round((data.done*100)/data.total);</span>
+<span class="s2">        $(&quot;#progress&quot;).css(&quot;width&quot;, pct.toString() +&quot;%&quot;);</span>
+<span class="s2">        $(&quot;#progress&quot;).attr(&quot;title&quot;, pct.toString() + &quot;</span><span class="si">% c</span><span class="s2">ompleted!&quot;);</span>
+<span class="s2">        $(&quot;#progress&quot;).tooltip({&#39;placement&#39;: &#39;left&#39;});</span>
+<span class="s2">        $(&quot;#total&quot;).text(data.total);</span>
+<span class="s2">        $(&quot;#done&quot;).text(data.done);</span>
+<span class="s2">    });</span>
+<span class="s2">}</span>
+
+<span class="s2">pybossa.taskLoaded(function(task, deferred) {</span>
+<span class="s2">    if ( !$.isEmptyObject(task) ) {</span>
+<span class="s2">        // load image from flickr</span>
+<span class="s2">        var img1 = $(&#39;&lt;img /&gt;&#39;);</span>
+<span class="s2">        var img2 = $(&#39;&lt;img /&gt;&#39;);</span>
+<span class="s2">        img1.load(function() {</span>
+<span class="s2">            // continue as soon as the image is loaded</span>
+<span class="s2">            deferred.resolve(task);</span>
+<span class="s2">            pybossaNotify(&quot;&quot;, false, &quot;loading&quot;);</span>
+<span class="s2">        });</span>
+<span class="s2">        img1.attr(&#39;id&#39;,&#39;pic1&#39;);</span>
+<span class="s2">        img1.attr(&#39;src&#39;, task.info.pic1).css(&#39;height&#39;, 300);</span>
+<span class="s2">        img1.addClass(&#39;img-thumbnail&#39;);</span>
+<span class="s2">        img2.load(function() {</span>
+<span class="s2">            // continue as soon as the image is loaded</span>
+<span class="s2">            deferred.resolve(task);</span>
+<span class="s2">            pybossaNotify(&quot;&quot;, false, &quot;loading&quot;);</span>
+<span class="s2">        });</span>
+<span class="s2">        img2.attr(&#39;id&#39;,&#39;pic2&#39;);</span>
+<span class="s2">        img2.attr(&#39;src&#39;, task.info.pic2).css(&#39;height&#39;, 300);</span>
+<span class="s2">        img2.addClass(&#39;img-thumbnail&#39;);</span>
+<span class="s2">        task.info.image1 = img1;</span>
+<span class="s2">        task.info.image2 = img2;</span>
+<span class="s2">    }</span>
+<span class="s2">    else {</span>
+<span class="s2">        deferred.resolve(task);</span>
+<span class="s2">    }</span>
+<span class="s2">});</span>
+
+<span class="s2">function sleep (time) {</span>
+<span class="s2">  return new Promise((resolve) =&gt; setTimeout(resolve, time));</span>
+<span class="s2">}</span>
+
+<span class="s2">pybossa.presentTask(function(task, deferred) {</span>
+<span class="s2">    if (!$.isEmptyObject(task)) {</span>
+<span class="s2">        // i18n_translate();</span>
+<span class="s2">        var whole_width = 500;</span>
+<span class="s2">        $(&#39;#photo-link1&#39;).html(&#39;&#39;).append(task.info.image1);</span>
+<span class="s2">        var image1 = $(&#39;#pic1&#39;);</span>
+<span class="s2">        image1.one(&#39;load&#39;, function(){</span>
+<span class="s2">            var img1_padding = ((whole_width - image1.width()) / 2).toString() + &quot;px&quot;;</span>
+<span class="s2">            image1.css(&quot;background&quot;, &quot;#000000&quot;);</span>
+<span class="s2">            image1.css(&quot;padding-left&quot;, img1_padding);</span>
+<span class="s2">            image1.css(&quot;padding-right&quot;, img1_padding);</span>
+<span class="s2">        }).each(function() {</span>
+<span class="s2">            if (this.complete) $(this).load();</span>
+<span class="s2">        });</span>
+
+<span class="s2">        $(&#39;#photo-link2&#39;).html(&#39;&#39;).append(task.info.image2);</span>
+<span class="s2">        var image2 = $(&#39;#pic2&#39;);</span>
+<span class="s2">        image2.one(&#39;load&#39;, function(){</span>
+<span class="s2">            var img2_padding = ((whole_width - image2.width()) / 2).toString() + &quot;px&quot;;</span>
+<span class="s2">            image2.css(&quot;background&quot;, &quot;#000000&quot;);</span>
+<span class="s2">            image2.css(&quot;padding-left&quot;, img2_padding);</span>
+<span class="s2">            image2.css(&quot;padding-right&quot;, img2_padding);</span>
+<span class="s2">        }).each(function() {</span>
+<span class="s2">            if (this.complete) $(this).load();</span>
+<span class="s2">        });</span>
+
+<span class="s2">        // $(&quot;#photo-link&quot;).attr(&quot;href&quot;, task.info.link);</span>
+<span class="s2">        $(&#39;#task-id&#39;).html(task.id);</span>
+<span class="s2">        $(&#39;.a-answer&#39;).off(&#39;click&#39;).on(&#39;click&#39;, function(evt) {</span>
+<span class="s2">            var btn = $(this);</span>
+<span class="s2">            var answer = btn.attr(&quot;value&quot;);</span>
+<span class="s2">            if (typeof answer != &#39;undefined&#39;) {</span>
+<span class="s2">                pybossa.saveTask(task.id, answer).done(function() {</span>
+<span class="s2">                    pybossaNotify(&quot;Loading picture...&quot;, true, &quot;loading&quot;);</span>
+<span class="s2">                    deferred.resolve();</span>
+<span class="s2">                });</span>
+<span class="s2">                if ($(&quot;#disqus_thread&quot;).is(&quot;:visible&quot;)) {</span>
+<span class="s2">                    $(&#39;#disqus_thread&#39;).toggle();</span>
+<span class="s2">                    $(&#39;.btn-disqus&#39;).toggle();</span>
+<span class="s2">                }</span>
+<span class="s2">                console.log(&#39;finish answer&#39;);</span>
+<span class="s2">            }</span>
+<span class="s2">            else {</span>
+<span class="s2">                pybossaNotify(&quot;Oops... Something went wrong.&quot;, true, &quot;error&quot;);</span>
+<span class="s2">            }</span>
+<span class="s2">        });</span>
+<span class="s2">        pybossaNotify(&quot;Loading picture...&quot;, false, &quot;loading&quot;);</span>
+<span class="s2">        url = window.location.href;</span>
+<span class="s2">        index = url.indexOf(task.id.toString());</span>
+<span class="s2">        pre_id = task.id;</span>
+<span class="s2">    }</span>
+<span class="s2">    else {</span>
+<span class="s2">            url = window.location.href;</span>
+<span class="s2">            var url_list = url.split(&#39;/&#39;);</span>
+<span class="s2">            if (url_list[url_list.length - 1] == &#39;newtask&#39;) {</span>
+<span class="s2">                $(&quot;.skeleton&quot;).hide();</span>
+<span class="s2">                pybossaNotify(&quot;Loading picture...&quot;, false, &quot;loading&quot;);</span>
+<span class="s2">                pybossaNotify(&quot;Thanks! You have participated in all available tasks. Enjoy some of your time!&quot;, true, &quot;info&quot;);</span>
+<span class="s2">                return;</span>
+<span class="s2">            }</span>
+<span class="s2">            var new_url = url.substring(0, index) + (pre_id + 1).toString();</span>
+<span class="s2">            var query_url = url_list[0] + &quot;//&quot; + url_list[2]+ &quot;/api/task/&quot; + (pre_id + 1).toString();</span>
+<span class="s2">            var i = 0;</span>
+<span class="s2">            sleep(10000).then(() =&gt; {</span>
+<span class="s2">                $.get(query_url, function() {</span>
+<span class="s2">                    window.location.href = new_url;</span>
+<span class="s2">                }).fail(function(){</span>
+<span class="s2">                    $(&quot;.skeleton&quot;).hide();</span>
+<span class="s2">                    pybossaNotify(&quot;Loading picture...&quot;, false, &quot;loading&quot;);</span>
+<span class="s2">                    pybossaNotify(&quot;Thanks! You have participated in all available tasks. Enjoy some of your time!&quot;, true, &quot;info&quot;);</span>
+<span class="s2">                });</span>
+<span class="s2">            });</span>
+<span class="s2">                }</span>
+<span class="s2">});</span>
+<span class="s2"> pybossa.run(&#39;$</span><span class="si">{short_name}</span><span class="s2">&#39;);</span>
+<span class="s2"> })();</span>
+<span class="s2"> &lt;/script&gt;</span>
+<span class="s2">        &quot;&quot;&quot;</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">Reprowd 0.1 documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &copy; Copyright 2016, SFU-DB.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.5.
+    </div>
+  </body>
+</html>

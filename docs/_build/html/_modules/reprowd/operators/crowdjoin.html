@@ -1,0 +1,556 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>reprowd.operators.crowdjoin &mdash; Reprowd 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="top" title="Reprowd 0.1 documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">Reprowd 0.1 documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for reprowd.operators.crowdjoin</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+
+<span class="kn">from</span> <span class="nn">reprowd.utils.simjoin</span> <span class="k">import</span> <span class="n">SimJoin</span><span class="p">,</span> <span class="n">jaccard</span><span class="p">,</span> <span class="n">editsim</span>
+<span class="kn">from</span> <span class="nn">reprowd.utils.union_find</span> <span class="k">import</span> <span class="n">UnionFind</span>
+<span class="kn">from</span> <span class="nn">reprowd.operators.crowddata</span> <span class="k">import</span> <span class="n">CrowdData</span>
+<span class="kn">from</span> <span class="nn">sets</span> <span class="k">import</span> <span class="n">ImmutableSet</span>
+<span class="kn">import</span> <span class="nn">pbclient</span>
+<span class="kn">import</span> <span class="nn">sqlite3</span>
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">import</span> <span class="nn">itertools</span>
+
+
+
+
+<div class="viewcode-block" id="CrowdJoin"><a class="viewcode-back" href="../../../operators.html#reprowd.operators.crowdjoin.CrowdJoin">[docs]</a><span class="k">class</span> <span class="nc">CrowdJoin</span><span class="p">:</span>
+
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Given a list of objects (or two lists of objects), the CrowdJoin operator</span>
+<span class="sd">        finds matching objects in the list (or between the two lists).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">MATCHING</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">NONMATCHING</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">UNKNOWN</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+
+<div class="viewcode-block" id="CrowdJoin.__init__"><a class="viewcode-back" href="../../../operators.html#reprowd.operators.crowdjoin.CrowdJoin.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">object_list</span><span class="p">,</span> <span class="n">table_name</span><span class="p">,</span> <span class="n">crowdcontext</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initialize a CrowdJoin object.</span>
+
+<span class="sd">        Note: It is not recommended to call the constructor directly.</span>
+<span class="sd">        Please call it through :func:`reprowd.crowdcontext.CrowdContext.CrowdJoin`.</span>
+
+<span class="sd">        &gt;&gt;&gt; object_list = [&quot;iPad 2&quot;, &quot;iPad Two&quot;, &quot;iPhone 2&quot;, &quot;iPad2&quot;]</span>
+<span class="sd">        &gt;&gt;&gt; cc.CrowdJoin(object_list, table_name = &quot;jointest&quot;)  #doctest: +SKIP</span>
+<span class="sd">        &lt;reprowd.operators.crowdjoin.CrowdJoin instance at 0x...&gt;</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cc</span> <span class="o">=</span> <span class="n">crowdcontext</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">object_list</span> <span class="o">=</span><span class="n">object_list</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">table_name</span> <span class="o">=</span> <span class="n">table_name</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">presenter</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">map_func</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">op</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;obj1&#39;</span><span class="p">:</span><span class="n">op</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s1">&#39;obj2&#39;</span><span class="p">:</span><span class="n">op</span><span class="p">[</span><span class="mi">1</span><span class="p">]}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">matcher_func</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nonmatcher_func</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">simjoin_on</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">transitivity_on</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">n_assignments</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">priority</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">crowddata</span> <span class="o">=</span>  <span class="bp">self</span><span class="o">.</span><span class="n">cc</span><span class="o">.</span><span class="n">CrowdData</span><span class="p">([],</span> <span class="n">table_name</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="CrowdJoin.set_presenter"><a class="viewcode-back" href="../../../operators.html#reprowd.operators.crowdjoin.CrowdJoin.set_presenter">[docs]</a>    <span class="k">def</span> <span class="nf">set_presenter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">presenter</span><span class="p">,</span> <span class="n">map_func</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">op</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;obj1&#39;</span><span class="p">:</span><span class="n">op</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s1">&#39;obj2&#39;</span><span class="p">:</span><span class="n">op</span><span class="p">[</span><span class="mi">1</span><span class="p">]}):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Specify a presenter</span>
+
+<span class="sd">        :param presenter: A Presenter object (e.g., :class:`reprowd.presenter.test.TextCmp`).</span>
+<span class="sd">        :param map_func:  map_func() maps a pair of objects into the data format the presenter requires.</span>
+<span class="sd">                                       If ``map_func`` is not specified, it will use the default ``map_func = lambda op: {&#39;obj1&#39;:op[0], &#39;obj2&#39;:op[1]}``</span>
+<span class="sd">        :return: The updated CrowdJoin object</span>
+
+<span class="sd">        &gt;&gt;&gt; from reprowd.presenter.text import TextCmp</span>
+<span class="sd">        &gt;&gt;&gt; object_list = [&quot;iPad 2&quot;, &quot;iPad Two&quot;, &quot;iPhone 2&quot;, &quot;iPad2&quot;]</span>
+<span class="sd">        &gt;&gt;&gt; def map_func(obj_pair):</span>
+<span class="sd">        ...     o1, o2 = obj_pair</span>
+<span class="sd">        ...     return {&#39;obj1&#39;:o1, &#39;obj2&#39;:o2}</span>
+<span class="sd">        &gt;&gt;&gt; cc.CrowdJoin(object_list, table_name = &quot;jointest&quot;) \\ #doctest: +SKIP</span>
+<span class="sd">        ...   .set_presenter(TextCmp(), map_func) #doctest: +SKIP</span>
+<span class="sd">        &lt;reprowd.operators.crowdjoin.CrowdJoin instance at 0x...&gt;</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">presenter</span> <span class="o">=</span> <span class="n">presenter</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">map_func</span> <span class="o">=</span> <span class="n">map_func</span>
+        <span class="k">return</span> <span class="bp">self</span></div>
+
+
+<div class="viewcode-block" id="CrowdJoin.set_simjoin"><a class="viewcode-back" href="../../../operators.html#reprowd.operators.crowdjoin.CrowdJoin.set_simjoin">[docs]</a>    <span class="k">def</span> <span class="nf">set_simjoin</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">joinkey_func</span><span class="p">,</span> <span class="n">threshold</span> <span class="o">=</span> <span class="mf">0.4</span><span class="p">,</span> <span class="n">weight_on</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Set a simjoin operator</span>
+
+<span class="sd">        :param joinkey_func: A function that takes an object as input and outputs a join key on which simjoin will perform.</span>
+<span class="sd">                                        The join key has to be a set of elements (e.g., bag of words, n-grams)</span>
+<span class="sd">        :param threshold:  A float number in [0, 1]. The higher the value, the more the number of object pairs that are removed.</span>
+<span class="sd">        :param weight_on: A boolean value that indicates which similarity function, non-weighted Jaccard (``weight_on = False``)</span>
+<span class="sd">                                     or weighted Jaccard  (``weight_on = True``), will be used to compute similarity.</span>
+<span class="sd">        :return: The updated CrowdJoin object</span>
+
+<span class="sd">        Why do we need this? Consider a list of n objects. A naive implementation of CrowdJoin is to</span>
+<span class="sd">        ask workers to label all n^2 object pairs. In fact, among these pairs, most of them look quite dissimilar</span>
+<span class="sd">        and can be easily identified as non-matching pairs. Setting a simjoin operator will help us to remove</span>
+<span class="sd">        these obviously non-matching pairs. Specifically, when it is set, all the object pairs whose Jaccard</span>
+<span class="sd">        similarity values are below the threshold will be removed.</span>
+
+<span class="sd">        &gt;&gt;&gt; from reprowd.presenter.text import TextCmp</span>
+<span class="sd">        &gt;&gt;&gt; from reprowd.utils.simjoin import gramset</span>
+<span class="sd">        &gt;&gt;&gt; object_list = [&quot;iPad 2&quot;, &quot;iPad Two&quot;, &quot;iPhone 2&quot;, &quot;iPad2&quot;]</span>
+<span class="sd">        &gt;&gt;&gt; def joinkey_func(obj):</span>
+<span class="sd">        ...     # Use a 2-gram set as a joinkey</span>
+<span class="sd">        ...     return gramset(obj, 2)</span>
+<span class="sd">        &gt;&gt;&gt; crowdjoin = cc.CrowdJoin(object_list, table_name = &quot;jointest&quot;) \\ #doctest: +SKIP</span>
+<span class="sd">        ...               .set_presenter(TextCmp()) \\ #doctest: +SKIP</span>
+<span class="sd">        ...               .set_simjoin(joinkey_func, 0.2) #doctest: +SKIP</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">joinkey_func</span> <span class="o">=</span> <span class="n">joinkey_func</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">threshold</span> <span class="o">=</span> <span class="n">threshold</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">weight_on</span> <span class="o">=</span> <span class="n">weight_on</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">simjoin_on</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">return</span> <span class="bp">self</span></div>
+
+
+<div class="viewcode-block" id="CrowdJoin.set_matcher"><a class="viewcode-back" href="../../../operators.html#reprowd.operators.crowdjoin.CrowdJoin.set_matcher">[docs]</a>    <span class="k">def</span> <span class="nf">set_matcher</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">matcher_func</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Specify a function for determining which object pairs are matching</span>
+
+<span class="sd">        :param matcher_func: A function that takes a pair of objects as input and outputs True for matching pairs</span>
+<span class="sd">        :return: The updated CrowdJoin object</span>
+
+<span class="sd">        &gt;&gt;&gt; from reprowd.presenter.text import TextCmp</span>
+<span class="sd">        &gt;&gt;&gt; from reprowd.utils.simjoin import gramset, jaccard</span>
+<span class="sd">        &gt;&gt;&gt; object_list = [&quot;iPad 2&quot;, &quot;iPad Two&quot;, &quot;iPhone 2&quot;, &quot;iPad2&quot;]</span>
+<span class="sd">        &gt;&gt;&gt; # Identify the pairs whose Jaccard similarity is above 0.9 as matching.</span>
+<span class="sd">        &gt;&gt;&gt; def matcher_func(obj_pair):</span>
+<span class="sd">        ...     o1, o2 = obj_pair</span>
+<span class="sd">        ...     return jaccard(gramset(o1, 2), gramset(o2, 2)) &gt;= 0.9</span>
+<span class="sd">        &gt;&gt;&gt; crowdjoin = cc.CrowdJoin(object_list, table_name = &quot;jointest&quot;) \\ #doctest: +SKIP</span>
+<span class="sd">        ...               .set_presenter(TextCmp(), map_func) \\ #doctest: +SKIP</span>
+<span class="sd">        ...               .set_matcher(matcher_func) #doctest: +SKIP</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">matcher_func</span> <span class="o">=</span> <span class="n">matcher_func</span>
+        <span class="k">return</span> <span class="bp">self</span></div>
+
+
+<div class="viewcode-block" id="CrowdJoin.set_nonmatcher"><a class="viewcode-back" href="../../../operators.html#reprowd.operators.crowdjoin.CrowdJoin.set_nonmatcher">[docs]</a>    <span class="k">def</span> <span class="nf">set_nonmatcher</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nonmatcher_func</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Specify a function for determining which object pairs are **not** matching</span>
+
+<span class="sd">        :param nonmatcher_func: A function that takes a pair of objects as input and outputs True for non-matching pairs</span>
+<span class="sd">        :return: The updated CrowdJoin object</span>
+
+<span class="sd">        &gt;&gt;&gt; from reprowd.presenter.text import TextCmp</span>
+<span class="sd">        &gt;&gt;&gt; from reprowd.utils.simjoin import gramset</span>
+<span class="sd">        &gt;&gt;&gt; object_list = [(&quot;iPad 2&quot;, 300), (&quot;iPad Two&quot;, 305), (&quot;iPhone 2&quot;, 400), (&quot;iPad2&quot;, 298)] # (name, price)</span>
+<span class="sd">        &gt;&gt;&gt; def map_func(obj_pair):</span>
+<span class="sd">        ...     o1, o2 = obj_pair</span>
+<span class="sd">        ...     return {&#39;obj1&#39;:o1[0] + &quot; | &quot; + str(o1[1]), &#39;obj2&#39;:o2[0] + &quot; | &quot; + str(o2[1])}</span>
+<span class="sd">        &gt;&gt;&gt; # If the prices of two product differ by more than 80, they will be identified as a non-matching pair</span>
+<span class="sd">        &gt;&gt;&gt; def nonmatcher_func(obj_pair):</span>
+<span class="sd">        ...     o1, o2 = obj_pair</span>
+<span class="sd">        ...     return abs(o1[1]-o2[1]) &gt; 80</span>
+<span class="sd">        &gt;&gt;&gt;</span>
+<span class="sd">        &gt;&gt;&gt; crowdjoin = cc.CrowdJoin(object_list, table_name = &quot;jointest&quot;) \\ #doctest: +SKIP</span>
+<span class="sd">        ...               .set_presenter(TextCmp(), map_func) \\#doctest: +SKIP</span>
+<span class="sd">        ...               .set_nonmatcher(nonmatcher_func) #doctest: +SKIP</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nonmatcher_func</span> <span class="o">=</span> <span class="n">nonmatcher_func</span>
+        <span class="k">return</span> <span class="bp">self</span></div>
+
+
+<div class="viewcode-block" id="CrowdJoin.set_transitivity"><a class="viewcode-back" href="../../../operators.html#reprowd.operators.crowdjoin.CrowdJoin.set_transitivity">[docs]</a>    <span class="k">def</span> <span class="nf">set_transitivity</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">score_func</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Use transitivity to reduce the number of the pairs that need to be labeled by workers.</span>
+<span class="sd">        Two types of transitivity will be considered:</span>
+
+<span class="sd">        1. If A and B are matching, B and C are matching, then A and C will be deduced as matching</span>
+<span class="sd">        2. If A and B are matching, B and C are non-matching, then A and C will be deduced as non-matching.</span>
+
+
+<span class="sd">        :param score_func: A score function that tends to return a high score for matching pairs and a low score for non-matching pairs.</span>
+<span class="sd">                                        Having this function will increase the effectiveness of transitivity (See [Wang et al. SIGMOD 2013] for more detail).</span>
+<span class="sd">        :return: The updated CrowdJoin object</span>
+
+<span class="sd">        &gt;&gt;&gt; from reprowd.presenter.text import TextCmp</span>
+<span class="sd">        &gt;&gt;&gt; from reprowd.utils.simjoin import gramset, jaccard</span>
+<span class="sd">        &gt;&gt;&gt; object_list = [&quot;iPhone 2&quot;, &quot;iPad 2&quot;, &quot;iPad Two&quot;, &quot;iPad2&quot;]</span>
+<span class="sd">        &gt;&gt;&gt; def score_func(obj_pair):</span>
+<span class="sd">        ...     o1, o2 = obj_pair</span>
+<span class="sd">        ...     return jaccard(gramset(o1, 2), gramset(o2, 2))</span>
+<span class="sd">        &gt;&gt;&gt; crowdjoin = cc.CrowdJoin(object_list, table_name = &quot;jointest&quot;) \\ #doctest: +SKIP</span>
+<span class="sd">        ...               .set_presenter(TextCmp()) \\ #doctest: +SKIP</span>
+<span class="sd">        ...               .set_transitivity(score_func) #doctest: +SKIP</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">transitivity_on</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">score_func</span> <span class="o">=</span> <span class="n">score_func</span>
+        <span class="k">return</span> <span class="bp">self</span></div>
+
+
+<div class="viewcode-block" id="CrowdJoin.set_task_parameters"><a class="viewcode-back" href="../../../operators.html#reprowd.operators.crowdjoin.CrowdJoin.set_task_parameters">[docs]</a>    <span class="k">def</span> <span class="nf">set_task_parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n_assignments</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">priority</span> <span class="o">=</span> <span class="mi">0</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Set the values of the parameters for published tasks</span>
+
+<span class="sd">        :param n_assignments: The number of assignments. For example, ``n_assignments`` = 3 means that each task needs to be done by three different workers</span>
+<span class="sd">        :param priority:  A float number in [0, 1] that indicates the priority of the published tasks. The larger the value, the higher the priority.</span>
+<span class="sd">        :return: The updated CrowdJoin object</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">n_assignments</span> <span class="o">=</span> <span class="n">n_assignments</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">priority</span> <span class="o">=</span> <span class="n">priority</span>
+        <span class="k">return</span> <span class="bp">self</span></div>
+
+
+<div class="viewcode-block" id="CrowdJoin.join"><a class="viewcode-back" href="../../../operators.html#reprowd.operators.crowdjoin.CrowdJoin.join">[docs]</a>    <span class="k">def</span> <span class="nf">join</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other_object_list</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        If  **other_object_list** is not specified, perform a self-join on **self.object_list**;</span>
+<span class="sd">        otherwise, perform a join between *self.object_list* and **other_object_list**</span>
+
+<span class="sd">        :param other_object_list: A list of objects that will be joined with **self.object_list**</span>
+<span class="sd">        :return: A dict with the following attributes:</span>
+
+<span class="sd">        - **&quot;all&quot;**: All the matching pairs</span>
+<span class="sd">        - **&quot;human&quot;**: A subset of matching pairs identified by humans</span>
+<span class="sd">        - **&quot;machine&quot;**: A subset of matching pairs identified by ``matcher_func()`` in :func:`set_matcher`</span>
+<span class="sd">        - **&quot;transitivity&quot;**: A subset of matching pairs deduced based on transitivity</span>
+
+<span class="sd">        Note: No matter in which order  set_simjoin(), set_matcher(), and set_nonmatcher() are being called,</span>
+<span class="sd">        they will be applied in the **join()** function in the following order:</span>
+
+<span class="sd">                 1. set_simjoin()</span>
+<span class="sd">                 2. set_nonmatcher()</span>
+<span class="sd">                 3. set_matcher()</span>
+
+<span class="sd">        &gt;&gt;&gt; from reprowd.presenter.text import TextCmp</span>
+<span class="sd">        &gt;&gt;&gt; object_list = [&quot;iPad 2&quot;, &quot;iPad Two&quot;, &quot;iPhone 2&quot;]</span>
+<span class="sd">        &gt;&gt;&gt; crowdjoin = cc.CrowdJoin(object_list, table_name = &quot;jointest&quot;) \\  #doctest: +SKIP</span>
+<span class="sd">        ...               .set_presenter(TextCmp()) \\ #doctest: +SKIP</span>
+<span class="sd">        ...               .join() # Ask workers to check all pairs #doctest: +SKIP</span>
+<span class="sd">        &gt;&gt;&gt; matches[&#39;all&#39;] #doctest: +SKIP</span>
+<span class="sd">        [(&#39;iPad 2&#39;, &#39;iPad Two&#39;)]</span>
+<span class="sd">        &gt;&gt;&gt; matches[&#39;human&#39;] #doctest: +SKIP</span>
+<span class="sd">        [(&#39;iPad 2&#39;, &#39;iPad Two&#39;)]</span>
+<span class="sd">        &gt;&gt;&gt; matches[&#39;machine&#39;] #doctest: +SKIP</span>
+<span class="sd">        []</span>
+<span class="sd">        &gt;&gt;&gt; matches[&#39;transitivity&#39;] #doctest: +SKIP</span>
+<span class="sd">        []</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">presenter</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;Presenter has not been specified. Please use set_presenter() func to specifiy a presenter.&quot;&quot;&quot;</span><span class="p">)</span>
+
+        <span class="n">pairs</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="c1"># Apply fast simjoin algorithms to remove obviously non-matching pairs</span>
+        <span class="k">if</span> <span class="n">other_object_list</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span> <span class="c1"># self-join</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">simjoin_on</span><span class="p">:</span>
+                <span class="n">k_o_list</span> <span class="o">=</span> <span class="p">[(</span><span class="bp">self</span><span class="o">.</span><span class="n">joinkey_func</span><span class="p">(</span><span class="n">o</span><span class="p">),</span> <span class="n">o</span><span class="p">)</span> <span class="k">for</span> <span class="n">o</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">object_list</span><span class="p">]</span>
+                <span class="n">joined</span> <span class="o">=</span> <span class="n">SimJoin</span><span class="p">(</span><span class="n">k_o_list</span><span class="p">)</span><span class="o">.</span><span class="n">selfjoin</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">threshold</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">weight_on</span><span class="p">)</span>
+                <span class="n">pairs</span> <span class="o">=</span> <span class="p">[</span> <span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span> <span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">joined</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">pairs</span><span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">itertools</span><span class="o">.</span><span class="n">combinations</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">object_list</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span> <span class="c1"># join between two lists</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">simjoin_on</span><span class="p">:</span>
+                <span class="n">k_o_list1</span> <span class="o">=</span> <span class="p">[(</span><span class="bp">self</span><span class="o">.</span><span class="n">joinkey_func</span><span class="p">(</span><span class="n">o</span><span class="p">),</span> <span class="n">o</span><span class="p">)</span> <span class="k">for</span> <span class="n">o</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">object_list</span><span class="p">]</span>
+                <span class="n">k_o_list2</span> <span class="o">=</span> <span class="p">[(</span><span class="bp">self</span><span class="o">.</span><span class="n">joinkey_func</span><span class="p">(</span><span class="n">o</span><span class="p">),</span> <span class="n">o</span><span class="p">)</span> <span class="k">for</span> <span class="n">o</span> <span class="ow">in</span> <span class="n">other_object_list</span><span class="p">]</span>
+                <span class="n">joined</span> <span class="o">=</span> <span class="n">SimJoin</span><span class="p">(</span><span class="n">k_o_list1</span><span class="p">)</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">k_o_list2</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">threshold</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">weight_on</span><span class="p">)</span>
+                <span class="n">pairs</span> <span class="o">=</span> <span class="p">[</span> <span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span> <span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">joined</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">pairs</span><span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">itertools</span><span class="o">.</span><span class="n">product</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">object_list</span><span class="p">,</span> <span class="n">other_object_list</span><span class="p">))</span>
+
+        <span class="c1"># remove nonmatching pairs</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">nonmatcher_func</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">pairs</span> <span class="o">=</span> <span class="p">[</span><span class="n">p</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">pairs</span> <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">nonmatcher_func</span><span class="p">(</span><span class="n">p</span><span class="p">)]</span>
+
+        <span class="c1"># Apply the user-specified matcher to identify obviously matching pairs</span>
+        <span class="n">unknown_pairs</span> <span class="o">=</span> <span class="n">pairs</span>
+        <span class="n">matching_pairs</span><span class="o">=</span> <span class="p">[]</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">matcher_func</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">unknown_pairs</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">pair</span> <span class="ow">in</span> <span class="n">pairs</span><span class="p">:</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">matcher_func</span><span class="p">(</span><span class="n">pair</span><span class="p">):</span>
+                    <span class="n">matching_pairs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">pair</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">unknown_pairs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">pair</span><span class="p">)</span>
+        <span class="n">matching_pairs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unique_pair</span><span class="p">(</span><span class="n">matching_pairs</span><span class="p">)</span> <span class="c1"># remove duplicate matching pairs</span>
+
+        <span class="n">crowddata</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">crowddata</span>
+        <span class="c1"># Ask the crowd to label the remaining pairs</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">transitivity_on</span><span class="p">:</span>
+            <span class="c1"># Get the unique unknown pairs</span>
+            <span class="n">unique_unknown_pairs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unique_pair</span><span class="p">(</span><span class="n">unknown_pairs</span><span class="p">)</span>
+            <span class="n">crowddata</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">unique_unknown_pairs</span><span class="p">)</span><span class="o">.</span><span class="n">set_presenter</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">presenter</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">map_func</span><span class="p">)</span> \
+                      <span class="o">.</span><span class="n">publish_task</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_assignments</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">priority</span><span class="p">)</span><span class="o">.</span><span class="n">get_result</span><span class="p">()</span><span class="o">.</span><span class="n">quality_control</span><span class="p">(</span><span class="s2">&quot;em&quot;</span><span class="p">)</span>
+
+            <span class="c1"># Return the matching pairs identified by the crowd and the matcher</span>
+            <span class="n">crowdsourced_pairs</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">object_pair</span><span class="p">,</span> <span class="n">result</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">crowddata</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;object&quot;</span><span class="p">],</span> <span class="n">crowddata</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;em&#39;</span><span class="p">]):</span>
+                <span class="k">if</span> <span class="n">result</span> <span class="o">==</span> <span class="s1">&#39;Yes&#39;</span><span class="p">:</span>
+                    <span class="n">crowdsourced_pairs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">object_pair</span><span class="p">)</span>
+            <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;all&quot;</span><span class="p">:</span> <span class="n">crowdsourced_pairs</span><span class="o">+</span><span class="n">matching_pairs</span><span class="p">,</span> <span class="s2">&quot;human&quot;</span><span class="p">:</span><span class="n">crowdsourced_pairs</span><span class="p">,</span> <span class="s2">&quot;machine&quot;</span><span class="p">:</span> <span class="n">matching_pairs</span><span class="p">,</span> <span class="s2">&quot;transitivity&quot;</span><span class="p">:</span> <span class="p">[]}</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">crowdsourced_pairs</span><span class="p">,</span> <span class="n">transitivity_pairs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_label_pairs_with_transitivity</span><span class="p">(</span><span class="n">unknown_pairs</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">score_func</span><span class="p">)</span>
+            <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;all&quot;</span><span class="p">:</span> <span class="n">crowdsourced_pairs</span><span class="o">+</span><span class="n">matching_pairs</span><span class="o">+</span><span class="n">transitivity_pairs</span><span class="p">,</span> \
+                        <span class="s2">&quot;human&quot;</span><span class="p">:</span><span class="n">crowdsourced_pairs</span><span class="p">,</span> \
+                        <span class="s2">&quot;machine&quot;</span><span class="p">:</span> <span class="n">matching_pairs</span><span class="p">,</span> \
+                        <span class="s2">&quot;transitivity&quot;</span><span class="p">:</span> <span class="n">transitivity_pairs</span><span class="p">}</span></div>
+
+
+    <span class="k">def</span> <span class="nf">_label_pairs_with_transitivity</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">unknown_pairs</span><span class="p">,</span> <span class="n">score_func</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        References:</span>
+<span class="sd">            Jiannan Wang, Guoliang Li, Tim Kraska, Michael J. Franklin, Jianhua Feng.</span>
+<span class="sd">            Leveraging Transitive Relations for Crowdsourced Joins.</span>
+<span class="sd">            SIGMOD 2013</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">sorted_pairs</span> <span class="o">=</span> <span class="n">unknown_pairs</span>
+        <span class="k">if</span> <span class="n">score_func</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">sorted_pairs</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">unknown_pairs</span><span class="p">,</span> <span class="n">key</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">score_func</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="n">reverse</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+
+        <span class="n">crowdsourced_pairs</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">pair_crowdlabel</span> <span class="o">=</span> <span class="p">[]</span> <span class="c1">#  a list of published pairs and crowdsourced labels</span>
+
+        <span class="n">crowddata</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">crowddata</span><span class="o">.</span><span class="n">set_presenter</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">presenter</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">map_func</span><span class="p">)</span>
+        <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="n">must_crowdsourced_pairs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_must_crowdsourced_pairs</span><span class="p">(</span><span class="n">sorted_pairs</span><span class="p">,</span> <span class="n">pair_crowdlabel</span><span class="p">)</span>
+
+            <span class="c1"># Termination condition: No pair can be published</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">must_crowdsourced_pairs</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">break</span>
+
+            <span class="c1"># publish tasks and wait for results</span>
+            <span class="n">crowddata</span> <span class="o">=</span> <span class="n">crowddata</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">must_crowdsourced_pairs</span><span class="p">)</span> \
+                <span class="o">.</span><span class="n">publish_task</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_assignments</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">priority</span><span class="p">)</span><span class="o">.</span><span class="n">get_result</span><span class="p">()</span><span class="o">.</span><span class="n">quality_control</span><span class="p">(</span><span class="s1">&#39;em&#39;</span><span class="p">)</span>
+
+            <span class="c1"># Once all the results are collected, add the newly labled pairs into pair_crowdlabel</span>
+            <span class="k">for</span> <span class="n">object_pair</span><span class="p">,</span> <span class="n">result</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">crowddata</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;object&quot;</span><span class="p">],</span> <span class="n">crowddata</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;em&#39;</span><span class="p">]):</span>
+                <span class="k">if</span> <span class="n">result</span> <span class="o">==</span> <span class="s1">&#39;Yes&#39;</span><span class="p">:</span>
+                    <span class="n">crowdsourced_pairs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">object_pair</span><span class="p">)</span>
+                    <span class="n">pair_crowdlabel</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">object_pair</span><span class="p">,</span> <span class="n">CrowdJoin</span><span class="o">.</span><span class="n">MATCHING</span><span class="p">))</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">pair_crowdlabel</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">object_pair</span><span class="p">,</span> <span class="n">CrowdJoin</span><span class="o">.</span><span class="n">NONMATCHING</span><span class="p">))</span>
+
+        <span class="c1"># Get the matching pairs whose labels are deduced based on transitivity</span>
+        <span class="n">pairid_to_label</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_deduce_labels</span><span class="p">(</span><span class="n">sorted_pairs</span><span class="p">,</span> <span class="n">pair_crowdlabel</span><span class="p">)</span>
+        <span class="n">matching_pairs</span> <span class="o">=</span> <span class="p">[</span><span class="n">pair</span> <span class="k">for</span> <span class="n">pair</span> <span class="ow">in</span> <span class="n">unknown_pairs</span> <span class="k">if</span> <span class="n">pairid_to_label</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_id</span><span class="p">(</span><span class="n">pair</span><span class="p">)]</span> <span class="o">==</span> <span class="n">CrowdJoin</span><span class="o">.</span><span class="n">MATCHING</span><span class="p">]</span>
+        <span class="n">transitivity_pairs</span> <span class="o">=</span> <span class="p">[</span><span class="n">p</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">matching_pairs</span> <span class="k">if</span> <span class="n">p</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">crowdsourced_pairs</span><span class="p">]</span>
+
+        <span class="k">return</span> <span class="n">crowdsourced_pairs</span><span class="p">,</span> <span class="n">transitivity_pairs</span>
+
+
+    <span class="k">def</span> <span class="nf">_id</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pair</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">(</span><span class="nb">id</span><span class="p">(</span><span class="n">pair</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="nb">id</span><span class="p">(</span><span class="n">pair</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
+
+    <span class="k">def</span> <span class="nf">_unique_pair</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">l</span><span class="p">):</span>
+        <span class="n">seen</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">l</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_id</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">seen</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">seen</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_id</span><span class="p">(</span><span class="n">x</span><span class="p">))]</span>
+
+    <span class="k">def</span> <span class="nf">_deduce_labels</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">unlabeled_pairs</span><span class="p">,</span> <span class="n">pair_crowdlabel</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Deduce the labels of &quot;unlabeled_pairs&quot; based on labeled pairs</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># Init cluster graph</span>
+        <span class="n">cluster_graph</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__ClusterGraph</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">pair</span><span class="p">,</span> <span class="n">label</span> <span class="ow">in</span> <span class="n">pair_crowdlabel</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">label</span> <span class="o">==</span> <span class="n">CrowdJoin</span><span class="o">.</span><span class="n">MATCHING</span><span class="p">:</span>
+                <span class="n">cluster_graph</span><span class="o">.</span><span class="n">add_matching_edge</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_id</span><span class="p">(</span><span class="n">pair</span><span class="p">))</span>
+            <span class="k">elif</span> <span class="n">label</span> <span class="o">==</span> <span class="n">CrowdJoin</span><span class="o">.</span><span class="n">NONMATCHING</span><span class="p">:</span>
+                <span class="n">cluster_graph</span><span class="o">.</span><span class="n">add_nonmatching_edge</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_id</span><span class="p">(</span><span class="n">pair</span><span class="p">))</span>
+
+        <span class="c1"># Use the cluster graph to deduce the labels of unlabeled pairs</span>
+        <span class="n">pairid_to_label</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">pair</span> <span class="ow">in</span> <span class="n">unlabeled_pairs</span><span class="p">:</span>
+            <span class="n">deduced_label</span> <span class="o">=</span> <span class="n">cluster_graph</span><span class="o">.</span><span class="n">deduce_label</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_id</span><span class="p">(</span><span class="n">pair</span><span class="p">))</span>
+            <span class="n">pairid_to_label</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_id</span><span class="p">(</span><span class="n">pair</span><span class="p">)]</span> <span class="o">=</span> <span class="n">deduced_label</span>
+
+        <span class="k">return</span> <span class="n">pairid_to_label</span>
+
+
+    <span class="k">def</span> <span class="nf">_must_crowdsourced_pairs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sorted_pairs</span><span class="p">,</span> <span class="n">pair_crowdlabel</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the pairs that must need to be crowdsourced, i.e. those cannot be deduced based on transitivity</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># Deduce the labels of &quot;sorted_pairs&quot; based on labeled pairs</span>
+        <span class="n">pairid_to_label</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_deduce_labels</span><span class="p">(</span><span class="n">sorted_pairs</span><span class="p">,</span> <span class="n">pair_crowdlabel</span><span class="p">)</span>
+
+        <span class="c1"># Identify the pairs in &quot;sorted_pairs&quot; that must require to be crowdsourced</span>
+        <span class="n">must_crowdsourced_pairs</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">cluster_graph</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__ClusterGraph</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">pair</span> <span class="ow">in</span> <span class="n">sorted_pairs</span><span class="p">:</span>
+            <span class="n">deduced_label</span> <span class="o">=</span> <span class="n">pairid_to_label</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_id</span><span class="p">(</span><span class="n">pair</span><span class="p">),</span> <span class="n">CrowdJoin</span><span class="o">.</span><span class="n">UNKNOWN</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">deduced_label</span> <span class="o">==</span> <span class="n">CrowdJoin</span><span class="o">.</span><span class="n">MATCHING</span><span class="p">:</span>
+                <span class="n">cluster_graph</span><span class="o">.</span><span class="n">add_matching_edge</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_id</span><span class="p">(</span><span class="n">pair</span><span class="p">))</span>
+            <span class="k">elif</span> <span class="n">deduced_label</span> <span class="o">==</span> <span class="n">CrowdJoin</span><span class="o">.</span><span class="n">NONMATCHING</span><span class="p">:</span>
+                <span class="n">cluster_graph</span><span class="o">.</span><span class="n">add_nonmatching_edge</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_id</span><span class="p">(</span><span class="n">pair</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">cluster_graph</span><span class="o">.</span><span class="n">deduce_label</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_id</span><span class="p">(</span><span class="n">pair</span><span class="p">))</span> <span class="o">==</span> <span class="n">CrowdJoin</span><span class="o">.</span><span class="n">UNKNOWN</span><span class="p">:</span>
+                    <span class="n">must_crowdsourced_pairs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">pair</span><span class="p">)</span>
+                <span class="n">cluster_graph</span><span class="o">.</span><span class="n">add_matching_edge</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_id</span><span class="p">(</span><span class="n">pair</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">must_crowdsourced_pairs</span>
+
+
+    <span class="k">class</span> <span class="nc">__ClusterGraph</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This class maintains a cluster graph for a labeled graph, where the label</span>
+<span class="sd">        is either matching or non-matching. The cluster graph merges the matching</span>
+<span class="sd">        vertices into the same cluster, and then, for each pair of non-matching</span>
+<span class="sd">        vertices, it adds an edge between their corresponding clusters.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">cluster_graph</span> <span class="o">=</span> <span class="p">{}</span>
+
+            <span class="c1"># The Union-Find data structure keeps track of a set of vertices</span>
+            <span class="c1"># partitioned into a number of disjoint clusters.</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">uf</span> <span class="o">=</span> <span class="n">UnionFind</span><span class="p">()</span>
+
+        <span class="k">def</span> <span class="nf">add_matching_edge</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">edge</span><span class="p">):</span>
+            <span class="n">v1</span><span class="p">,</span> <span class="n">v2</span> <span class="o">=</span> <span class="n">edge</span>
+            <span class="n">cluster_v1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">uf</span><span class="p">[</span><span class="n">v1</span><span class="p">]</span>
+            <span class="n">cluster_v2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">uf</span><span class="p">[</span><span class="n">v2</span><span class="p">]</span>
+
+            <span class="k">if</span> <span class="n">cluster_v1</span> <span class="o">==</span> <span class="n">cluster_v2</span><span class="p">:</span>
+                <span class="k">return</span>
+
+            <span class="c1"># Add cluster_v1 and cluster_v2 into the cluster graph if they do not exist</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">cluster_graph</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">cluster_v1</span><span class="p">,</span> <span class="p">{})</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">cluster_graph</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">cluster_v2</span><span class="p">,</span> <span class="p">{})</span>
+
+            <span class="c1"># Merge the adjacent vertices of cluster_v1 and cluster_v2</span>
+            <span class="n">adjacent_cluster_vset</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cluster_graph</span><span class="p">[</span><span class="n">cluster_v1</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+                                        <span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">cluster_graph</span><span class="p">[</span><span class="n">cluster_v2</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">())</span>
+
+            <span class="c1"># Delete cluster_v1 and cluster_v2 if they are in &quot;adjacent_cluster_vset&quot;</span>
+            <span class="n">adjacent_cluster_vset</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">cluster_v1</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="n">adjacent_cluster_vset</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">cluster_v2</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+            <span class="c1"># Remove cluster_v1 and cluster_v2 from the cluster graph</span>
+            <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">cluster_graph</span><span class="p">[</span><span class="n">cluster_v1</span><span class="p">]</span>
+            <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">cluster_graph</span><span class="p">[</span><span class="n">cluster_v2</span><span class="p">]</span>
+
+            <span class="c1"># Remove the edges (cluster_v1, adjacent_cluster_v) and</span>
+            <span class="c1"># (cluster_v2, adjacent_cluster_v) from the cluster graph</span>
+            <span class="k">for</span> <span class="n">adjacent_cluster_v</span> <span class="ow">in</span> <span class="n">adjacent_cluster_vset</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">cluster_graph</span><span class="p">[</span><span class="n">adjacent_cluster_v</span><span class="p">]</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">cluster_v1</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">cluster_graph</span><span class="p">[</span><span class="n">adjacent_cluster_v</span><span class="p">]</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">cluster_v2</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+            <span class="c1"># Merge cluster_v1 and cluster_v2 as merged_cluster_v</span>
+            <span class="n">merged_cluster_v</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">uf</span><span class="o">.</span><span class="n">union</span><span class="p">(</span><span class="n">cluster_v1</span><span class="p">,</span> <span class="n">cluster_v2</span><span class="p">)</span>
+            <span class="k">assert</span> <span class="n">merged_cluster_v</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">adjacent_cluster_vset</span>
+            <span class="k">assert</span> <span class="n">merged_cluster_v</span> <span class="o">==</span> <span class="n">cluster_v1</span> <span class="ow">or</span> <span class="n">merged_cluster_v</span> <span class="o">==</span> <span class="n">cluster_v2</span>
+
+            <span class="c1"># Add edges (merged_cluster_v, adjacent_cluster_v)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">cluster_graph</span><span class="p">[</span><span class="n">merged_cluster_v</span><span class="p">]</span> <span class="o">=</span> <span class="n">adjacent_cluster_vset</span>
+            <span class="k">for</span> <span class="n">adjacent_cluster_v</span> <span class="ow">in</span> <span class="n">adjacent_cluster_vset</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">cluster_graph</span><span class="p">[</span><span class="n">adjacent_cluster_v</span><span class="p">][</span><span class="n">merged_cluster_v</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+
+        <span class="k">def</span> <span class="nf">add_nonmatching_edge</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">edge</span><span class="p">):</span>
+            <span class="n">v1</span><span class="p">,</span> <span class="n">v2</span> <span class="o">=</span> <span class="n">edge</span>
+            <span class="n">cluster_v1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">uf</span><span class="p">[</span><span class="n">v1</span><span class="p">]</span>
+            <span class="n">cluster_v2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">uf</span><span class="p">[</span><span class="n">v2</span><span class="p">]</span>
+
+            <span class="k">if</span> <span class="n">cluster_v1</span> <span class="o">==</span> <span class="n">cluster_v2</span><span class="p">:</span>
+                <span class="k">return</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">cluster_graph</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">cluster_v1</span><span class="p">,</span> <span class="p">{})[</span><span class="n">cluster_v2</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">cluster_graph</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">cluster_v2</span><span class="p">,</span> <span class="p">{})[</span><span class="n">cluster_v1</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+
+        <span class="k">def</span> <span class="nf">deduce_label</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">edge</span><span class="p">):</span>
+            <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            Decide the label of the input edge based on the cluster graph</span>
+<span class="sd">            &quot;&quot;&quot;</span>
+            <span class="n">v1</span><span class="p">,</span> <span class="n">v2</span> <span class="o">=</span> <span class="n">edge</span>
+            <span class="n">cluster_v1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">uf</span><span class="p">[</span><span class="n">v1</span><span class="p">]</span>
+            <span class="n">cluster_v2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">uf</span><span class="p">[</span><span class="n">v2</span><span class="p">]</span>
+
+            <span class="k">if</span> <span class="n">cluster_v1</span> <span class="o">==</span> <span class="n">cluster_v2</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">CrowdJoin</span><span class="o">.</span><span class="n">MATCHING</span>
+            <span class="k">elif</span> <span class="n">cluster_v1</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">cluster_graph</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">cluster_v2</span><span class="p">,</span> <span class="p">[]):</span>
+                <span class="k">return</span> <span class="n">CrowdJoin</span><span class="o">.</span><span class="n">NONMATCHING</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">CrowdJoin</span><span class="o">.</span><span class="n">UNKNOWN</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">Reprowd 0.1 documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &copy; Copyright 2016, SFU-DB.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.5.
+    </div>
+  </body>
+</html>

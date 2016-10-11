@@ -1,6 +1,9 @@
 reprowd.presenter package
 =================================
-
+reprowd.presenter.base module
+-----------------------------------------
+.. autoclass:: reprowd.presenter.base.BasePresenter
+    :members:
 
 reprowd.presenter.image module
 ------------------------------------------

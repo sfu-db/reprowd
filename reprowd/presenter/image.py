@@ -6,6 +6,21 @@ class ImageLabel (BasePresenter):
         ImageLabel is a presenter class direved from base presenter class. It is attacted with project.
         ImageLabel basically is used for image label tasks.
 
+        In order to load the images correctly, the map function of set_presenter function should be
+        consistent with the picture format in Javascript part of template.
+
+        For example,
+
+        >>> map_func = lambda obj: {'url_b':obj}
+
+        this means the key of your image url in task info json is 'url_b', which will be passed to Javascript
+        part of template.
+
+        Thus, in pybossa.taskLoaded function of Javascript part. The key 'url_b' should be used to bind a
+        src attribute to a img tag.
+
+        >>> img.attr('src', task.info.url_b).css('height', 460);
+
     """
     def __init__(self):
         """
@@ -16,12 +31,12 @@ class ImageLabel (BasePresenter):
 
             >>> presenter = ImageLabel();
             >>> presenter.set_name("Do you see a Human face in this picture?")
-            >>> crowddata = cc.CrowdData(object_list, table_name = "test") \
+            >>> crowddata = cc.CrowdData(object_list, table_name = "test") \\  #doctest: +SKIP
             ...               .set_presenter(presenter, map_func)
             >>> crowddata.presenter
             <reprowd.presenter.image.ImageLabel object at 0x...>
         """
-        self.question = "123"
+        self.question = ""
         self.name = "Image Labeling"
         self.short_name = "imglabel"
         self.description = "Help us to label an image"
@@ -220,6 +235,21 @@ class ImageCmp(BasePresenter):
         ImageCmp is a presenter class direved from base presenter class. It is attacted with project.
         ImageCmp basically is used for a pair of images comparing tasks.
 
+        In order to load the images correctly, the map function of set_presenter function should be
+        consistent with the picture format in Javascript part of template.
+
+        For example,
+
+        >>> map_func = lambda obj: {'pic1': obj[0], 'pic2': obj[1]}
+
+        this means the keys of your images url in task info json are 'pic1' and 'pic2', which will be
+        passed to Javascript part of template.
+
+        Thus, in pybossa.taskLoaded function of Javascript part. The keys 'pic1' and 'pic2' should be
+        used to bind src attributes to two img tag2.
+
+        >>> img1.attr('src', task.info.pic1).css('height', 300);
+        >>> img2.attr('src', task.info.pic2).css('height', 300);
     """
     def __init__(self):
         """
@@ -230,7 +260,7 @@ class ImageCmp(BasePresenter):
 
             >>> presenter = ImageCmp();
             >>> presenter.set_name("Which picture is more beautiful?")
-            >>> crowddata = cc.CrowdData(object_list, table_name = "test") \
+            >>> crowddata = cc.CrowdData(object_list, table_name = "test") \\  #doctest: +SKIP
             ...               .set_presenter(presenter, map_func)
             >>> crowddata.presenter
             <reprowd.presenter.image.ImageCmp object at 0x...>

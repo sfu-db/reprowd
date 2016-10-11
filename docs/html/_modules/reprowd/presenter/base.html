@@ -50,43 +50,59 @@
 <span></span><span class="c1"># -*- coding: utf-8 -*-</span>
 <span class="kn">import</span> <span class="nn">abc</span>
 
-<span class="k">class</span> <span class="nc">BasePresenter</span><span class="p">:</span>
-    <span class="n">__metaclass__</span>  <span class="o">=</span> <span class="n">abc</span><span class="o">.</span><span class="n">ABCMeta</span>
+<div class="viewcode-block" id="BasePresenter"><a class="viewcode-back" href="../../../presenter.html#reprowd.presenter.base.BasePresenter">[docs]</a><span class="k">class</span> <span class="nc">BasePresenter</span><span class="p">:</span>
 
-    <span class="k">def</span> <span class="nf">set_name</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        BasePresenter is a base class of presenter.</span>
+<span class="sd">        We derive ImageLabel, ImageCmp and TextCmp three preseter classes from this base class.</span>
+<span class="sd">        Users can also use it to define own customized presenters.</span>
+
+<span class="sd">        &gt;&gt;&gt; customized_presenter = BasePresenter</span>
+<span class="sd">        &gt;&gt;&gt; customized_presenter.set_name(&quot;image Labeling&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; customized_presenter.set_description(&quot;Help us to label an image&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; customized_presenter.set_short_name(&quot;imagelabel&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; customized_presenter.set_question(&quot;Do you see a human face in this picture?&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; customized_presenter.set_template(string_of_HTML)</span>
+<span class="sd">        &gt;&gt;&gt; crowddata = cc.CrowdData(object_list, table_name = &quot;test&quot;) \\  #doctest: +SKIP</span>
+<span class="sd">        ...               .set_presenter(presenter, map_func)</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">__metaclass__</span>  <span class="o">=</span> <span class="n">abc</span><span class="o">.</span><span class="n">ABCMeta</span>
+<div class="viewcode-block" id="BasePresenter.set_name"><a class="viewcode-back" href="../../../presenter.html#reprowd.presenter.base.BasePresenter.set_name">[docs]</a>    <span class="k">def</span> <span class="nf">set_name</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">            Set the presenter a new name, which will be the name of attached project.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
-        <span class="k">return</span> <span class="bp">self</span>
+        <span class="k">return</span> <span class="bp">self</span></div>
 
-    <span class="k">def</span> <span class="nf">set_description</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">description</span><span class="p">):</span>
+<div class="viewcode-block" id="BasePresenter.set_description"><a class="viewcode-back" href="../../../presenter.html#reprowd.presenter.base.BasePresenter.set_description">[docs]</a>    <span class="k">def</span> <span class="nf">set_description</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">description</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">            Set the presenter a new description, which will be the description of attached project.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">description</span> <span class="o">=</span> <span class="n">description</span>
-        <span class="k">return</span> <span class="bp">self</span>
+        <span class="k">return</span> <span class="bp">self</span></div>
 
-    <span class="k">def</span> <span class="nf">set_template</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">template</span><span class="p">):</span>
+<div class="viewcode-block" id="BasePresenter.set_template"><a class="viewcode-back" href="../../../presenter.html#reprowd.presenter.base.BasePresenter.set_template">[docs]</a>    <span class="k">def</span> <span class="nf">set_template</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">template</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">            Set the presenter a new HTML file.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">template</span> <span class="o">=</span> <span class="n">template</span>
-        <span class="k">return</span> <span class="bp">self</span>
+        <span class="k">return</span> <span class="bp">self</span></div>
 
-    <span class="k">def</span> <span class="nf">set_short_name</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">short_name</span><span class="p">):</span>
+<div class="viewcode-block" id="BasePresenter.set_short_name"><a class="viewcode-back" href="../../../presenter.html#reprowd.presenter.base.BasePresenter.set_short_name">[docs]</a>    <span class="k">def</span> <span class="nf">set_short_name</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">short_name</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">            Set the presenter a new short_name, which will be the short_name of attached project.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">short_name</span> <span class="o">=</span> <span class="n">short_name</span>
-        <span class="k">return</span> <span class="bp">self</span>
+        <span class="k">return</span> <span class="bp">self</span></div>
 
-    <span class="k">def</span> <span class="nf">set_question</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">question</span><span class="p">):</span>
+<div class="viewcode-block" id="BasePresenter.set_question"><a class="viewcode-back" href="../../../presenter.html#reprowd.presenter.base.BasePresenter.set_question">[docs]</a>    <span class="k">def</span> <span class="nf">set_question</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">question</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">            Set the presenter a question, which will be the question of attached task presented on the HTML file.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">question</span> <span class="o">=</span> <span class="n">question</span>
-        <span class="k">return</span> <span class="bp">self</span>
+        <span class="k">return</span> <span class="bp">self</span></div></div>
 </pre></div>
 
           </div>

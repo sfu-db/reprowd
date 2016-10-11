@@ -55,6 +55,21 @@
 <span class="sd">        ImageLabel is a presenter class direved from base presenter class. It is attacted with project.</span>
 <span class="sd">        ImageLabel basically is used for image label tasks.</span>
 
+<span class="sd">        In order to load the images correctly, the map function of set_presenter function should be</span>
+<span class="sd">        consistent with the picture format in Javascript part of template.</span>
+
+<span class="sd">        For example,</span>
+
+<span class="sd">        &gt;&gt;&gt; map_func = lambda obj: {&#39;url_b&#39;:obj}</span>
+
+<span class="sd">        this means the key of your image url in task info json is &#39;url_b&#39;, which will be passed to Javascript</span>
+<span class="sd">        part of template.</span>
+
+<span class="sd">        Thus, in pybossa.taskLoaded function of Javascript part. The key &#39;url_b&#39; should be used to bind a</span>
+<span class="sd">        src attribute to a img tag.</span>
+
+<span class="sd">        &gt;&gt;&gt; img.attr(&#39;src&#39;, task.info.url_b).css(&#39;height&#39;, 460);</span>
+
 <span class="sd">    &quot;&quot;&quot;</span>
 <div class="viewcode-block" id="ImageLabel.__init__"><a class="viewcode-back" href="../../../presenter.html#reprowd.presenter.image.ImageLabel.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -65,12 +80,12 @@
 
 <span class="sd">            &gt;&gt;&gt; presenter = ImageLabel();</span>
 <span class="sd">            &gt;&gt;&gt; presenter.set_name(&quot;Do you see a Human face in this picture?&quot;)</span>
-<span class="sd">            &gt;&gt;&gt; crowddata = cc.CrowdData(object_list, table_name = &quot;test&quot;) \</span>
+<span class="sd">            &gt;&gt;&gt; crowddata = cc.CrowdData(object_list, table_name = &quot;test&quot;) \\  #doctest: +SKIP</span>
 <span class="sd">            ...               .set_presenter(presenter, map_func)</span>
 <span class="sd">            &gt;&gt;&gt; crowddata.presenter</span>
 <span class="sd">            &lt;reprowd.presenter.image.ImageLabel object at 0x...&gt;</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">question</span> <span class="o">=</span> <span class="s2">&quot;123&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">question</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;Image Labeling&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">short_name</span> <span class="o">=</span> <span class="s2">&quot;imglabel&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">description</span> <span class="o">=</span> <span class="s2">&quot;Help us to label an image&quot;</span>
@@ -269,6 +284,21 @@
 <span class="sd">        ImageCmp is a presenter class direved from base presenter class. It is attacted with project.</span>
 <span class="sd">        ImageCmp basically is used for a pair of images comparing tasks.</span>
 
+<span class="sd">        In order to load the images correctly, the map function of set_presenter function should be</span>
+<span class="sd">        consistent with the picture format in Javascript part of template.</span>
+
+<span class="sd">        For example,</span>
+
+<span class="sd">        &gt;&gt;&gt; map_func = lambda obj: {&#39;pic1&#39;: obj[0], &#39;pic2&#39;: obj[1]}</span>
+
+<span class="sd">        this means the keys of your images url in task info json are &#39;pic1&#39; and &#39;pic2&#39;, which will be</span>
+<span class="sd">        passed to Javascript part of template.</span>
+
+<span class="sd">        Thus, in pybossa.taskLoaded function of Javascript part. The keys &#39;pic1&#39; and &#39;pic2&#39; should be</span>
+<span class="sd">        used to bind src attributes to two img tag2.</span>
+
+<span class="sd">        &gt;&gt;&gt; img1.attr(&#39;src&#39;, task.info.pic1).css(&#39;height&#39;, 300);</span>
+<span class="sd">        &gt;&gt;&gt; img2.attr(&#39;src&#39;, task.info.pic2).css(&#39;height&#39;, 300);</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 <div class="viewcode-block" id="ImageCmp.__init__"><a class="viewcode-back" href="../../../presenter.html#reprowd.presenter.image.ImageCmp.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -279,7 +309,7 @@
 
 <span class="sd">            &gt;&gt;&gt; presenter = ImageCmp();</span>
 <span class="sd">            &gt;&gt;&gt; presenter.set_name(&quot;Which picture is more beautiful?&quot;)</span>
-<span class="sd">            &gt;&gt;&gt; crowddata = cc.CrowdData(object_list, table_name = &quot;test&quot;) \</span>
+<span class="sd">            &gt;&gt;&gt; crowddata = cc.CrowdData(object_list, table_name = &quot;test&quot;) \\  #doctest: +SKIP</span>
 <span class="sd">            ...               .set_presenter(presenter, map_func)</span>
 <span class="sd">            &gt;&gt;&gt; crowddata.presenter</span>
 <span class="sd">            &lt;reprowd.presenter.image.ImageCmp object at 0x...&gt;</span>

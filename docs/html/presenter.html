@@ -50,6 +50,57 @@
             
   <div class="section" id="reprowd-presenter-package">
 <h1>reprowd.presenter package<a class="headerlink" href="#reprowd-presenter-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="reprowd-presenter-base-module">
+<h2>reprowd.presenter.base module<a class="headerlink" href="#reprowd-presenter-base-module" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="reprowd.presenter.base.BasePresenter">
+<em class="property">class </em><code class="descclassname">reprowd.presenter.base.</code><code class="descname">BasePresenter</code><a class="reference internal" href="_modules/reprowd/presenter/base.html#BasePresenter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#reprowd.presenter.base.BasePresenter" title="Permalink to this definition">¶</a></dt>
+<dd><p>BasePresenter is a base class of presenter.
+We derive ImageLabel, ImageCmp and TextCmp three preseter classes from this base class.
+Users can also use it to define own customized presenters.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">customized_presenter</span> <span class="o">=</span> <span class="n">BasePresenter</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">customized_presenter</span><span class="o">.</span><span class="n">set_name</span><span class="p">(</span><span class="s2">&quot;image Labeling&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">customized_presenter</span><span class="o">.</span><span class="n">set_description</span><span class="p">(</span><span class="s2">&quot;Help us to label an image&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">customized_presenter</span><span class="o">.</span><span class="n">set_short_name</span><span class="p">(</span><span class="s2">&quot;imagelabel&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">customized_presenter</span><span class="o">.</span><span class="n">set_question</span><span class="p">(</span><span class="s2">&quot;Do you see a human face in this picture?&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">customized_presenter</span><span class="o">.</span><span class="n">set_template</span><span class="p">(</span><span class="n">string_of_HTML</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">crowddata</span> <span class="o">=</span> <span class="n">cc</span><span class="o">.</span><span class="n">CrowdData</span><span class="p">(</span><span class="n">object_list</span><span class="p">,</span> <span class="n">table_name</span> <span class="o">=</span> <span class="s2">&quot;test&quot;</span><span class="p">)</span> \  
+<span class="gp">... </span>              <span class="o">.</span><span class="n">set_presenter</span><span class="p">(</span><span class="n">presenter</span><span class="p">,</span> <span class="n">map_func</span><span class="p">)</span>
+</pre></div>
+</div>
+<dl class="method">
+<dt id="reprowd.presenter.base.BasePresenter.set_name">
+<code class="descname">set_name</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/reprowd/presenter/base.html#BasePresenter.set_name"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#reprowd.presenter.base.BasePresenter.set_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the presenter a new name, which will be the name of attached project.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="reprowd.presenter.base.BasePresenter.set_description">
+<code class="descname">set_description</code><span class="sig-paren">(</span><em>description</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/reprowd/presenter/base.html#BasePresenter.set_description"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#reprowd.presenter.base.BasePresenter.set_description" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the presenter a new description, which will be the description of attached project.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="reprowd.presenter.base.BasePresenter.set_template">
+<code class="descname">set_template</code><span class="sig-paren">(</span><em>template</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/reprowd/presenter/base.html#BasePresenter.set_template"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#reprowd.presenter.base.BasePresenter.set_template" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the presenter a new HTML file.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="reprowd.presenter.base.BasePresenter.set_short_name">
+<code class="descname">set_short_name</code><span class="sig-paren">(</span><em>short_name</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/reprowd/presenter/base.html#BasePresenter.set_short_name"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#reprowd.presenter.base.BasePresenter.set_short_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the presenter a new short_name, which will be the short_name of attached project.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="reprowd.presenter.base.BasePresenter.set_question">
+<code class="descname">set_question</code><span class="sig-paren">(</span><em>question</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/reprowd/presenter/base.html#BasePresenter.set_question"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#reprowd.presenter.base.BasePresenter.set_question" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the presenter a question, which will be the question of attached task presented on the HTML file.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
 <div class="section" id="reprowd-presenter-image-module">
 <h2>reprowd.presenter.image module<a class="headerlink" href="#reprowd-presenter-image-module" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
@@ -57,6 +108,19 @@
 <em class="property">class </em><code class="descclassname">reprowd.presenter.image.</code><code class="descname">ImageLabel</code><a class="reference internal" href="_modules/reprowd/presenter/image.html#ImageLabel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#reprowd.presenter.image.ImageLabel" title="Permalink to this definition">¶</a></dt>
 <dd><p>ImageLabel is a presenter class direved from base presenter class. It is attacted with project.
 ImageLabel basically is used for image label tasks.</p>
+<p>In order to load the images correctly, the map function of set_presenter function should be
+consistent with the picture format in Javascript part of template.</p>
+<p>For example,</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">map_func</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">obj</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;url_b&#39;</span><span class="p">:</span><span class="n">obj</span><span class="p">}</span>
+</pre></div>
+</div>
+<p>this means the key of your image url in task info json is &#8216;url_b&#8217;, which will be passed to Javascript
+part of template.</p>
+<p>Thus, in pybossa.taskLoaded function of Javascript part. The key &#8216;url_b&#8217; should be used to bind a
+src attribute to a img tag.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">img</span><span class="o">.</span><span class="n">attr</span><span class="p">(</span><span class="s1">&#39;src&#39;</span><span class="p">,</span> <span class="n">task</span><span class="o">.</span><span class="n">info</span><span class="o">.</span><span class="n">url_b</span><span class="p">)</span><span class="o">.</span><span class="n">css</span><span class="p">(</span><span class="s1">&#39;height&#39;</span><span class="p">,</span> <span class="mi">460</span><span class="p">);</span>
+</pre></div>
+</div>
 <dl class="method">
 <dt id="reprowd.presenter.image.ImageLabel.__init__">
 <code class="descname">__init__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/reprowd/presenter/image.html#ImageLabel.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#reprowd.presenter.image.ImageLabel.__init__" title="Permalink to this definition">¶</a></dt>
@@ -66,7 +130,8 @@ The template attribute is a string of HTML file, which is the content of present
 check <a class="reference external" href="http://docs.pybossa.com/en/latest/user/tutorial.html#presenting-the-tasks-to-the-user">http://docs.pybossa.com/en/latest/user/tutorial.html#presenting-the-tasks-to-the-user</a>.</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">presenter</span> <span class="o">=</span> <span class="n">ImageLabel</span><span class="p">();</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">presenter</span><span class="o">.</span><span class="n">set_name</span><span class="p">(</span><span class="s2">&quot;Do you see a Human face in this picture?&quot;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">crowddata</span> <span class="o">=</span> <span class="n">cc</span><span class="o">.</span><span class="n">CrowdData</span><span class="p">(</span><span class="n">object_list</span><span class="p">,</span> <span class="n">table_name</span> <span class="o">=</span> <span class="s2">&quot;test&quot;</span><span class="p">)</span>             <span class="o">...</span>               <span class="o">.</span><span class="n">set_presenter</span><span class="p">(</span><span class="n">presenter</span><span class="p">,</span> <span class="n">map_func</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">crowddata</span> <span class="o">=</span> <span class="n">cc</span><span class="o">.</span><span class="n">CrowdData</span><span class="p">(</span><span class="n">object_list</span><span class="p">,</span> <span class="n">table_name</span> <span class="o">=</span> <span class="s2">&quot;test&quot;</span><span class="p">)</span> \  
+<span class="gp">... </span>              <span class="o">.</span><span class="n">set_presenter</span><span class="p">(</span><span class="n">presenter</span><span class="p">,</span> <span class="n">map_func</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">crowddata</span><span class="o">.</span><span class="n">presenter</span>
 <span class="go">&lt;reprowd.presenter.image.ImageLabel object at 0x...&gt;</span>
 </pre></div>
@@ -110,6 +175,20 @@ check <a class="reference external" href="http://docs.pybossa.com/en/latest/user
 <em class="property">class </em><code class="descclassname">reprowd.presenter.image.</code><code class="descname">ImageCmp</code><a class="reference internal" href="_modules/reprowd/presenter/image.html#ImageCmp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#reprowd.presenter.image.ImageCmp" title="Permalink to this definition">¶</a></dt>
 <dd><p>ImageCmp is a presenter class direved from base presenter class. It is attacted with project.
 ImageCmp basically is used for a pair of images comparing tasks.</p>
+<p>In order to load the images correctly, the map function of set_presenter function should be
+consistent with the picture format in Javascript part of template.</p>
+<p>For example,</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">map_func</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">obj</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;pic1&#39;</span><span class="p">:</span> <span class="n">obj</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s1">&#39;pic2&#39;</span><span class="p">:</span> <span class="n">obj</span><span class="p">[</span><span class="mi">1</span><span class="p">]}</span>
+</pre></div>
+</div>
+<p>this means the keys of your images url in task info json are &#8216;pic1&#8217; and &#8216;pic2&#8217;, which will be
+passed to Javascript part of template.</p>
+<p>Thus, in pybossa.taskLoaded function of Javascript part. The keys &#8216;pic1&#8217; and &#8216;pic2&#8217; should be
+used to bind src attributes to two img tag2.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">img1</span><span class="o">.</span><span class="n">attr</span><span class="p">(</span><span class="s1">&#39;src&#39;</span><span class="p">,</span> <span class="n">task</span><span class="o">.</span><span class="n">info</span><span class="o">.</span><span class="n">pic1</span><span class="p">)</span><span class="o">.</span><span class="n">css</span><span class="p">(</span><span class="s1">&#39;height&#39;</span><span class="p">,</span> <span class="mi">300</span><span class="p">);</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">img2</span><span class="o">.</span><span class="n">attr</span><span class="p">(</span><span class="s1">&#39;src&#39;</span><span class="p">,</span> <span class="n">task</span><span class="o">.</span><span class="n">info</span><span class="o">.</span><span class="n">pic2</span><span class="p">)</span><span class="o">.</span><span class="n">css</span><span class="p">(</span><span class="s1">&#39;height&#39;</span><span class="p">,</span> <span class="mi">300</span><span class="p">);</span>
+</pre></div>
+</div>
 <dl class="method">
 <dt id="reprowd.presenter.image.ImageCmp.__init__">
 <code class="descname">__init__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/reprowd/presenter/image.html#ImageCmp.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#reprowd.presenter.image.ImageCmp.__init__" title="Permalink to this definition">¶</a></dt>
@@ -119,7 +198,8 @@ The template attribute is a string of HTML file, which is the content of present
 check <a class="reference external" href="http://docs.pybossa.com/en/latest/user/tutorial.html#presenting-the-tasks-to-the-user">http://docs.pybossa.com/en/latest/user/tutorial.html#presenting-the-tasks-to-the-user</a>.</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">presenter</span> <span class="o">=</span> <span class="n">ImageCmp</span><span class="p">();</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">presenter</span><span class="o">.</span><span class="n">set_name</span><span class="p">(</span><span class="s2">&quot;Which picture is more beautiful?&quot;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">crowddata</span> <span class="o">=</span> <span class="n">cc</span><span class="o">.</span><span class="n">CrowdData</span><span class="p">(</span><span class="n">object_list</span><span class="p">,</span> <span class="n">table_name</span> <span class="o">=</span> <span class="s2">&quot;test&quot;</span><span class="p">)</span>             <span class="o">...</span>               <span class="o">.</span><span class="n">set_presenter</span><span class="p">(</span><span class="n">presenter</span><span class="p">,</span> <span class="n">map_func</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">crowddata</span> <span class="o">=</span> <span class="n">cc</span><span class="o">.</span><span class="n">CrowdData</span><span class="p">(</span><span class="n">object_list</span><span class="p">,</span> <span class="n">table_name</span> <span class="o">=</span> <span class="s2">&quot;test&quot;</span><span class="p">)</span> \  
+<span class="gp">... </span>              <span class="o">.</span><span class="n">set_presenter</span><span class="p">(</span><span class="n">presenter</span><span class="p">,</span> <span class="n">map_func</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">crowddata</span><span class="o">.</span><span class="n">presenter</span>
 <span class="go">&lt;reprowd.presenter.image.ImageCmp object at 0x...&gt;</span>
 </pre></div>
@@ -170,6 +250,7 @@ check <a class="reference external" href="http://docs.pybossa.com/en/latest/user
   <h3><a href="index.html">Table Of Contents</a></h3>
   <ul>
 <li><a class="reference internal" href="#">reprowd.presenter package</a><ul>
+<li><a class="reference internal" href="#reprowd-presenter-base-module">reprowd.presenter.base module</a></li>
 <li><a class="reference internal" href="#reprowd-presenter-image-module">reprowd.presenter.image module</a></li>
 </ul>
 </li>

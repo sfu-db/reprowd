@@ -170,7 +170,7 @@ class SimJoin:
         # Sort the elements in each joinkey in decreasing order of IDF
         sk_list = []
         for k, o in k_o_list:
-            sk = sorted(k, key=lambda x: (self._get_idf(o), o), reverse=True)
+            sk = sorted(k, key=lambda x: (self._get_idf(k), k), reverse=True)
             sk_list.append(sk)
 
         # (1) Generate candidate pairs whose prefixes share elements;

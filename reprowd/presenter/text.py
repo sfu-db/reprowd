@@ -146,27 +146,55 @@ function loadUserProgress() {
 
 function processText(a, b) {
     var keyList = [];
+    var dica = {}, dicb = {};
     for (var i in a) {
-        if (keyList.indexOf(i) == -1) {
-            keyList.push(i)
-        }
+        console.log(a[i]);
+        dica[a[i][0]] = a[i][1];
     }
     for (var i in b) {
-        if (keyList.indexOf(i) == -1) {
-            keyList.push(i)
+        dicb[b[i][0]] = b[i][1];
+    }
+
+    var lena = a.length;
+    var lenb = b.length;
+    var index;
+
+    for (index = 0; index < Math.min(lena, lenb); index++) {
+        if (keyList.indexOf(a[index][0]) == -1) {
+            keyList.push(a[index][0]);
+        }
+
+        if (keyList.indexOf(b[index][0]) == -1) {
+            keyList.push(b[index][0]);
         }
     }
 
-    for (var i in keyList) {
-        console.log(! (keyList[i] in a));
-        if (! (keyList[i] in a)) {
-            a[keyList[i]] = "";
-        }
-        if (! (keyList[i] in b)) {
-            b[keyList[i]] = "";
+    if (index < lena - 1) {
+        for (var i = index; i < lena; i++) {
+            if (keyList.indexOf(a[i][0]) == -1) {
+                keyList.push(a[i][0]);
+            }
         }
     }
-    var info = [a, b, keyList];
+
+    if (index < lenb - 1) {
+        for (var i = index; i < lenb; i++) {
+            if (keyList.indexOf(b[i][0]) == -1) {
+                keyList.push(b[i][0]);
+            }
+        }
+    }
+
+
+    for (var i in keyList) {
+        if (! (keyList[i] in dica)) {
+            dica[keyList[i]] = "";
+        }
+        if (! (keyList[i] in dicb)) {
+            dicb[keyList[i]] = "";
+        }
+    }
+    var info = [dica, dicb, keyList];
     return info;
 }
 
@@ -186,7 +214,7 @@ pybossa.taskLoaded(function(task, deferred) {
                     '<td>' + '<font size="20">' +task.info.obj2 + '</font></td>' +
                     '</tr>');
         var tableString = '<tr>' +
-                    '<th><font size="5">Attributes</th><th><font size="5">Restaurant 1</th><th><font size="5">Restaurant 2</th>' +
+                    '<th><font size="5">Attributes</th><th><font size="5">Record 1</th><th><font size="5">Record 2</th>' +
                     '</tr>';
         for (var i = 0; i < keyList.length; i++) {
             var rowString = '<tr>' +
@@ -214,6 +242,7 @@ pybossa.presentTask(function(task, deferred) {
         $('table,th,td').css('border', '2px solid black');
         $('table').css('border-collapse','separate');
         $('table').css('border-spacing','2px');
+        $('table').css('width','550px');
         // $("#photo-link").attr("href", task.info.link);
         $('#task-id').html(task.id);
         $('.btn-answer').off('click').on('click', function(evt) {
@@ -234,12 +263,32 @@ pybossa.presentTask(function(task, deferred) {
             }
         });
         pybossaNotify("Loading picture...", false, "loading");
+        url = window.location.href;
+        index = url.indexOf(task.id.toString());
+        pre_id = task.id;
     }
     else {
-        $(".skeleton").hide();
-        pybossaNotify("Loading picture...", false, "loading");
-        pybossaNotify("Thanks! You have participated in all available tasks. Enjoy some of your time!", true, "info");
-    };
+            url = window.location.href;
+            var url_list = url.split('/');
+            if (url_list[url_list.length - 1] == 'newtask') {
+                $(".skeleton").hide();
+                pybossaNotify("Loading picture...", false, "loading");
+                pybossaNotify("Thanks! You have participated in all available tasks. Enjoy some of your time!", true, "info");
+                return;
+            }
+            var new_url = url.substring(0, index) + (pre_id + 1).toString();
+            var query_url = url_list[0] + "//" + url_list[2]+ "/api/task/" + (pre_id + 1).toString();
+            var i = 0;
+            sleep(10000).then(() => {
+                $.get(query_url, function() {
+                    window.location.href = new_url;
+                }).fail(function(){
+                    $(".skeleton").hide();
+                    pybossaNotify("Loading picture...", false, "loading");
+                    pybossaNotify("Thanks! You have participated in all available tasks. Enjoy some of your time!", true, "info");
+                });
+            });
+                }
 
 
 });

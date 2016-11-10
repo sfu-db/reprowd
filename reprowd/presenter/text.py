@@ -228,7 +228,9 @@ pybossa.taskLoaded(function(task, deferred) {
         deferred.resolve(task);
     }
 });
-
+function sleep (time) {
+  return new Promise((resolve) => setTimeout(resolve, time));
+}
 pybossa.presentTask(function(task, deferred) {
     if ( !$.isEmptyObject(task) ) {
         loadUserProgress();

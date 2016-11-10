@@ -2,3 +2,4 @@
 *.db
 _build
 max.py
+test.py

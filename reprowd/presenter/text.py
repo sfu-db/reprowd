@@ -168,6 +168,7 @@ function processText(a, b) {
             keyList.push(b[index][0]);
         }
     }
+    index = index - 1;
 
     if (index < lena - 1) {
         for (var i = index; i < lena; i++) {

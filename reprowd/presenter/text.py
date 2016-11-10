@@ -209,18 +209,14 @@ pybossa.taskLoaded(function(task, deferred) {
         var a = info[0];
         var b = info[1];
         var keyList = info[2];
-        var tr = $('<tr>' +
-                    '<td>' + '<font size="20">' + task.info.obj1 + '</font></td>' +
-                    '<td>' + '<font size="20">' +task.info.obj2 + '</font></td>' +
-                    '</tr>');
         var tableString = '<tr>' +
-                    '<th><font size="5">Attributes</th><th><font size="5">Record 1</th><th><font size="5">Record 2</th>' +
+                    '<th width="150px"><font size="5">Attributes</th><th width="200px"><font size="5">Record 1</th><th width="200px"><font size="5">Record 2</th>' +
                     '</tr>';
         for (var i = 0; i < keyList.length; i++) {
             var rowString = '<tr>' +
-                        '<td>' + '<font size="5">' + keyList[i] + '</td>' +
-                        '<td>' + '<font size="5">' + a[keyList[i]] + '</td>' +
-                        '<td>' + '<font size="5">' + b[keyList[i]] + '</td>' +
+                        '<td width="150px">' + '<font size="5">' + keyList[i] + '</td>' +
+                        '<td width="200px">' + '<font size="5">' + a[keyList[i]] + '</td>' +
+                        '<td width="200px">' + '<font size="5">' + b[keyList[i]] + '</td>' +
                         '</tr>'
             tableString = tableString + rowString;
         }

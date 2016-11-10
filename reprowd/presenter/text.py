@@ -44,7 +44,7 @@ class TextCmp (BasePresenter):
         <!-- <a id="photo-link" href="#">
             <img id="photo" src="http://i.imgur.com/GeHxzb7.png" style="max-width=100%">
         </a> -->
-        <table border="1">
+        <table id = "maintable" style = "border: 1px solid black;">
           <tr id = "object-list">
             <td>Loading</td>
             <td>Loading</td>
@@ -144,17 +144,60 @@ function loadUserProgress() {
     });
 }
 
+function processText(a, b) {
+    var keyList = [];
+    for (var i in a) {
+        if (keyList.indexOf(i) == -1) {
+            keyList.push(i)
+        }
+    }
+    for (var i in b) {
+        if (keyList.indexOf(i) == -1) {
+            keyList.push(i)
+        }
+    }
+
+    for (var i in keyList) {
+        console.log(! (keyList[i] in a));
+        if (! (keyList[i] in a)) {
+            a[keyList[i]] = "";
+        }
+        if (! (keyList[i] in b)) {
+            b[keyList[i]] = "";
+        }
+    }
+    var info = [a, b, keyList];
+    return info;
+}
+
 pybossa.taskLoaded(function(task, deferred) {
     if ( !$.isEmptyObject(task) ) {
         // load image from flickr
         deferred.resolve(task);
         console.log(task.info);
-
+        var obj1 = task.info.obj1;
+        var obj2 = task.info.obj2;
+        var info = processText(obj1,obj2);
+        var a = info[0];
+        var b = info[1];
+        var keyList = info[2];
         var tr = $('<tr>' +
                     '<td>' + '<font size="20">' + task.info.obj1 + '</font></td>' +
                     '<td>' + '<font size="20">' +task.info.obj2 + '</font></td>' +
                     '</tr>');
-        task.info.tr = tr;
+        var tableString = '<tr>' +
+                    '<th><font size="5">Attributes</th><th><font size="5">Restaurant 1</th><th><font size="5">Restaurant 2</th>' +
+                    '</tr>';
+        for (var i = 0; i < keyList.length; i++) {
+            var rowString = '<tr>' +
+                        '<td>' + '<font size="5">' + keyList[i] + '</td>' +
+                        '<td>' + '<font size="5">' + a[keyList[i]] + '</td>' +
+                        '<td>' + '<font size="5">' + b[keyList[i]] + '</td>' +
+                        '</tr>'
+            tableString = tableString + rowString;
+        }
+        var table = $(tableString);
+        task.info.tr = table;
     }
     else {
         console.log("123");
@@ -167,7 +210,10 @@ pybossa.presentTask(function(task, deferred) {
         loadUserProgress();
         i18n_translate();
         // $('#photo-link').html('').append(task.info.image);
-        $('#object-list').html('').append(task.info.tr);
+        $('#maintable').html('').append(task.info.tr);
+        $('table,th,td').css('border', '2px solid black');
+        $('table').css('border-collapse','separate');
+        $('table').css('border-spacing','2px');
         // $("#photo-link").attr("href", task.info.link);
         $('#task-id').html(task.id);
         $('.btn-answer').off('click').on('click', function(evt) {

@@ -29,12 +29,20 @@ def jaccard(s, t):
     else:
         return intersect *1.0/union
 
+def jaccard_w(s, t, lower_case = True, alphanum_only = True):
+    return jaccard(wordset(s, lower_case, alphanum_only), \
+                            wordset(t, lower_case, alphanum_only))
+
+
+def jaccard_g(s, t, gram_size, lower_case = True, alphanum_only = True):
+    return jaccard(gramset(s, gram_size, lower_case, alphanum_only), \
+                            gramset(t, gram_size, lower_case, alphanum_only))
 
 def editsim(s, t):
-    n = len(t)
-    m = len(s)
+    n = len(s)
+    m = len(t)
 
-    dist = [[0 for i in range(m+1)] for j in range(n+1)]
+    dist = [[0 for j in range(m+1)] for i in range(n+1)]
 
     for i in range(1,n+1):
         dist[i][0] = dist[i-1][0] + 1
@@ -46,7 +54,7 @@ def editsim(s, t):
         for j in range(1,m+1):
            dist[i][j] = min(dist[i-1][j]+1, \
                                           dist[i][j-1]+1,
-                                dist[i-1][j-1]+1 if s[j-1] == t[i-1] else dist[i-1][j-1])
+                                dist[i-1][j-1] if s[i-1] == t[j-1] else dist[i-1][j-1]+1)
 
     return 1- dist[n][m]*1.0/max(m, n)
 
@@ -170,7 +178,7 @@ class SimJoin:
         # Sort the elements in each joinkey in decreasing order of IDF
         sk_list = []
         for k, o in k_o_list:
-            sk = sorted(k, key=lambda x: (self._get_idf(k), k), reverse=True)
+            sk = sorted(k, key=lambda x: (self._get_idf(x), x), reverse=True)
             sk_list.append(sk)
 
         # (1) Generate candidate pairs whose prefixes share elements;
